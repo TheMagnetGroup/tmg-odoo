@@ -3,8 +3,7 @@
     'name': "TMG Helpdesk Extensions",
 
     'summary': """
-        Extends the Odoo Helpdesk module to:
-            * Check for tickets in the Urgent team that fails SLA policies
+        Extends the Odoo Helpdesk module to check for tickets in the Urgent team that fails SLA policies
     """,
 
     'sequence' : 2,
