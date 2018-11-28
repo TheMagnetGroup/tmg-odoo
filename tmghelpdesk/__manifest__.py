@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 {
-    'name': "/home/odoo/mods/helpdesk",
+    'name': "TMG Helpdesk Extensions",
 
     'summary': """
-        Extends the Odoo Helpdesk module to check for unassigned tickets.""",
+        Extends the Odoo Helpdesk module to:
+            * Check for tickets in the Urgent team that fails SLA policies
+    """,
 
     'sequence' : 2,
 
