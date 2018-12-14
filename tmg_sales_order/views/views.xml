@@ -1,0 +1,37 @@
+<odoo>
+  <data>
+    <record id="tmg_order_form_inherits_sales_order" model="ir.ui.view">
+    <field name="arch" type="xml">
+
+
+
+      <data>
+        <xpath expr="//form[1]/sheet[1]/notebook[1]" position="inside">
+          <page name="order_notes_page" string="Order Notes">
+
+              <field name="order_notes"/>
+
+          </page>
+        </xpath>
+
+     <xpath expr="//button[@name='action_view_invoice']" position="before">
+          <field name="order_line" invisible="1"/>
+        <button type="object"
+                 name="action_view_mo_orders"
+                class="oe_stat_button"
+                icon="fa-tasks"
+                >
+          <field name="delivery_count" widget="statinfo" string="Manufacturing Orders"/>
+        </button>
+
+      </xpath>
+
+      </data>
+    </field>
+    <field name="inherit_id" ref="sale.view_order_form"/>
+    <field name="model">sale.order</field>
+    <field name="name">tmg.sales.order.form</field>
+    <field name="priority">98</field>
+  </record>
+  </data>
+</odoo>
