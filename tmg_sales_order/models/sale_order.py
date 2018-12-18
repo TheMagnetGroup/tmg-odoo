@@ -19,7 +19,7 @@ class tmg_sales_order(models.Model):
         action['domain'] = [('sale_line_id.order_id', '=', self.id)]
         return action
 
-    @api.depends('order_line')
+    @api.onchange('order_line')
     def _compute_production_orders(self):
         for order in self:
             orders = self.env['mrp.production'].search_count([
