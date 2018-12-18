@@ -6,8 +6,7 @@ from odoo import models, fields, api
 class tmg_sales_order(models.Model):
     _inherit = "sale.order"
     order_notes = fields.Text('Order Notes')
-    production_orders_count = fields.Integer('Production Orders', compute='_compute_production_orders')
-
+    
     @api.multi
     def action_view_mo_orders(self):
         '''
