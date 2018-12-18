@@ -21,7 +21,7 @@
                 class="oe_stat_button"
                 icon="fa-tasks"
                 >
-          <field name="delivery_count" widget="statinfo" string="Manufacturing Orders"/>
+          <field name="production_orders_count" widget="statinfo" string="Manufacturing Orders"/>
         </button>
 
       </xpath>

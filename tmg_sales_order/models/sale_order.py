@@ -6,6 +6,7 @@ from odoo import models, fields, api
 class tmg_sales_order(models.Model):
     _inherit = "sale.order"
     order_notes = fields.Text('Order Notes')
+    production_orders_count = fields.Integer('Production Orders', compute='_compute_production_orders')
 
     @api.multi
     def action_view_mo_orders(self):
@@ -15,11 +16,14 @@ class tmg_sales_order(models.Model):
         view, if there is only one delivery order to show.
         '''
         action = self.env.ref('mrp.mrp_production_action').read()[0]
-        pickings = self.mapped('order_line')
-        moves = pickings.mapped('move_ids')
-        workorders = moves.mapped('created_production_id')
-
-
-
-        action['domain'] = [('id', 'in', pickings.ids)]
+        action['domain'] = [('sale_line_id.order_id', '=', self.id)]
         return action
+
+    @api.depends('order_line')
+    def _compute_production_orders(self):
+        for order in self:
+            orders = self.env['mrp.production'].search([
+                ('sale_line_id.order_id', '=', self.id),
+            ])
+            testData = len(orders.ids)
+            order.production_orders_count = len(orders.ids)
