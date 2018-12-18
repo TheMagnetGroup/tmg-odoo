@@ -22,8 +22,15 @@ class tmg_sales_order(models.Model):
     @api.depends('order_line')
     def _compute_production_orders(self):
         for order in self:
-            orders = self.env['mrp.production'].search([
+            orders = self.env['mrp.production'].search_count([
                 ('sale_line_id.order_id', '=', self.id),
             ])
-            testData = len(orders.ids)
-            order.production_orders_count = len(orders.ids)
+
+            order.production_orders_count = orders
+
+
+
+
+
+
+
