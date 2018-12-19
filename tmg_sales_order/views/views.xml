@@ -13,7 +13,7 @@
     <field name="arch" type="xml">
         <xpath expr="//form[1]/sheet[1]/notebook[1]" position="inside">
           <page name="order_notes_page" string="Order Notes">
-              <field name="order_notes"/>
+              <field name="order_notes" widget="html"/>
           </page>
         </xpath>
 
