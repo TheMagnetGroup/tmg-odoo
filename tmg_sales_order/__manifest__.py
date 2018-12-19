@@ -8,7 +8,7 @@
     'description': """
         Long description of module's purpose
     """,
-    'sequence': 20,
+
     'author': "Christian Dunn",
     'website': "http://www.themagnetgroup.com",
 
@@ -19,7 +19,7 @@
     'version': '0.1',
 
     # any module necessary for this one to work correctly
-    'depends': ['sale', 'stock_account'],
+    'depends': ['sale', 'stock_account', 'mrp', 'tmg_mrp_production'],
 
     # always loaded
     'data': [
