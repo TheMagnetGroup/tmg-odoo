@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="tmg_product_pricelist_item_form_view" model="ir.ui.view">
+        <field name="name">tmg.product.pricelist.item.extras.form</field>
+        <!--<field name="model">product.pricelist.item.extras</field>-->
+        <field name="inherit_id" ref="product.product_pricelist_item_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="/form/group[1]" position="after">
+                <group>
+                    <field name="extra_ids" widget="one2many_list" context="{'show_attribute': False}" modifiers="{'readonly':'false'}" attrs="{'invisible':[('applied_on', '!=', '1_product'),('applied_on', '!=', '0_product_variant')]}">
+                        <tree string="Price Extras" editable="bottom">
+                            <field name="attribute_id"/>
+                            <field name="value_ids" widget="many2many_tags" options="{'no_create_edit': True}" domain="[('attribute_id', '=', attribute_id)]" context="{'default_attribute_id': attribute_id}"/>
+                            <field name="price_extra"/>
+                        </tree>
+                    </field>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>
