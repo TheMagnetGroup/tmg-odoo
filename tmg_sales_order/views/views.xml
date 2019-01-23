@@ -10,6 +10,7 @@
     </record>
 
     <record id="tmg_order_form_inherits_sales_order" model="ir.ui.view">
+
     <field name="arch" type="xml">
         <xpath expr="//form[1]/sheet[1]/notebook[1]" position="inside">
           <page name="order_notes_page" string="Order Notes">
@@ -23,13 +24,12 @@
                  name="%(mrp_to_so_act)d"
                 class="oe_stat_button"
                 attrs="{'invisible': [('production_count', '=', 0)]}"
-                icon="fa-tasks"
-                >
+                icon="fa-tasks">
             <field string="Production" name="production_count" widget="statinfo"/>
         </button>
-
       </xpath>
     </field>
+
     <field name="inherit_id" ref="sale.view_order_form"/>
     <field name="model">sale.order</field>
     <field name="name">tmg.sales.order.form</field>

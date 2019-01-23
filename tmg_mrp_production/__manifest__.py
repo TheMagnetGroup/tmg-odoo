@@ -22,10 +22,12 @@
 
     # any module necessary for this one to work correctly
     'depends': ['base',
-        'mrp',
-        'sale',
         'sale_stock',
+        'sale_management',
         'stock',
+        'tmg_stock_rule',
+        'tmg_stock_move',
+        'mrp',
         ],
 
     # always loaded
