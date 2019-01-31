@@ -19,7 +19,7 @@
     'version': '0.1',
 
     # any module necessary for this one to work correctly
-    'depends': ['sale_stock', 'sale', 'stock_account',  'tmg_stock_move', 'tmg_stock_rule'],
+    'depends': ['stock_account',  'tmg_stock_move', 'tmg_stock_rule'],
 
     # always loaded
     'data': [

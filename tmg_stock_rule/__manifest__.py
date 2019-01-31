@@ -19,7 +19,7 @@
     'version': '0.1',
 
     # any module necessary for this one to work correctly
-    'depends': ['sale_stock', 'sale_management', 'mrp',],
+    'depends': ['sale_stock',  ],
 
     # always loaded
     #'data': [
