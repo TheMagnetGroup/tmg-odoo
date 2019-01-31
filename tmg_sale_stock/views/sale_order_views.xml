@@ -27,7 +27,9 @@
                   action="action_view_sale_line_delivery"
                   parent="sale.sale_order_menu"
                   sequence="6"
-                  groups="sales_team.group_sale_salesman"/>
+                  groups="sales_team.group_sale_salesman"
+                  active="0"
+        />
 
 
         <record id="view_sale_view_order_form_inherit_tmg" model="ir.ui.view">
@@ -47,7 +49,7 @@
                     </div>
                 </xpath>
                 <xpath expr="//form[1]/sheet[1]/notebook[1]/page[@name='order_lines']/field[@name='order_line']/tree[1]" position="inside">
-                    <field name="delivery_ids" widget="many2many_tags"/>
+                    <field name="delivery_ids" widget="many2many_tags" context="{'default_sale_line_id': id}"/>
                     <field name="delivery_qty_sum"/>
                 </xpath>
             </field>

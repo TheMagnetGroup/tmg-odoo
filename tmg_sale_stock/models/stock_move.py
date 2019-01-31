@@ -50,7 +50,12 @@ class StockMove(models.Model):
         self.ensure_one()
         # we don't want to split a move if it is already split
         # split when there is additional delivery addresses on SOL
-        return (not self.is_split_move) and self.sale_line_id and self.sale_line_id.delivery_ids
+        # or pretend this is a split move when other lines of the same order has split
+        # the last logic is to make sure that non-split lines get treated and grouped the same way
+        # in the picking process
+        return (not self.is_split_move) \
+               and self.sale_line_id \
+               and any(self.sale_line_id.order_id.order_line.mapped('delivery_ids'))
 
     # the main helper funtion for this dev: this is to split a move before picking is assigned
     # The idea is we only want to split the move right before we know it is going to affect a picking
@@ -61,15 +66,18 @@ class StockMove(models.Model):
             # behold, we are splitting the move
             for delivery in self.sale_line_id.delivery_ids:
                 qty = delivery.qty
-                partner_id = delivery.shipping_partner_id
-                new_mid = self.with_context({
-                    'is_split_move_flag': True,
-                    'partner_id_int': partner_id.id
-                })._split(qty)
-                # if _split() didn't register due to complete split
-                # we force the partner_id to change
-                if new_mid == self.id and qty:
-                    self.partner_id = partner_id
+                # only split when there is qty
+                # todo: use the float func instead to be safe
+                if qty:
+                    partner_id = delivery.shipping_partner_id
+                    new_mid = self.with_context({
+                        'is_split_move_flag': True,
+                        'partner_id_int': partner_id.id
+                    })._split(qty)
+                    # if _split() didn't register due to complete split
+                    # we force the partner_id to change
+                    if new_mid == self.id:
+                        self.partner_id = partner_id
             # after all splitting, our move is also a split move, yay
             # this is necessary so that recursion don't punish us later
             self.is_split_move = True
