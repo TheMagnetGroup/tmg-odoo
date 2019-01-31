@@ -18,7 +18,7 @@ class SaleOrderLineDelivery(models.Model):
     _description = 'Specify delivery address on sale order line level.'
 
     sale_line_id = fields.Many2one('sale.order.line', ondelete='cascade', string='Sale Order Line')
-    shipping_partner_id = fields.Many2one('res.partner', string='Delivery Address (SOL)', required=True)
+    shipping_partner_id = fields.Many2one('res.partner', string='Additional Delivery Address (SOL)', required=True)
     qty = fields.Float('Delivery Qty', digits=dp.get_precision('Product Unit of Measure'))
 
     name = fields.Char(readonly=True, compute='_compute_default_name')
@@ -33,7 +33,7 @@ class SaleOrderLineDelivery(models.Model):
 class SaleOrderLine(models.Model):
     _inherit = 'sale.order.line'
 
-    delivery_ids = fields.One2many('sale.order.line.delivery', 'sale_line_id', string='Deliveries (SOL)', copy=True)
+    delivery_ids = fields.One2many('sale.order.line.delivery', 'sale_line_id', string='Additional Deliveries (SOL)', copy=True)
 
     delivery_qty_sum = fields.Float('Delivery Qty Sum', compute='_compute_delivery_qty_sum', store=True,
                                     help='Technical field used to detect if delivery qty on SOL is exceeding current SOL qty',
