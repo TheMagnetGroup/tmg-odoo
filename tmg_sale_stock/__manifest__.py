@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 {
-    'name': 'tmg: sale_order',
+    'name': 'TMG: Sale & Stock',
     'summary': 'This feature should allow a user to define, on a single sale order line, multiple shipping addresses. Confirming such an order should generate one delivery order per delviery address and a single manufacturing order per line item.',
     'description':
     """
