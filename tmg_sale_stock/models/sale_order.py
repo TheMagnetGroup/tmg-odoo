@@ -33,6 +33,12 @@ class SaleOrderLine(models.Model):
                                     help='Technical field used to detect if delivery qty on SOL is exceeding current SOL qty',
                                     digits=dp.get_precision('Product Unit of Measure'))
 
+    # make delivery_ids a protected field so that we don't mess it up after confirmation
+    def _get_protected_fields(self):
+        res = super(SaleOrderLine, self)._get_protected_fields()
+        res.extend(['delivery_ids', 'xname'])
+        return res
+
     # todo: not sure I like this...
     @api.multi
     def _compute_sale_line_xname(self):
@@ -47,6 +53,14 @@ class SaleOrderLine(models.Model):
         for sol in self:
             sol.delivery_qty_sum = sum(sol.delivery_ids.mapped('qty'))
 
+    @api.model
+    def create(self, values):
+        sols = super(SaleOrderLine, self).create(values)
+        # force create xml ids
+        # this crazy syntax is to call the hidden func from base model
+        SaleOrderLine._BaseModel__ensure_xml_id(sols)
+        return sols
+
     # inherit the private _write here to capture the value change in depends
     @api.multi
     def _write(self, values):
@@ -56,6 +70,21 @@ class SaleOrderLine(models.Model):
                 if sol.product_uom_qty < sol.delivery_qty_sum:
                     sol.product_uom_qty = sol.delivery_qty_sum
         return res
+
+    # we try to make the tree view an action here
+    @api.multi
+    def action_view_sale_line_delivery_tree(self):
+        self.ensure_one()
+        # force creating xml_id if there isn't any
+        return {
+            'name': _('SOL Additional Delivery Addresses'),
+            'view_mode': 'tree',
+            'target': 'self',
+            'res_model': 'sale.order.line.delivery',
+            'type': 'ir.actions.act_window',
+            'domain': [('id', 'in', self.delivery_ids.mapped('id'))],
+            'context': {'default_sale_line_id': self.id}
+            }
 
     # onchange is too annoying for now, muted it
     # @api.multi

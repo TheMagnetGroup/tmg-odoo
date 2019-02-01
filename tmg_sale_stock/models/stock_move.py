@@ -65,15 +65,14 @@ class StockMove(models.Model):
         if self._check_if_move_should_be_split():
             # behold, we are splitting the move
             for delivery in self.sale_line_id.delivery_ids:
-                qty = delivery.qty
                 # only split when there is qty
                 # todo: use the float func instead to be safe
-                if qty:
+                if delivery.qty:
                     partner_id = delivery.shipping_partner_id
                     new_mid = self.with_context({
                         'is_split_move_flag': True,
                         'partner_id_int': partner_id.id
-                    })._split(qty)
+                    })._split(delivery.qty)
                     # if _split() didn't register due to complete split
                     # we force the partner_id to change
                     if new_mid == self.id:
