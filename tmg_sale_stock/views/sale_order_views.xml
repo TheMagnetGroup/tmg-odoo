@@ -7,6 +7,7 @@
             <field name="model">sale.order.line.delivery</field>
             <field name="arch" type="xml">
                 <tree editable="bottom">
+                    <field name="display_name" invisible="1"/>
                     <!--<field name="sale_line_id"/>-->
                     <field name="shipping_partner_id"/>
                     <field name="qty"/>
@@ -40,7 +41,7 @@
                 <xpath expr="//form[1]/sheet[1]/notebook[1]/page[@name='order_lines']/field[@name='order_line']/form[1]" position="inside">
                     <div>
                         <label for="delivery_ids"/>
-                        <field name="delivery_ids" mode="tree" editable="bottom" context="{'default_sale_line_id': id}">
+                        <field name="delivery_ids" mode="tree" editable="bottom" context="{'default_sale_line_id': active_id}">
                             <tree editable="bottom">
                                 <field name="shipping_partner_id"/>
                                 <field name="qty"/>
@@ -55,10 +56,10 @@
                         <button name="action_view_sale_line_delivery_tree" type="object" string="Import Additional Delivery Addresses" class="btn-sm btn-primary" attrs="{'invisible': [('xname', '=', False)]}"/>
                     </div>
                 </xpath>
-                <xpath expr="//form[1]/sheet[1]/notebook[1]/page[@name='order_lines']/field[@name='order_line']/tree[1]" position="inside">
-                    <field name="delivery_ids" widget="many2many_tags" context="{'default_sale_line_id': id}"/>
-                    <field name="delivery_qty_sum"/>
-                </xpath>
+                <!--<xpath expr="//form[1]/sheet[1]/notebook[1]/page[@name='order_lines']/field[@name='order_line']/tree[1]" position="inside">-->
+                    <!--<field name="delivery_ids" readonly="0"/>-->
+                    <!--<field name="delivery_qty_sum"/>-->
+                <!--</xpath>-->
             </field>
         </record>
     </data>

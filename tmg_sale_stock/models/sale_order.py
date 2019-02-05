@@ -26,7 +26,6 @@ class SaleOrderLine(models.Model):
     _inherit = 'sale.order.line'
 
     xname = fields.Char('External ID', compute='_compute_sale_line_xname', store=False)
-
     delivery_ids = fields.One2many('sale.order.line.delivery', 'sale_line_id', string='Additional Deliveries (SOL)', copy=True)
 
     delivery_qty_sum = fields.Float('Delivery Qty Sum', compute='_compute_delivery_qty_sum', store=True,
