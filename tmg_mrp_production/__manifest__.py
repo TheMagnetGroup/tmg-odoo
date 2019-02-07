@@ -24,6 +24,7 @@
     'depends': [
         'tmg_stock_rule',
         'tmg_stock_move',
+        'mrp',
         ],
 
     # always loaded
