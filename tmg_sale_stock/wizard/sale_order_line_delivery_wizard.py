@@ -26,17 +26,20 @@ class SaleOrderLineDeliveryWizard(models.TransientModel):
                     ('street', '=', partner_id.street),
                     ('street2', '=', partner_id.street2),
                     ('city', '=', partner_id.city),
-                    ('state_id', '=', partner_id.state_id.id), # todo
+                    ('state_id', '=', partner_id.state_id.id),
                     ('zip', '=', partner_id.zip),
-                    ('country_id', '=', partner_id.country_id.id), # todo
+                    ('country_id', '=', partner_id.country_id.id),
                     ('phone', '=', partner_id.phone),
                     ('email', '=', partner_id.email)
                 ]
 
     def _get_fields_and_columns(self, import_wizard_id, model_name, data, options):
         valid_fields = import_wizard_id.get_fields(model_name)
+        # todo: maybe have extra filter here to make sure fields are desired
+        # mainly because we are importing 2 different models here and
+        # we want to be sure that there is no conflicting fields
         # print(valid_fields)
-        headers = data.split('\n')[0].split(',') if data.split('\n') else []
+        headers = data.split('\n')[0].split(',') if data.split('\n') else []  # todo: use exception
         headers, matches = import_wizard_id._match_headers(iter([headers]), valid_fields, options)
         final_fields = [(matches[i] and matches[i][0]) or False for i in range(len(headers))]
         return final_fields, headers
@@ -66,7 +69,7 @@ class SaleOrderLineDeliveryWizard(models.TransientModel):
 
             partner_lst = import_partner_result.get('ids')
             if not partner_lst:
-                raise ValidationError(_('Cannot create customers from the uploaded file. \n'
+                raise ValidationError(_('Cannot create/find customers from the uploaded file. \n'
                                         '{}'.format(import_partner_result.get('messages'))))
 
             # go through our partner lst and unlink any duplicated ones
@@ -75,7 +78,10 @@ class SaleOrderLineDeliveryWizard(models.TransientModel):
             for i in range(len(partner_lst)):
                 partner = partner_lst[i]
                 partner_id = self.env['res.partner'].browse(partner)
-                partner_id.write({'customer': True, 'type': 'delivery' if partner_id.parent_id else 'contact'})  # todo: maybe other default fields
+                partner_id.write({
+                    'customer': True,
+                    'type': 'delivery' if partner_id.parent_id else 'contact'
+                })  # todo: maybe other default fields
                 existing_partner_id = self.env['res.partner'].search(self._get_existing_partner_searching_domain(partner_id), limit=1)
                 if existing_partner_id:
                     # print(existing_partner_id, partner_id)
