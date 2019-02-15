@@ -131,13 +131,45 @@
     In WH2:
     1. Two delivery orders, each for quantity 1 of product P. One transfer should have partner D and the other partner E.
     2. One manufacturing order for quantity 2 of product p in state == draft
+    
+    
+    Addendum
+    This addendum is an extension and clarification of item 1.4 in the original spec regarding a tool for importing sale line delivery addresses.
+    
+    Purpose
+    While the majority of orders are shipped to fewer than 10 addresses, it is nonetheless common to receive orders which must be shipped to several hundred addresses. Ten(10) such orders are received each day in the smallest company in the group, Castelli. Other companies in the group receive 20-30 such orders each day.
+    The primary priority for this feature is usability. The process should be as simple and streamlined as possible.
+    
+    Functional Specification
+    1. On the sale order line form view, just above the delivery addresses list, include a button titled "Import Delivery Addresses". Clicking the button should redirect the the user to upload a file. This file is expected to be a CSV or XLSL file with columns representing the following fields, though not all fields will have values every time:
+    name
+    street
+    street2
+    city
+    state
+    zip
+    country
+    phone
+    email
+    parent company
+    Delivery Quantity
+    It should be possible to create a partner directly from this import, filling the fields above. The default type of any partners created via import here should be delivery address.
+    Functional Note:
+    In the vast majority of cases new partners will be created.
+    2. In order to reduce the chance of error when putting together import files, there should be a human-readable unique identifier for each sale order line that can be used during import. It should be constructed as follows: {Sale Order Number} - "Line" {Line Item Number} - {Product Template Name}. For example, "SO1234 - Line 1 - Example Product"
+    Functional Note:
+    Does using the line item number make sense? Changing the line item order would change the unique identifier, which could potentially cause problems.
+    Technical Note:
+    Could we just update the external identifier?
+    3. Users should only be able to import sale order order line delivery addresses for the sale order line they initiate the import from.
     """,
     'license': 'OEEL-1',
     'author': 'Odoo Inc',
-    'version': '0.1',
+    'version': '0.2',
     'depends': ['sale_management', 'sale_stock', 'mrp'],
     'data': [
         'security/ir.model.access.csv',
+        'wizard/sale_order_line_delivery_wizard.xml',
         'views/sale_order_views.xml',
     ],
 }

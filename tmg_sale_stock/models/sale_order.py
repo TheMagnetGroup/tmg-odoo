@@ -10,41 +10,41 @@ class SaleOrderLineDelivery(models.Model):
     _description = 'Specify delivery address on sale order line level.'
 
     sale_line_id = fields.Many2one('sale.order.line', ondelete='cascade', string='Sale Order Line')
-    shipping_partner_id = fields.Many2one('res.partner', string='Additional Delivery Address (SOL)', required=True)
-    qty = fields.Float('Delivery Qty', digits=dp.get_precision('Product Unit of Measure'))
+    shipping_partner_id = fields.Many2one('res.partner', string='Additional Delivery Address (SOL)', required=False)
+    qty = fields.Float('Delivery Quantity', digits=dp.get_precision('Product Unit of Measure'))
 
-    name = fields.Char(readonly=True, compute='_compute_default_name')
-
-    @api.multi
-    @api.depends('shipping_partner_id', 'shipping_partner_id.name', 'qty')
-    def _compute_default_name(self):
-        for sold in self:
-            sold.name = '{}({})'.format(sold.shipping_partner_id.name, str(sold.qty))
+    # # todo: not necessary
+    # name = fields.Char(readonly=True, compute='_compute_default_name')
+    #
+    # @api.multi
+    # @api.depends('shipping_partner_id', 'shipping_partner_id.name', 'qty')
+    # def _compute_default_name(self):
+    #     for sold in self:
+    #         sold.name = '{}({})'.format(sold.shipping_partner_id.name, str(sold.qty))
 
 
 class SaleOrderLine(models.Model):
     _inherit = 'sale.order.line'
 
-    xname = fields.Char('External ID', compute='_compute_sale_line_xname', store=False)
+    # xname = fields.Char('External ID', compute='_compute_sale_line_xname', store=False)
     delivery_ids = fields.One2many('sale.order.line.delivery', 'sale_line_id', string='Additional Deliveries (SOL)', copy=True)
 
     delivery_qty_sum = fields.Float('Delivery Qty Sum', compute='_compute_delivery_qty_sum', store=True,
                                     help='Technical field used to detect if delivery qty on SOL is exceeding current SOL qty',
                                     digits=dp.get_precision('Product Unit of Measure'))
 
-    # make delivery_ids a protected field so that we don't mess it up after confirmation
+    # make delivery_ids a protected field so that we don't mess it up after confirmation?
     def _get_protected_fields(self):
         res = super(SaleOrderLine, self)._get_protected_fields()
-        res.extend(['delivery_ids', 'xname'])
+        res.extend(['delivery_ids'])
         return res
 
-    # todo: not sure I like this...
-    @api.multi
-    def _compute_sale_line_xname(self):
-        for sol in self:
-            xid = self.env['ir.model.data'].sudo().search([('model', '=', 'sale.order.line'), ('res_id', '=', sol.id)], limit=1)
-            if xid:
-                sol.xname = xid.complete_name
+    # @api.multi
+    # def _compute_sale_line_xname(self):
+    #     for sol in self:
+    #         xid = self.env['ir.model.data'].sudo().search([('model', '=', 'sale.order.line'), ('res_id', '=', sol.id)], limit=1)
+    #         if xid:
+    #             sol.xname = xid.complete_name
 
     @api.multi
     @api.depends('delivery_ids', 'delivery_ids.qty')
@@ -52,13 +52,13 @@ class SaleOrderLine(models.Model):
         for sol in self:
             sol.delivery_qty_sum = sum(sol.delivery_ids.mapped('qty'))
 
-    @api.model
-    def create(self, values):
-        sols = super(SaleOrderLine, self).create(values)
-        # force create xml ids
-        # this crazy syntax is to call the hidden func from base model
-        SaleOrderLine._BaseModel__ensure_xml_id(sols)
-        return sols
+    # @api.model
+    # def create(self, values):
+    #     sols = super(SaleOrderLine, self).create(values)
+    #     # force create xml ids
+    #     # this crazy syntax is to call the hidden func from base model
+    #     SaleOrderLine._BaseModel__ensure_xml_id(sols)
+    #     return sols
 
     # inherit the private _write here to capture the value change in depends
     @api.multi
@@ -70,20 +70,20 @@ class SaleOrderLine(models.Model):
                     sol.product_uom_qty = sol.delivery_qty_sum
         return res
 
-    # we try to make the tree view an action here
-    @api.multi
-    def action_view_sale_line_delivery_tree(self):
-        self.ensure_one()
-        # force creating xml_id if there isn't any
-        return {
-            'name': _('SOL Additional Delivery Addresses'),
-            'view_mode': 'tree',
-            'target': 'self',
-            'res_model': 'sale.order.line.delivery',
-            'type': 'ir.actions.act_window',
-            'domain': [('id', 'in', self.delivery_ids.mapped('id'))],
-            'context': {'default_sale_line_id': self.id}
-            }
+    # # we try to make the tree view an action here
+    # @api.multi
+    # def action_view_sale_line_delivery_tree(self):
+    #     self.ensure_one()
+    #     # force creating xml_id if there isn't any
+    #     return {
+    #         'name': _('SOL Additional Delivery Addresses'),
+    #         'view_mode': 'tree',
+    #         'target': 'self',
+    #         'res_model': 'sale.order.line.delivery',
+    #         'type': 'ir.actions.act_window',
+    #         'domain': [('id', 'in', self.delivery_ids.mapped('id'))],
+    #         'context': {'default_sale_line_id': self.id}
+    #         }
 
     # onchange is too annoying for now, muted it
     # @api.multi
@@ -107,4 +107,7 @@ class SaleOrderLine(models.Model):
     #         }
     #         return {'warning': warning}
 
+    def action_unlink_all_additional_delivery_addresses(self):
+        self.ensure_one()
+        self.delivery_ids.unlink()
 
