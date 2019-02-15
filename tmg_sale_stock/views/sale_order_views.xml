@@ -20,7 +20,7 @@
                 <tree editable="bottom">
                     <!--<field name="display_name" invisible="1"/>-->
                     <!--<field name="sale_line_id"/>-->
-                    <field name="shipping_partner_id"/>
+                    <field name="shipping_partner_id" attrs="{'required': 1}"/>
                     <field name="qty"/>
                 </tree>
             </field>
@@ -58,7 +58,7 @@
                         </div>
                         <field name="delivery_ids" mode="tree" editable="bottom" context="{'default_sale_line_id': active_id}">
                             <tree editable="bottom">
-                                <field name="shipping_partner_id"/>
+                                <field name="shipping_partner_id" attrs="{'required': 1}"/>
                                 <field name="qty"/>
                             </tree>
                         </field>

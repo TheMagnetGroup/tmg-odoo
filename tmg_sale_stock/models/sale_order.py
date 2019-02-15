@@ -10,7 +10,7 @@ class SaleOrderLineDelivery(models.Model):
     _description = 'Specify delivery address on sale order line level.'
 
     sale_line_id = fields.Many2one('sale.order.line', ondelete='cascade', string='Sale Order Line')
-    shipping_partner_id = fields.Many2one('res.partner', string='Additional Delivery Address (SOL)', required=False)
+    shipping_partner_id = fields.Many2one('res.partner', ondelete='cascade', string='Additional Delivery Address (SOL)', required=False)
     qty = fields.Float('Delivery Quantity', digits=dp.get_precision('Product Unit of Measure'))
 
     # # todo: not necessary

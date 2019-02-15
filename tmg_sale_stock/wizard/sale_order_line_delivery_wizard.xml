@@ -13,7 +13,7 @@
                         <div class="oe_button_box" name="button_box"></div>
                         <div colspan="2" class="oe_form_box_info">
                             <div class="alert alert-success" role="alert">
-                              <h4 class="alert-heading">Upload CSV or XLSL file.</h4>
+                              <h4 class="alert-heading" role="alert">Upload CSV or XLSL file.</h4>
                               <p>Delivery quantity of 0.0 will be ignored for this sale order line, but contact will be imported. Use it when you want to create a parent company with multiple shipping addresses.</p>
                               <hr/>
                               <!--<p class="mb-0">Whenever you need to, be sure to use margin utilities to keep things nice and tidy.</p>-->

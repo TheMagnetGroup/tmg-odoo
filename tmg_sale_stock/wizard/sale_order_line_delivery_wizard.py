@@ -21,7 +21,7 @@ class SaleOrderLineDeliveryWizard(models.TransientModel):
         return [
                     ('id', '!=', partner_id.id),
                     ('active', '=', True),
-                    ('parent_id', '=', partner_id.parent_id.id),
+                    # ('parent_id', '=', partner_id.parent_id.id),
                     ('name', '=', partner_id.name),
                     ('street', '=', partner_id.street),
                     ('street2', '=', partner_id.street2),
