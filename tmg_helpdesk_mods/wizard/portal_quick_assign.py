@@ -15,17 +15,15 @@ class PortalQuickAssign(models.TransientModel):
 
     res_model = fields.Char('Related Document Model', required=True)
     res_id = fields.Integer('Related Document ID', required=True)
-    helpdesks_ids = fields.Many2many('helpdesk.ticket')
-    user_ids = fields.Many2many('res.users', string="IT Technicians", required=True)
+    user_id = fields.Many2one('res.users', string="IT Technicians")
     note = fields.Text(help="Add extra content to display in the email")
     # share_link = fields.Char(string="Link", compute='_compute_share_link')
     access_warning = fields.Text("Access warning", compute="_compute_access_warning")
 
     @api.multi
-    def action_assign_tech(self, vals):
-        t = self.env['helpdesk.ticket'].browse(self._context.get('active_ids'))
-        for ticket in self.helpdesks_ids:
-            t.user_id = ticket.user_id
+    def action_assign_tech(self):
+        tickets = self.env['helpdesk.ticket'].browse(self._context.get('active_ids'))
+        tickets.write({'user_id': self.user_id.id})
 
     @api.depends('res_model', 'res_id')
     def _compute_access_warning(self):

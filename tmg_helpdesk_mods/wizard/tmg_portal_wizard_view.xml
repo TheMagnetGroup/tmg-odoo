@@ -8,7 +8,7 @@
                 <form string="Quick Assign Tech">
                     <!--<p class="alert alert-warning"><field name="access_warning"/></p> -->
                     <group>
-                        <field name="user_ids" widget="many2many_tags_email" placeholder="Assign IT Tech to ticket(s)..."/>
+                        <field name="user_id" placeholder="Assign IT Tech to ticket(s)..."/>
                     </group>
                     <group>
                         <field name="note" placeholder="Add a note"/>
@@ -25,7 +25,7 @@
                      multi="True" 
                      key2="client_action_multi" 
                      name="Quick Assign Tech" 
-                     res_model="portal.quick.assign" 
+                     res_model="portal.quick.assign"
                      src_model="helpdesk.ticket"
                 view_mode="form" target="new" view_type="form" view_id="portal_quick_assign_wizard" />
            
