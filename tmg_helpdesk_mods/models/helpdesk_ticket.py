@@ -24,21 +24,16 @@ class HelpdeskTicket(models.Model):
     @api.model
     def create(self, vals):
         if vals.get('user_id'):
-            vals['stage_id'] = 'In Progress'
-        return super(HelpdeskTicket, self).create(vals)
+            vals['stage_id'] = self.env.ref('helpdesk.stage_in_progress').id
+        return super(HelpdeskTicket, self).write(vals)
 
     @api.multi
     def write(self, vals):
         if vals.get('user_id'):
-            vals['stage_id'] = 1
+            vals['stage_id'] = self.env.ref('helpdesk.stage_in_progress').id
         return super(HelpdeskTicket, self).write(vals)
 
-    @api.onchange('user_id')
-    def tmg_assign_tech(self):
-        self.ensure_one()
-        for ticket in self:
-            if ticket.user_id:
-                ticket.stage_id = 1
+
 
 
 
