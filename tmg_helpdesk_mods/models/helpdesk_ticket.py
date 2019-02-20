@@ -25,7 +25,7 @@ class HelpdeskTicket(models.Model):
     def create(self, vals):
         if vals.get('user_id'):
             vals['stage_id'] = self.env.ref('helpdesk.stage_in_progress').id
-        return super(HelpdeskTicket, self).write(vals)
+        return super(HelpdeskTicket, self).create(vals)
 
     @api.multi
     def write(self, vals):
