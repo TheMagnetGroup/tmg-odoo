@@ -5,13 +5,10 @@
             <field name="name">portal_quick_assign_wizard</field>
             <field name="model">portal.quick.assign</field>
             <field name="arch" type="xml">
-                <form string="Quick Assign Tech">
+                <form string="Assign">
                     <!--<p class="alert alert-warning"><field name="access_warning"/></p> -->
                     <group>
                         <field name="user_id" placeholder="Assign IT Tech to ticket(s)..."/>
-                    </group>
-                    <group>
-                        <field name="note" placeholder="Add a note"/>
                     </group>
                     <footer>
                         <button string="Assign" name="action_assign_tech"  type="object" class="btn-primary"/>
