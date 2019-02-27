@@ -2,7 +2,7 @@
 import base64
 from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError
-
+import re
 
 class SaleOrderLineDeliveryWizard(models.TransientModel):
     _name = 'sale.order.line.delivery.wizard'
@@ -40,7 +40,12 @@ class SaleOrderLineDeliveryWizard(models.TransientModel):
         # mainly because we are importing 2 different models here and
         # we want to be sure that there is no conflicting fields
         # print(valid_fields)
-        headers = data.split('\n')[0].split(',') if data.split('\n') else []  # todo: use exception
+        try:
+            header_string = data.split('\n')[0]
+        except IndexError:
+            raise ValidationError(_('No content detected.'))
+        header_string = re.sub('\r', '', header_string)
+        headers = header_string.split(',')
         headers, matches = import_wizard_id._match_headers(iter([headers]), valid_fields, options)
         final_fields = [(matches[i] and matches[i][0]) or False for i in range(len(headers))]
         return final_fields, headers
