@@ -34,49 +34,37 @@ class SaleOrderLineDeliveryWizard(models.TransientModel):
                     ('email', '=', partner_id.email)
                 ]
 
-    def _get_fields_and_columns(self, import_wizard_id, model_name, data, options):
-        valid_fields = import_wizard_id.get_fields(model_name)
-        # todo: maybe have extra filter here to make sure fields are desired
-        # mainly because we are importing 2 different models here and
-        # we want to be sure that there is no conflicting fields
-        # print(valid_fields)
-        try:
-            header_string = data.split('\n')[0]
-        except IndexError:
-            raise ValidationError(_('No content detected.'))
-        header_string = re.sub('\r', '', header_string)
-        headers = header_string.split(',')
-        headers, matches = import_wizard_id._match_headers(iter([headers]), valid_fields, options)
-        final_fields = [(matches[i] and matches[i][0]) or False for i in range(len(headers))]
-        return final_fields, headers
+    def do_import(self, model_name, decoded_file, options):
+        import_id = self.env['base_import.import'].create({
+                'res_model': model_name,
+                'file': decoded_file,
+                'file_type': 'text/csv'
+            })
+        data_gen = import_id._read_file(options)
+        # the first item from data generator is header
+        header = next(data_gen)
+        valid_fields = import_id.get_fields(model_name)
+        parsed_header, matches = import_id._match_headers(iter([header]), valid_fields, options)
+        recognized_fields = [(matches[i] and matches[i][0]) or False for i in range(len(parsed_header))]
+        result = import_id.do(recognized_fields, parsed_header, options)
+        rids = result.get('ids')
+        if not rids:
+            raise ValidationError(_('Cannot create/find {} records from the uploaded file.\n'
+                                    'Make sure the headers of your file match the technical or functional field names on model {}.\n\n'
+                                    'Input Header: {}\n'
+                                    'Mapped Header: {}\n'
+                                    'Error Message: {}'.format(model_name, model_name, parsed_header, recognized_fields,
+                                                               result.get('messages'))))
+        return rids
 
     # parent company
     # Delivery Quantity
     def action_import_deliveries(self):
         self.ensure_one()
         if self.sale_line_id and self.file:
-            content = base64.b64decode(self.file)
-
-            # let's do this crazy thing where we first create all the res.partners
-            # and then we delete those who are already in db ...
-            # I feel so bad
-            # someone saves me from this nonsense ...
-
-            data = content.decode("utf-8")
+            decoded_file = base64.b64decode(self.file)
             options = {'quoting': '"', 'separator': ',', 'headers': True}
-
-            import_partner_id = self.env['base_import.import'].create({
-                'res_model': 'res.partner',
-                'file': content,
-                'file_type': 'text/csv'
-            })
-            partner_fields, partner_columns = self._get_fields_and_columns(import_partner_id, 'res.partner', data, options)
-            import_partner_result = import_partner_id.do(partner_fields, partner_columns, options)
-
-            partner_lst = import_partner_result.get('ids')
-            if not partner_lst:
-                raise ValidationError(_('Cannot create/find customers from the uploaded file. \n'
-                                        '{}'.format(import_partner_result.get('messages'))))
+            partner_lst = self.do_import('res.partner', decoded_file, options)
 
             # go through our partner lst and unlink any duplicated ones
             # according to our duplicate domain
@@ -96,20 +84,7 @@ class SaleOrderLineDeliveryWizard(models.TransientModel):
                 corrected_partner_lst.append(partner)
             # print(corrected_partner_lst)
 
-            import_sold_id = self.env['base_import.import'].create({
-                'res_model': 'sale.order.line.delivery',
-                'file': content,
-                'file_type': 'text/csv'
-            })
-
-            sold_fields, sold_columns = self._get_fields_and_columns(import_sold_id, 'sale.order.line.delivery', data, options)
-            # print(sold_fields, sold_columns)
-            import_sold_result = import_sold_id.do(sold_fields, sold_columns, options)
-            result_lst = import_sold_result.get('ids')
-
-            if not result_lst:
-                raise ValidationError(_('Cannot upload input file. \n'
-                                        '{}'.format(import_sold_result.get('messages'))))
+            result_lst = self.do_import('sale.order.line.delivery', decoded_file, options)
 
             for i in range(len(result_lst)):
                 sold_id = self.env['sale.order.line.delivery'].browse(result_lst[i])
