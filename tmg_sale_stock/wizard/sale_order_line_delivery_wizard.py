@@ -4,9 +4,10 @@ from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError
 import re
 
+
 class SaleOrderLineDeliveryWizard(models.TransientModel):
     _name = 'sale.order.line.delivery.wizard'
-    _description = 'sale order lien delivery wizard'
+    _description = 'sale order line delivery wizard'
 
     # explicitly pass in context
     def _default_sol(self):

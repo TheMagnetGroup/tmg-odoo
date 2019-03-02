@@ -63,15 +63,7 @@
                             </tree>
                         </field>
                     </div>
-                    <div>
-                        <!--<button name="action_unlink_all_additional_delivery_addresses" type="object" string="REMOVE ADDITIONAL ADDRESSES" confirm="This will delete all the additional addresses for this sale order line, confirm?" class="btn-sm btn-outline-danger" attrs="{'invisible': ['|', ('delivery_ids', '=', False), ('parent.state', 'in', ('sale', 'done'))]}" style="float:right;"/>-->
-                        <!--<div>-->
-                            <!--<label for="xname"/>-->
-                            <!--<field name="xname" readonly="0"/>-->
-                        <!--</div>-->
-                        <!--<button name="action_view_sale_line_delivery_tree" type="object" string="Import Additional Delivery Addresses" class="btn-sm btn-primary" attrs="{'invisible': [('xname', '=', False)]}"/>-->
-                        <!--<button name="%(action_open_sale_line_delivery_wizard)d" type="action" string="Import Additional Delivery Addresses" class="btn-sm btn-primary"/>-->
-                    </div>
+
                 </xpath>
                 <!--<xpath expr="//form[1]/sheet[1]/notebook[1]/page[@name='order_lines']/field[@name='order_line']/tree[1]" position="inside">-->
                     <!--<field name="delivery_ids" readonly="0"/>-->
