@@ -13,7 +13,7 @@
                 </xpath>
             </field>
         </record>
-
+        
         <record id = "tmg_helpdesk_ticket_view_list" model="ir.ui.view">
             <field name="name">tmg.helpdesk.ticket.list</field>
             <field name="model">helpdesk.ticket</field>
@@ -24,8 +24,8 @@
                 </xpath>
             </field>
         </record>
-        
- <!-- New Default Search View for Ticket Name -->
+
+        <!-- New Default Search View for Ticket Name -->
         <record id="tmg_helpdesk_tickets_view_search" model="ir.ui.view">
             <field name="name">tmg.helpdesk.ticket.search</field>
             <field name="model">helpdesk.ticket</field>

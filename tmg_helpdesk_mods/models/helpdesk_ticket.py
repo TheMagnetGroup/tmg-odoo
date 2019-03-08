@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+    # -*- coding: utf-8 -*-
 
 from odoo import models, fields, api, _
 from datetime import datetime, date, timedelta
@@ -19,7 +19,7 @@ class HelpdeskTicket(models.Model):
                     urgent_channel.message_post(body=_('Urgent ticket %s was not assigned according to SLA!') % ticket.name, message_type='comment', subtype='mail.mt_comment')
 
         return True
-    
+
     # Method to change Ticket Status to Assigned when Tech is added
     @api.model
     def create(self, vals):
@@ -32,3 +32,10 @@ class HelpdeskTicket(models.Model):
         if vals.get('user_id'):
             vals['stage_id'] = 2
         return super(HelpdeskTicket, self).write(vals)
+
+
+
+
+
+
+
