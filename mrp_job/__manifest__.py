@@ -13,8 +13,10 @@ Manufacturing JOB: Muliple MO processing
     'depends': ['mrp', 'sale'],
     'data': [
         'security/ir.model.access.csv',
+        'data/server_action.xml',
         'views/mrp_job_views.xml',
-        'views/sale_order_views.xml'
+        'views/sale_order_views.xml',
+        'views/mrp_production_views.xml'
     ],
     'license': 'OEEL-1',
 }

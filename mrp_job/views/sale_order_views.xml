@@ -12,6 +12,9 @@
 	    	<xpath expr="//field[@name='order_line']//form//field[@name='name']" position="after">
 	    		<field name="art_ref"/>
 	    	</xpath>
+	    	<xpath expr="//field[@name='order_line']//tree//field[last()]" position="after">
+    			<button name="%(mrp_job.duplicate_sale_order_line_action)d" type="action" icon="fa-clone"/>
+	    	</xpath>
 	    </field>
 	</record>
 </odoo>
