@@ -90,5 +90,7 @@ class MrpJob(models.Model):
                 record.date_planned_start = min(record.mfg_order_ids.mapped('date_planned_start'))
 
     @api.multi
-    def check_availability(self):
-        pass
+    def action_mark_as_done(self):
+        self.ensure_one()
+        for mo in self.mfg_order_ids:
+            mo.button_mark_done()

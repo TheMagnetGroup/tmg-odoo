@@ -7,6 +7,7 @@
 			<form string="Mrp Job">
 				<header>
 					<field name="status" widget="statusbar"/>
+					<button name="action_mark_as_done" type="object" string="Mark as done" attrs="{'attrs': [('status', 'in', ['draft', 'confirm', 'cancel'])]}" class="btn btn-primary"/>
 				</header>
 				<sheet>
 					<div class="oe_button_box" name="button_box">

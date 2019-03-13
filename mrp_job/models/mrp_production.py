@@ -8,6 +8,7 @@ class MrpProduction(models.Model):
     _inherit = "mrp.production"
 
     job_id = fields.Many2one('mrp.job', string="Job reference", help="Job reference in which this MO is included")
+    art_ref = fields.Char(string="Art Reference")
 
     @api.multi
     def produce_product(self):
@@ -16,7 +17,7 @@ class MrpProduction(models.Model):
             action_data = self.env.ref('mrp.action_mrp_workorder_production_specific').read()[0]
             return action_data
         else:
-            self.open_produce_product()
+            return self.open_produce_product()
 
 
 class MrpWorkorder(models.Model):
