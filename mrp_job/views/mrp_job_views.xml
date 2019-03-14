@@ -11,7 +11,7 @@
 				</header>
 				<sheet>
 					<div class="oe_button_box" name="button_box">
-                        <button name="go_to_mrp_job_pickings" type="object" class="oe_stat_button" icon="fa-truck" attrs="{'invisible': [('picking_count', '&lt;=', 0)]}">
+                        <button name="go_to_mrp_job_pickings" type="object" class="oe_stat_button" icon="fa-truck">
                             <field name="picking_count" string="Pickings" widget="statinfo"/>
                         </button>
                     </div>

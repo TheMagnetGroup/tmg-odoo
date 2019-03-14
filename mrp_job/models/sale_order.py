@@ -12,7 +12,7 @@ class SaleOrder(models.Model):
         res = super(SaleOrder, self)._action_confirm()
         MrpJobSudo = self.env['mrp.job'].sudo()
         MrpProduction = self.env['mrp.production'].sudo()
-        mfg_orders = MrpProduction.search([('origin', 'ilike', self.name), ('job_id', '=', False)])
+        mfg_orders = MrpProduction.search([('origin', 'ilike', self.name), ('job_id', '=', False), ('art_ref', '!=', '')])
         if mfg_orders:
             mfg_tuples = [(m.product_tmpl_id.id, m.art_ref) for m in mfg_orders]
             # remove duplicates
