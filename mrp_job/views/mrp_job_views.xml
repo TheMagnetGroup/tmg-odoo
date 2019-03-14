@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+	<record id="mrp_job_view_form" model="ir.ui.view">
+		<field name="name">mrp.job.view.form</field>
+		<field name="model">mrp.job</field>
+		<field name="arch" type="xml">
+			<form string="Mrp Job">
+				<header>
+					<field name="status" widget="statusbar"/>
+					<button name="action_mark_as_done" type="object" string="Mark as done" attrs="{'attrs': [('status', 'in', ['draft', 'confirm', 'cancel'])]}" class="btn btn-primary"/>
+				</header>
+				<sheet>
+					<div class="oe_button_box" name="button_box">
+                        <button name="go_to_mrp_job_pickings" type="object" class="oe_stat_button" icon="fa-truck">
+                            <field name="picking_count" string="Pickings" widget="statinfo"/>
+                        </button>
+                    </div>
+                    <h1 class="d-none d-md-block">
+                        <field name="name" attrs="{'invisible': [('name','=','')]}" readonly="1"/>
+                    </h1>
+					<group>
+						<group>
+							<field name="product_tmpl_id"/>
+							<field name="qty"/>
+							<field name="date_planned_start"/>
+						</group>
+						<group>
+							<field name="sale_order_id"/>
+							<field name="art_ref"/>
+						</group>
+					</group>
+					<notebook>
+						<page name="so_note" string="Notes">
+							<field name="so_notes" widget="text"/>
+						</page>
+						<page name="mfg_order" string="Manufacturing Orders">
+							<field name="mfg_order_ids">
+								<tree>
+									<field name="name"/>
+									<field name="product_id"/>
+									<field name="product_qty"/>
+									<field name="state"/>
+									<field name="date_planned_start"/>
+									<field name="unreserve_visible" invisible="1"/>
+									<button type="object" name="action_assign" icon="fa-refresh" help="Check Availability" attrs="{'invisible': [('unreserve_visible', '=', True)]}"/>
+									<button type="object" name="button_unreserve" icon="fa-minus" help="Unreserve" attrs="{'invisible': [('unreserve_visible', '=', False)]}"/>
+									<button type="object" name="produce_product" icon="fa-cogs" alt="Produce"/>
+								</tree>
+							</field>
+						</page>
+						<page name="mfg_workorders" string="Workorders" attrs="{'invisible': [('workorder_ids', '=', [])]}">
+							<field name="workorder_ids">
+								<tree>
+									<field name="name"/>
+									<field name="workcenter_id"/>
+									<field name="product_id"/>
+									<field name="qty_production"/>
+									<field name="state"/>
+									<button name="process_order" type="object" string="Process"/>
+								</tree>
+							</field>
+						</page>
+					</notebook>
+				</sheet>
+			</form>
+		</field>
+	</record>
+	<record id="mrp_job_view_tree" model="ir.ui.view">
+		<field name="name">mrp.job.view.tree</field>
+		<field name="model">mrp.job</field>
+		<field name="arch" type="xml">
+			<tree string="Mrp Jobs">
+				<field name="name"/>
+				<field name="art_ref"/>
+				<field name="sale_order_id" string="Sale Order"/>
+				<field name="product_tmpl_id" string="Product"/>
+				<field name="qty"/>
+				<field name="date_planned_start"/>
+				<field name="status"/>
+			</tree>
+		</field>
+	</record>
+	<record id="action_open_all_jobs" model="ir.actions.act_window">
+		<field name="name">MRP Jobs</field>
+		<field name="res_model">mrp.job</field>
+		<field name="view_type">form</field>
+		<field name="view_mode">tree,form</field>
+		<field name="context">{}</field>
+		<field name="domain">[]</field>
+	</record>
+	<menuitem id="menu_mrp_jobs_root" parent="mrp.menu_mrp_manufacturing" action="action_open_all_jobs" name="MRP Jobs" sequence="20"/>
+</odoo>
