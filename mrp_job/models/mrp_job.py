@@ -52,7 +52,7 @@ class MrpJob(models.Model):
     @api.depends('mfg_order_ids', 'mfg_order_ids.product_qty')
     def _compute_qty_to_produce(self):
         for record in self:
-            record.qty = len(record.mfg_order_ids and record.mfg_order_ids.mapped('product_qty') or [])
+            record.qty = sum(record.mfg_order_ids and record.mfg_order_ids.mapped('product_qty') or [])
 
     @api.multi
     def _compute_picking_count(self):
