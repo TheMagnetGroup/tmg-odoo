@@ -7,4 +7,4 @@ from odoo import api, fields, models
 class StockPicking(models.Model):
     _inherit = "stock.picking"
 
-    job_id = fields.Many2one("mrp.job", string="Mrp Job")
+    job_id = fields.Many2one("mrp.job", string="Job Reference")

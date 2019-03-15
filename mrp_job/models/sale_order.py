@@ -7,6 +7,14 @@ from odoo import api, fields, models
 class SaleOrder(models.Model):
     _inherit = "sale.order"
 
+    jobs_count = fields.Integer(compute="_compute_jobs_count", sting="Jobs")
+
+    @api.multi
+    @api.depends('order_line', 'order_line.job_id')
+    def _compute_jobs_count(self):
+        for order in self:
+            order.jobs_count = order.order_line and len(order.order_line.mapped('job_id')) or 0
+
     @api.multi
     def _action_confirm(self):
         res = super(SaleOrder, self)._action_confirm()
@@ -18,6 +26,7 @@ class SaleOrder(models.Model):
             # remove duplicates
             mfg_tuples = list(set(mfg_tuples))
             mfg_order_prod_dict = dict.fromkeys(mfg_tuples, False)
+            mfg_order_prod_id_mapping = {order.id: order.product_id.id for order in mfg_orders}
             for mfg_order in mfg_orders:
                 if not mfg_order_prod_dict[(mfg_order.product_tmpl_id.id, mfg_order.art_ref)]:
                     mfg_order_prod_dict[(mfg_order.product_tmpl_id.id, mfg_order.art_ref)] = []
@@ -29,15 +38,29 @@ class SaleOrder(models.Model):
                     'art_ref': prod_art_tpl[1],
                     'mfg_order_ids': [(6, 0, mfg_ids)]
                     })
-                mfg_orders.filtered(lambda m: m.id in mfg_ids).write({'job_id': mrp_job.id})
+                mfg_group_orders = mfg_orders.browse(mfg_ids)
+                mfg_group_orders.write({'job_id': mrp_job.id})
+                if mfg_group_orders.mapped('picking_ids'):
+                    mfg_group_orders.mapped('picking_ids').write({'job_id': mrp_job.id})
+
+                for mfg_id in mfg_ids:
+                    self.order_line.filtered(lambda l: l.product_id.id == mfg_order_prod_id_mapping[mfg_id]).write({'job_id': mrp_job.id})
         return res
+
+    @api.multi
+    def action_view_jobs(self):
+        self.ensure_one()
+        job_action_data = self.env.ref('mrp_job.action_open_all_jobs').read()[0]
+        if self.order_line and self.order_line.mapped('job_id'):
+            job_action_data['domain'] = [('id', 'in', self.order_line.mapped('job_id').ids)]
+        return job_action_data
 
 
 class SaleOrderLine(models.Model):
     _inherit = "sale.order.line"
 
     art_ref = fields.Char(string="Art Reference")
-    job_id = fields.Many2one('mrp.job', string="Job Reference", help="Job reference in which MO for this sale order line is included.")
+    job_id = fields.Many2one('mrp.job', string="Job Reference", help="Job reference in which MO for this sale order line is included.", copy=False)
 
     @api.multi
     def _prepare_procurement_values(self, group_id=False):

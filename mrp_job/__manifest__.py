@@ -16,7 +16,9 @@ Manufacturing JOB: Muliple MO processing
         'data/server_action.xml',
         'views/mrp_job_views.xml',
         'views/sale_order_views.xml',
-        'views/mrp_production_views.xml'
+        'views/mrp_production_views.xml',
+        'views/stock_picking_views.xml'
     ],
     'license': 'OEEL-1',
+    'application': True
 }

@@ -7,6 +7,8 @@ from odoo import api, fields, models
 class StockMove(models.Model):
     _inherit = "stock.move"
 
+    job_id = fields.Many2one('mrp.job', string="Job Reference")
+
     def _prepare_procurement_values(self):
         result = super(StockMove, self)._prepare_procurement_values()
         if self.sale_line_id:

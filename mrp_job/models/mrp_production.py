@@ -19,6 +19,13 @@ class MrpProduction(models.Model):
         else:
             return self.open_produce_product()
 
+    @api.multi
+    def _generate_moves(self):
+        result = super(MrpProduction, self)._generate_moves()
+        for order in self.filtered(lambda o: o.job_id):
+            order.picking_ids.write({'job_id': order.job_id.id})
+        return result
+
 
 class MrpWorkorder(models.Model):
     _inherit = "mrp.workorder"
