@@ -16,7 +16,7 @@ class MrpProduction(models.Model):
         for production in self:
             production._generate_finished_moves()
             factor = production.product_uom_id._compute_quantity(production.product_qty, production.bom_id.product_uom_id) / production.bom_id.product_qty
-            boms, lines = production.bom_id.with_context(inactive_attribute_value_ids=self.inactive_attribute_value_ids).explode(production.product_id, factor, picking_type=production.bom_id.picking_type_id)
+            boms, lines = production.bom_id.with_context(inactive_attribute_value_ids=production.inactive_attribute_value_ids).explode(production.product_id, factor, picking_type=production.bom_id.picking_type_id)
             production._generate_raw_moves(lines)
             # Check for all draft moves whether they are mto or not
             production._adjust_procure_method()
