@@ -28,7 +28,8 @@
     # always loaded
     'data': [
         'data/cron.xml',
-        'views/tmg_helpdesk_views.xml'
+        'views/tmg_helpdesk_views.xml',
+        'wizard/tmg_portal_wizard_view.xml',
         # 'views/templates.xml',
     ],
     # only loaded in demonstration mode
