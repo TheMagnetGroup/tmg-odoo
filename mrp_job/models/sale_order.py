@@ -59,7 +59,7 @@ class SaleOrder(models.Model):
 class SaleOrderLine(models.Model):
     _inherit = "sale.order.line"
 
-    art_ref = fields.Char(string="Art Reference")
+    art_ref = fields.Char(string="Art Reference", required=True, default="New")
     job_id = fields.Many2one('mrp.job', string="Job Reference", help="Job reference in which MO for this sale order line is included.", copy=False)
 
     @api.multi
