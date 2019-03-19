@@ -8,7 +8,7 @@
                 <form string="Assign">
                     <!--<p class="alert alert-warning"><field name="access_warning"/></p> -->
                     <group>
-                        <field name="user_id" placeholder="Assign IT Tech to ticket(s)..."/>
+                        <field name="user_id"/>
                     </group>
                     <footer>
                         <button string="Assign" name="action_assign_tech"  type="object" class="btn-primary"/>
@@ -21,7 +21,7 @@
         <act_window id="portal_quick_assign_action"
                      multi="True" 
                      key2="client_action_multi" 
-                     name="Quick Assign Tech" 
+                     name="Assign"
                      res_model="portal.quick.assign"
                      src_model="helpdesk.ticket"
                 view_mode="form" target="new" view_type="form" view_id="portal_quick_assign_wizard" />

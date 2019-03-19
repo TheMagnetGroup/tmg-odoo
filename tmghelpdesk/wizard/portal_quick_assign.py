@@ -15,8 +15,7 @@ class PortalQuickAssign(models.TransientModel):
 
     res_model = fields.Char('Related Document Model', required=True)
     res_id = fields.Integer('Related Document ID', required=True)
-    user_id = fields.Many2one('res.users', string="IT Technicians")
-    note = fields.Text(help="Add extra content to display in the email")
+    user_id = fields.Many2one('res.users', string="Assigned To")
     # share_link = fields.Char(string="Link", compute='_compute_share_link')
     access_warning = fields.Text("Access warning", compute="_compute_access_warning")
 
