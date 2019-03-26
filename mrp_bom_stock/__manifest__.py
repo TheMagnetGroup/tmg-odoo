@@ -12,7 +12,7 @@ Mrp Bom Stock: Product Stock Based on BOM
     'website': "https://www.odoo.com",
     'category': 'Custom Development',
     'version': '0.1',
-    'depends': ['mrp'],
+    'depends': ['mrp', 'sale'],
     'data': [
         'views/mrp_bom_views.xml'
     ],
