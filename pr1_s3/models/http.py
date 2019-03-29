@@ -15,6 +15,7 @@ from odoo.tools import pycompat
 import mimetypes
 import base64
 import hashlib
+import re
 class IrHttp(models.AbstractModel):
     _inherit = 'ir.http'
     
