@@ -8,7 +8,7 @@ import odoo.modules as addons
 from odoo.tools import DEFAULT_SERVER_DATE_FORMAT
 from datetime import timedelta
 from odoo.modules.module import get_resource_path, get_module_path
-from odoo import models
+from odoo import api, models, fields
 from odoo.exceptions import AccessError
 from odoo.http import request, STATIC_CACHE
 from odoo.tools import pycompat
@@ -16,6 +16,13 @@ import mimetypes
 import base64
 import hashlib
 import re
+import io
+_logger = logging.getLogger(__name__)
+try:
+    import boto3
+except:
+    _logger.debug('boto3 package is required!!')
+
 class IrHttp(models.AbstractModel):
     _inherit = 'ir.http'
     
@@ -96,6 +103,19 @@ class IrHttp(models.AbstractModel):
 
             if not module_resource_path:
                 module_resource_path = obj.url
+
+            connection = False
+            connection=env['pr1_s3.s3_connection'].get_s3_connection(obj.res_model, obj.mimetype)
+            if connection:
+                s3_bucket, s3_service = connection.get_bucket()
+                file_path = connection.s3_api_url + '/' + connection.s3_bucket_name + '/'
+                file_name = module_resource_path[module_resource_path.index(file_path) + len(file_path):]
+                file_stream = io.BytesIO()
+                try:
+                    s3_bucket.download_fileobj(file_name, file_stream)
+                    content = base64.b64encode(file_stream.getbuffer())
+                except Exception as e:
+                    raise e
 
             if not content:
                 status = 301
