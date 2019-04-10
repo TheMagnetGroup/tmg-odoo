@@ -61,9 +61,8 @@ class ProductTemplate(models.Model):
         self.ensure_one()
         action = self.env.ref('stock.stock_move_line_action').read()[0]
         action['domain'] = [('product_id.product_tmpl_id', '=', self.id)]
-        product_ids = [self.id]
         bom = self.env['mrp.bom'].search([('product_tmpl_id', '=', self.id)], limit=1)
         if bom:
-            product_ids += bom.bom_line_ids.mapped('product_id').ids
+            product_ids = bom.bom_line_ids.mapped('product_id').ids
             action['domain'] = [('product_id', 'in', product_ids)]
         return action
