@@ -25,7 +25,7 @@
         "security/security.xml",
         'security/ir.model.access.csv',
         "views/s3_connection_view.xml",
-        "views/bucket_filter_view.xml"
+        "views/bucket_filter_view.xml",
     ],
     "auto_install": False,
     "installable": True,

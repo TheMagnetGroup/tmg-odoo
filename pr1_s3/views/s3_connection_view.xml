@@ -24,6 +24,7 @@
 									<field name="s3_secret_key"/>
 									<field name="s3_location"/>
 									<field name="s3_api_url"/>
+									<field name="s3_is_public_bucket"/>
 								</group>
 								<group>
 									<field name="for_all"/>

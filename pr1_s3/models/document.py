@@ -15,6 +15,7 @@ class Document(models.Model):
     _inherit = 'ir.attachment'
     is_in_s3 = fields.Boolean(string='Is in S3',default=False)
     s3_connection_id=fields.Many2one('pr1_s3.s3_connection', string="S3 Connection")
+    version_id = fields.Char(string='Version Id', help='The unique version id of the attachment in S3')
     
     @api.multi
     def _filter_protected_attachments(self):
@@ -56,7 +57,8 @@ class Document(models.Model):
                 raise UserError("The connection associated with this attachment is not accessible")
             
             try:
-                item=s3_service.Object(connection.s3_bucket_name,attach.url)
+                # item=s3_service.Object(connection.s3_bucket_name,attach.url)
+                item = s3_service.ObjectVersion(connection.s3_bucket_name,attach.url,self.version_id)
                 item.delete()
             except:
                 pass  #item has already been deleted from S3
@@ -75,13 +77,17 @@ class Document(models.Model):
             value = attach.datas
             bin_data = base64.b64decode(value) if value else b''
             
-            fname = hashlib.sha1(bin_data).hexdigest()
-    
-            if(len(fname)>6): #small random fname
-                fname=fname[:6]
+            if not self.res_name:
+
+                fname = hashlib.sha1(bin_data).hexdigest()
+
+                if(len(fname)>6): #small random fname
+                    fname=fname[:6]
             
-            fname=str(attach.id)+fname
-            
+                fname=str(attach.id)+fname
+            else:
+                fname = self.res_name + '-' + str(self.res_id) # create folder based on resource name and id(sales order, task, etc)
+
             if(attach.datas_fname!=False):
                 Metadata={
                 'FileName': attach.datas_fname
@@ -99,7 +105,7 @@ class Document(models.Model):
                 fname=connection.sub_folder+"/"+fname
             
             
-            s3_bucket.put_object(Key=fname,Body=bin_data,ACL='public-read',ContentType=attach.mimetype,Metadata=Metadata)
+            s3_obj = s3_bucket.put_object(Key=fname,Body=bin_data,ACL='public-read',ContentType=attach.mimetype,Metadata=Metadata)
             vals = {
                 'checksum': self._compute_checksum(bin_data),
                 'url': connection.get_s3_url(fname, s3_service),
@@ -110,6 +116,7 @@ class Document(models.Model):
                 'store_fname': fname,
                 'db_datas': False,
                 'type': 'url',
+                'version_id' : s3_obj.version_id
             }
             super(Document, attach.sudo()).write(vals)
 

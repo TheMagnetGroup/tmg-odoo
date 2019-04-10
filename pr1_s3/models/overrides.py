@@ -39,12 +39,12 @@ class Binary(fields.Binary):
             ('res_id', 'in', records.ids),
         ]
         atts = records.env['ir.attachment'].sudo().search(domain)
-        if (vals and atts.url and atts.type == 'url' and not image.is_url(vals)):
+        if (vals and atts.url and atts.type == 'url' and not is_url(vals)):
             atts.write({
                 'url': None,
                 'type': 'binary',
             })
-        if (vals and image.is_url(vals)):
+        if (vals and is_url(vals)):
             with records.env.norecompute():
                 if value:
                     atts.write({
@@ -65,7 +65,8 @@ class Binary(fields.Binary):
                 else:
                     atts.unlink()
         else:
-            super(Binary, self).write(records, vals, create=create)
+            # super(Binary, self).write(records, vals, create=create)
+            super(Binary, self).write(records, vals)
 
 
 fields.Binary = Binary

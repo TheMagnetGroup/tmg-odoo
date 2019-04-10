@@ -18,6 +18,8 @@ except:
 import requests
 
 _logger = logging.getLogger(__name__)
+public_acl_indicator = 'http://acs.amazonaws.com/groups/global/AllUsers'
+permissions_to_check = ['READ', 'WRITE']
 
 class S3Connection(models.Model):
     _name = 'pr1_s3.s3_connection'
@@ -35,6 +37,7 @@ class S3Connection(models.Model):
     s3_location=fields.Char("Bucket Location",help="Defaults to S3 (leave blank if default bucket location",default="s3")
     s3_enabled=fields.Boolean("S3 Enabled", help="Disable this to turn off the auto upload of new attachments for this connection", default=True)
     test_file=fields.Binary("Test File", help="Please upload a test file in order to test the S3 Connection.",attachment=True)
+    s3_is_public_bucket= fields.Boolean("Is Bucket Publicly Accessible", help="If this is a public bucket the module will not download file contents through the API",default=False)
             
     @api.multi
     def upload_all_existing(self):
@@ -138,7 +141,7 @@ class S3Connection(models.Model):
             else:
                 object_url = record.s3_api_url+"/{0}/{1}".format(record.s3_bucket_name, file_name)
         return object_url
-    
+
     @api.model
     def has_mime_type(self,conn, mime_type):
         for record in self:

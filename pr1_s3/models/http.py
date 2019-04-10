@@ -108,14 +108,13 @@ class IrHttp(models.AbstractModel):
             connection=env['pr1_s3.s3_connection'].get_s3_connection(obj.res_model, obj.mimetype)
             if connection:
                 s3_bucket, s3_service = connection.get_bucket()
-                file_path = connection.s3_api_url + '/' + connection.s3_bucket_name + '/'
-                file_name = module_resource_path[module_resource_path.index(file_path) + len(file_path):]
-                file_stream = io.BytesIO()
-                try:
-                    s3_bucket.download_fileobj(file_name, file_stream)
+                if not connection.s3_is_public_bucket:
+                    file_stream = io.BytesIO()
+                    if not obj.version_id:
+                        s3_bucket.download_fileobj(obj.store_fname, file_stream)
+                    else:
+                        s3_bucket.download_fileobj(obj.store_fname, file_stream, ExtraArgs={'VersionId':obj.version_id})
                     content = base64.b64encode(file_stream.getbuffer())
-                except Exception as e:
-                    raise e
 
             if not content:
                 status = 301
