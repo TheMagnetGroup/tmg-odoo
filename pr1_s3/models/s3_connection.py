@@ -23,6 +23,7 @@ permissions_to_check = ['READ', 'WRITE']
 
 class S3Connection(models.Model):
     _name = 'pr1_s3.s3_connection'
+    _description = 'S3 Connection'
         
     name = fields.Char(String="Name",help="A description of this connection to s3, e.g. for products..")
     s3_bucket_name=fields.Char("S3 Bucket Name")
@@ -30,7 +31,8 @@ class S3Connection(models.Model):
     s3_access_key=fields.Char("S3 Access Key")
     s3_secret_key=fields.Char("S3 Secret Key")
     sub_folder=fields.Char("Sub Folder",help="This is the sub folder to use if you have multiple DBs you might want to store the data in a sub folder",default="")
-    s3_api_url=password=fields.Char("S3 API URL", help="Leave blank if its Amazon S3",default="")
+    # s3_api_url=password=fields.Char("S3 API URL", help="Leave blank if its Amazon S3",default="")
+    s3_api_url = fields.Char("S3 API URL", help="Leave blank if its Amazon S3", default="")
     test_connected=fields.Boolean("Test Connected",default=False,help="This will connect and attempt to push a file up to ensure the connection works.")
     for_all=fields.Boolean("Fallback", help="Tick this to make this work globally for all where no other is found or if you wish it to work globally")
     append_file_name_to_start=fields.Boolean("Append File Name",help="If you tick this the file name will be preserved and appended to the hex key folder e.g. /asdfgghss/abc.pdf - highly recommended",default=True)

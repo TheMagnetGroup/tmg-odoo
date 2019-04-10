@@ -8,6 +8,8 @@ from odoo.tools import DEFAULT_SERVER_DATE_FORMAT
 from datetime import timedelta
 class bucket_filter(models.Model):
     _name = 'pr1_s3.bucket_filter'
+    _description = 'S3 Bucket Filter'
+
     def _get_name(self):
         for record in self:
             if(record.res_model.id!=False and record.mime_type!=False):
