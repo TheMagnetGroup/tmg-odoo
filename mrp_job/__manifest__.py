@@ -17,7 +17,9 @@ Manufacturing JOB: Muliple MO processing
         'views/mrp_job_views.xml',
         'views/sale_order_views.xml',
         'views/mrp_production_views.xml',
-        'views/stock_picking_views.xml'
+        'views/stock_picking_views.xml' ,
+        'report/castelli_report_mrporder.xml',
+        'report/castelli_mrp_report.xml'
     ],
     'license': 'OEEL-1',
     'application': True
