@@ -12,9 +12,12 @@ Mrp Bom Stock: Product Stock Based on BOM
     'website': "https://www.odoo.com",
     'category': 'Custom Development',
     'version': '0.1',
-    'depends': ['mrp', 'sale_stock'],
+    'depends': ['mrp', 'sale_stock', 'purchase'],
     'data': [
-        'views/mrp_bom_views.xml'
+        'views/purchase_views.xml',
+        'views/mrp_bom_views.xml',
+        'views/product_views.xml',
+        'report/report_stock_kit_views.xml',
     ],
     'license': 'OEEL-1',
 }
