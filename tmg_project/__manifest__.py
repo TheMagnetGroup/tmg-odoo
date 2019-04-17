@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 {
-    'name': "tmg_project",
+    'name': "TMG Project Extensions",
 
     'summary': """
         TMG extensions to the base Project module.
