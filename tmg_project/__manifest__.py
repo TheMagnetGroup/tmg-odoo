@@ -6,6 +6,8 @@
         TMG extensions to the base Project module.
         """,
 
+    'sequence': 2,
+
     'description': """
         Adds visibility to the task id, similar to how the Helpdesk module works.
         """,
