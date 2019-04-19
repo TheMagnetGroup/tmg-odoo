@@ -14,10 +14,13 @@ Mrp Bom Stock: Product Stock Based on BOM
     'version': '0.1',
     'depends': ['mrp', 'sale_stock', 'purchase'],
     'data': [
+        'security/ir.model.access.csv',
         'views/purchase_views.xml',
         'views/mrp_bom_views.xml',
-        'views/product_views.xml',
         'report/report_stock_kit_views.xml',
+        'views/product_views.xml',
+        'views/stock_location_views.xml'
     ],
+    'post_init_hook': '_update_locations',
     'license': 'OEEL-1',
 }

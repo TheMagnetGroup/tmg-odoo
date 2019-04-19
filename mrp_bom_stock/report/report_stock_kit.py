@@ -36,7 +36,7 @@ class ReportStockForecat(models.Model):
                                 LEFT JOIN
                                     product_product ON product_product.id = sq.product_id
                                 LEFT JOIN
-                                    mrp_bom_line bml ON bml.product_id=sq.product_id
+                                    mrp_bom_line bml ON bml.product_id=sq.product_id and bml.to_exclude = false
                                 LEFT JOIN
                                     mrp_bom bm ON bm.id=bml.bom_id
                                 LEFT JOIN
@@ -91,6 +91,7 @@ class ReportStockForcasted(models.Model):
 
     date = fields.Date()
     product_tmpl_id = fields.Many2one('product.template', string='Product Template', readonly=True)
+    warehouse_id = fields.Many2one('stock.warehouse', string='Warehouse')
     qty_available = fields.Float(readonly=True, string="Quantity On Hand")
     virtual_available = fields.Float(readonly=True, string="Forecast Quantity")
 
@@ -103,19 +104,22 @@ class ReportStockForcasted(models.Model):
                     SELECT
                         ROW_NUMBER() OVER () AS id,
                         FINAL.product_tmpl_id AS product_tmpl_id,
+                        wh.id AS warehouse_id,
                         SUB.date as date,
                         CASE WHEN FINAL.date = SUB.date THEN MIN(FINAL.qty_available)::integer ELSE 0 END as qty_available,
                         CASE WHEN FINAL.date = SUB.date THEN MIN(FINAL.virtual_available)::integer ELSE 0 END as virtual_available
                     FROM stock_warehouse wh,(
                         SELECT
                             MAIN.product_tmpl_id AS product_tmpl_id,
-                            SUM(MAIN.quantity) AS qty_available,
-                            SUM(MAIN.quantity) AS virtual_available,
+                            MIN(MAIN.quantity) AS qty_available,
+                            MIN(MAIN.quantity) AS virtual_available,
+                            MAIN.location_id as location_id,
                             MAIN.date AS date
                         FROM(
                             SELECT
                                 sq.product_id,
                                 bm.product_tmpl_id,
+                                location_id.id as location_id,
                                 sum(sq.quantity/bml.product_qty)::integer AS quantity,
                                 date_trunc('week', to_date(to_char(CURRENT_DATE, 'YYYY/MM/DD'), 'YYYY/MM/DD')) as date
                                 FROM
@@ -125,7 +129,7 @@ class ReportStockForcasted(models.Model):
                                 LEFT JOIN
                                     product_product ON product_product.id = sq.product_id
                                 LEFT JOIN
-                                    mrp_bom_line bml ON bml.product_id=sq.product_id
+                                    mrp_bom_line bml ON bml.product_id=sq.product_id and bml.to_exclude = false
                                 LEFT JOIN
                                     mrp_bom bm ON bm.id=bml.bom_id
                                 LEFT JOIN
@@ -137,10 +141,12 @@ class ReportStockForcasted(models.Model):
                                 GROUP BY
                                     sq.product_id,
                                     bm.product_tmpl_id,
+                                    location_id.id,
                                     date
                             ) AS MAIN
                         GROUP BY
                             MAIN.product_tmpl_id,
+                            MAIN.location_id,
                             MAIN.date
 
                         UNION ALL
@@ -148,12 +154,14 @@ class ReportStockForcasted(models.Model):
                         SELECT
                             MAIN1.product_tmpl_id AS product_tmpl_id,
                             0 AS qty_available, -- we do not need to calculate here
-                            SUM(MAIN1.quantity) AS virtual_quantity,
+                            MIN(MAIN1.quantity) AS virtual_quantity,
+                            MAIN1.location_id as location_id,
                             MAIN1.date AS date
                         FROM
                             (SELECT
                                 sm.product_id,
                                 bm.product_tmpl_id,
+                                dest_location.id as location_id,
                                 sum(sm.product_qty/bml.product_qty)::integer as quantity,
                                 CASE WHEN sm.date_expected > CURRENT_DATE
                                     THEN date_trunc('week', to_date(to_char(sm.date_expected, 'YYYY/MM/DD'), 'YYYY/MM/DD'))
@@ -168,7 +176,7 @@ class ReportStockForcasted(models.Model):
                                 LEFT JOIN
                                 stock_location source_location ON sm.location_id = source_location.id
                                 LEFT JOIN
-                                    mrp_bom_line bml ON bml.product_id=sm.product_id
+                                    mrp_bom_line bml ON bml.product_id=sm.product_id and bml.to_exclude = false
                                 LEFT JOIN
                                     mrp_bom bm ON bm.id=bml.bom_id
                                 LEFT JOIN
@@ -181,10 +189,12 @@ class ReportStockForcasted(models.Model):
                                 GROUP BY
                                     sm.product_id,
                                     bm.product_tmpl_id,
+                                    dest_location.id,
                                     sm.date_expected
                             ) AS MAIN1
                         GROUP BY
                             MAIN1.product_tmpl_id,
+                            MAIN1.location_id,
                             MAIN1.date
 
                         UNION ALL
@@ -194,12 +204,14 @@ class ReportStockForcasted(models.Model):
                         SELECT
                             MAIN2.product_tmpl_id AS product_tmpl_id,
                             0 AS qty_available,
-                            SUM(-MAIN2.quantity) AS virtual_quantity,
+                            MIN(-MAIN2.quantity) AS virtual_quantity,
+                            MAIN2.location_id AS location_id,
                             MAIN2.date AS date
                         FROM
                             (SELECT
                                 sm.product_id,
                                 bm.product_tmpl_id,
+                                source_location.id AS location_id,
                                 sum(sm.product_qty/bml.product_qty)::integer AS quantity,
                                 CASE WHEN sm.date_expected > CURRENT_DATE
                                     THEN date_trunc('week', to_date(to_char(sm.date_expected, 'YYYY/MM/DD'), 'YYYY/MM/DD'))
@@ -214,7 +226,7 @@ class ReportStockForcasted(models.Model):
                                 LEFT JOIN
                                    stock_location dest_location ON sm.location_dest_id = dest_location.id
                                 LEFT JOIN
-                                    mrp_bom_line bml ON bml.product_id=sm.product_id
+                                    mrp_bom_line bml ON bml.product_id=sm.product_id and bml.to_exclude = false
                                 LEFT JOIN
                                     mrp_bom bm ON bm.id=bml.bom_id
                                 LEFT JOIN
@@ -227,10 +239,12 @@ class ReportStockForcasted(models.Model):
                                 GROUP BY
                                     sm.product_id,
                                     bm.product_tmpl_id,
+                                    source_location.id,
                                     sm.date_expected
                             ) AS MAIN2
                         GROUP BY
                             MAIN2.product_tmpl_id,
+                            MAIN2.location_id,
                             MAIN2.date
                     ) AS FINAL
 
@@ -244,14 +258,24 @@ class ReportStockForcasted(models.Model):
                             LEFT JOIN
                                 stock_location source_location ON sm.location_id = source_location.id
                               LEFT JOIN
-                                stock_location dest_location     ON sm.location_dest_id = dest_location.id
+                                stock_location dest_location  ON sm.location_dest_id = dest_location.id
                             WHERE
                                 sm.state IN ('confirmed','assigned','waiting') AND sm.date_expected > CURRENT_DATE AND
                              ((dest_location.usage = 'internal' AND source_location.usage != 'internal')
                               or (source_location.usage = 'internal' AND dest_location.usage != 'internal'))) AS DATE_SEARCH)
                              SUB ON (SUB.date IS NOT NULL)
+
+                    WHERE wh.id = (
+                        SELECT
+                            w.id
+                        FROM
+                            stock_warehouse w, stock_location l
+                        WHERE
+                            l.id = FINAL.location_id and w.id = l.warehouse_id
+                    )
                 GROUP BY
                     FINAL.product_tmpl_id,
                     SUB.date,
+                    wh.id,
                     FINAL.date
-            )""")
+            )""" % ())
