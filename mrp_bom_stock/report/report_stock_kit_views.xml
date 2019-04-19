@@ -5,7 +5,6 @@
         <field name="model">report.stock.kit</field>
         <field name="arch" type="xml">
             <tree string="Kit Reports">
-                <field name="warehouse_id"/>
                 <field name="product_tmpl_id"/>
                 <field name="qty_available"/>
             </tree>
@@ -30,15 +29,13 @@
         <field name="arch" type="xml">
             <pivot string="Kit Reports" disable_linking="True">
                 <field name="product_tmpl_id" type="row"/>
-                <field name="warehouse_id" type="col"/>
                 <field name="qty_available" type="measure"/>
-                <field name="virtual_available" type="measure"/>
             </pivot>
         </field>
     </record>
 
     <record id="action_stock_kit_report_template" model="ir.actions.act_window">
-        <field name="name">Kit Stock</field>
+        <field name="name">Manufacturable Stock</field>
         <field name="res_model">report.stock.kit</field>
         <field name="view_type">form</field>
         <field name="view_mode">tree,pivot</field>
@@ -46,7 +43,7 @@
         <field name="view_id" ref="report_stock_kit_tree"/>
     </record>
     <record id="action_stock_kit_report_pivot" model="ir.actions.act_window">
-        <field name="name">Kit Stock</field>
+        <field name="name">Product Manufacturable Forecast</field>
         <field name="res_model">report.stock.kit.forcasted</field>
         <field name="view_type">form</field>
         <field name="view_mode">tree,pivot</field>

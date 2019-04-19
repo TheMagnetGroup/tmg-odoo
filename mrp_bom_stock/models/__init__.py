@@ -4,3 +4,4 @@
 from . import product
 from . import mrp_bom
 from . import sale
+from . import stock_location

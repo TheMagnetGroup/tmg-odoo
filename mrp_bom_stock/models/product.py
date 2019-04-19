@@ -134,7 +134,7 @@ class ProductTemplate(models.Model):
         """
         res = super(ProductTemplate, self)._compute_purchased_product_qty()
         for template in self.filtered(lambda t: t.bom_id):
-            template.purchased_product_qty = sum([p.purchased_product_qty for p in (template.product_variant_ids + template.bom_id.bom_line_ids.mapped('product_id'))])
+            template.purchased_product_qty = sum([p.purchased_product_qty for p in template.product_variant_ids])
         return res
 
     def action_open_quants(self):
