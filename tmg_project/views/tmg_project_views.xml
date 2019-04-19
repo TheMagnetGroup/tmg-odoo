@@ -31,6 +31,18 @@
                 <xpath expr="//field[@name='project_id']" position="after">
                     <field name="id"/>
                 </xpath>
+                <xpath expr="//form[1]/sheet[1]/notebook[1]" position="inside">
+                    <page name="Attachments" string="Attachments">
+                      <field name="attachment_ids" attrs="{}">
+                        <tree class="o_documents_list_view" create="false" edit="false">
+                          <field name="thumbnail" options="{&quot;size&quot;:[90,90]}" widget="image"/>
+                          <field name="url" widget="url"/>
+                          <field name="write_uid"/>
+                          <field name="create_date"/>
+                        </tree>
+                      </field>
+                    </page>
+                </xpath>
             </field>
         </record>
 
