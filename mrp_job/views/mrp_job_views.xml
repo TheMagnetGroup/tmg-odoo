@@ -6,6 +6,9 @@
 		<field name="arch" type="xml">
 			<form string="Job">
 				<header>
+					<button name="action_mark_as_done" type="object" string="Mark all as done"/>
+					<button name="action_reserve_all" type="object" string="Reserve All"/>
+					<button name="action_plan_all" type="object" string="Plan All"/>
 					<field name="status" widget="statusbar"/>
 				</header>
 				<sheet>
@@ -29,18 +32,15 @@
 						</group>
 					</group>
 					<notebook>
-						<page name="so_note" string="Notes">
-							<field name="so_notes" widget="text"/>
-						</page>
 						<page name="mfg_order" string="Manufacturing Orders">
 							<field name="mfg_order_ids">
 								<tree>
 									<field name="name"/>
 									<field name="product_id"/>
 									<field name="product_qty"/>
+									<field name="availability"/>
 									<field name="state"/>
 									<field name="date_planned_start"/>
-									<field name="availability" invisible="1"/>
 									<field name="unreserve_visible" invisible="1"/>
 									<field name="is_locked" invisible="1"/>
 									<button type="object" name="action_assign" icon="fa-refresh" help="Check Availability" attrs="{'invisible': ['|', ('availability', 'in', ('assigned', 'none')), ('is_locked', '=', False)]}" title="Check Availability: Try to reserve components for this order"/>
@@ -60,6 +60,9 @@
 									<button name="process_order" type="object" string="Process"/>
 								</tree>
 							</field>
+						</page>
+						<page name="so_note" string="Notes">
+							<field name="so_notes" widget="text"/>
 						</page>
 					</notebook>
 				</sheet>
@@ -81,12 +84,26 @@
 			</tree>
 		</field>
 	</record>
+	<record id="mrp_job_view_search" model="ir.ui.view">
+		<field name="name">mrp.job.view.search</field>
+		<field name="model">mrp.job</field>
+		<field name="arch" type="xml">
+			<search>
+				<filter string="To Do" name="todo_jobs" domain="[('status', 'not in', [('done', 'cancel')])]"/>
+                <group expand="1" string="Group By">
+                    <filter string="Deadline" name='groupby_deadline' context="{'group_by':'date_planned_start'}"/>
+                    <filter string="Status" name="groupby_status" context="{'group_by': 'status'}"/>
+                </group>
+			</search>
+		</field>
+	</record>
 	<record id="action_open_all_jobs" model="ir.actions.act_window">
 		<field name="name">Jobs</field>
 		<field name="res_model">mrp.job</field>
 		<field name="view_type">form</field>
-		<field name="view_mode">tree,form</field>
-		<field name="context">{}</field>
+		<field name="view_mode">tree,form,pivot</field>
+		<field name="search_view_id" ref="mrp_job_view_search"/>
+		<field name="context">{'search_default_todo_jobs': 1}</field>
 		<field name="domain">[]</field>
 	</record>
 	<menuitem id="menu_mrp_jobs_root" parent="mrp.menu_mrp_manufacturing" action="action_open_all_jobs" name="Jobs" sequence="20"/>
