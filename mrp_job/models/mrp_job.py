@@ -14,13 +14,14 @@ class MrpJob(models.Model):
     """
     _name = "mrp.job"
     _description = "Manufacturing JOB"
+    _order = 'date_planned_start asc'
 
     name = fields.Char(string='Job Reference', required=True, copy=False, readonly=True, index=True)
     product_tmpl_id = fields.Many2one('product.template', string="Product", help="Product to be manufactured.")
     sale_order_id = fields.Many2one('sale.order', string="Sale Order", help="Sale order from where this Job has created.")
     mfg_order_ids = fields.Many2many('mrp.production', 'mrp_job_mrp_prod_rel', 'job_id', 'prod_order_id', string="Manufacturing Orders", help="Associated manufacturing orders.")
     workorder_ids = fields.Many2many('mrp.workorder', string="Workorders", compute="_compute_workorder_ids", help="Workorders associated with the associated manufacturing orders.")
-    date_planned_start = fields.Datetime(string='Deadline', compute="_compute_date_planned_start")
+    date_planned_start = fields.Datetime(string='Deadline', compute="_compute_date_planned_start", store=True)
     art_ref = fields.Char(string="Art Reference")
     so_notes = fields.Text(related='sale_order_id.note', string="Notes")
     status = fields.Selection(selection=[
@@ -29,8 +30,8 @@ class MrpJob(models.Model):
         ('in_progress', 'In Progress'),
         ('done', 'Done'),
         ('cancel', 'Cancelled')
-    ], compute="_compute_job_state", default="draft")
-    qty = fields.Float(string="Quantity To Produce", digits=dp.get_precision('Product Unit of Measure'), compute="_compute_qty_to_produce", help="Total quantity to produce combining all manufacturing orders.")
+    ], compute="_compute_job_state", default="draft", store=True)
+    qty = fields.Float(string="Quantity To Produce", digits=dp.get_precision('Product Unit of Measure'), compute="_compute_qty_to_produce", help="Total quantity to produce combining all manufacturing orders.", store=True)
     picking_count = fields.Integer(compute="_compute_picking_count")
 
     @api.multi
@@ -94,3 +95,15 @@ class MrpJob(models.Model):
         self.ensure_one()
         for mo in self.mfg_order_ids:
             mo.button_mark_done()
+
+    @api.multi
+    def action_reserve_all(self):
+        self.ensure_one()
+        for mo in self.mfg_order_ids:
+            mo.action_assign()
+
+    @api.multi
+    def action_plan_all(self):
+        self.ensure_one()
+        for mo in self.mfg_order_ids.filtered(lambda m: m.routing_id):
+            mo.button_plan()
