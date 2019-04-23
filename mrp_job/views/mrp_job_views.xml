@@ -6,9 +6,9 @@
 		<field name="arch" type="xml">
 			<form string="Job">
 				<header>
-					<button name="action_mark_as_done" type="object" string="Mark all as done"/>
+					<button name="action_mark_as_done" type="object" string="Mark all as done" attrs="{'invisible': [('status', 'in', ['draft', 'cancel'])]}"/>
 					<button name="action_reserve_all" type="object" string="Reserve All"/>
-					<button name="action_plan_all" type="object" string="Plan All"/>
+					<button name="action_plan_all" type="object" string="Plan All" attrs="{'invisible': [('status', 'in', ['done', 'cancel'])]}"/>
 					<field name="status" widget="statusbar"/>
 				</header>
 				<sheet>
