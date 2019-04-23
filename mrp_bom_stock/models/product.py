@@ -7,36 +7,59 @@ class Product(models.Model):
     _inherit = 'product.product'
 
     def _compute_quantities_dict(self, lot_id, owner_id, package_id, from_date=False, to_date=False):
-        res = super(Product, self)._compute_quantities_dict(lot_id, owner_id, package_id, from_date, to_date)
+        """
+            Inherited to update quantity fields for manufacturable products
+        """
+        res = super(Product, self)._compute_quantities_dict(lot_id=lot_id, owner_id=owner_id, package_id=package_id, from_date=from_date, to_date=to_date)
         for product in self.filtered(lambda p: p.bom_id):
-            if product.bom_count:
-                products = {}
-                for line in product.bom_id.bom_line_ids.filtered(lambda l: not l.to_exclude and l.product_id.type != 'consu'):
-                    # Calculate product quantity based on uom
-                    qty = line.product_qty
-                    product_uom_type = line.product_uom_id.uom_type
-                    product_uom_factor = line.product_uom_id.factor_inv
-                    if product_uom_type == 'bigger':
-                        qty = line.product_qty * product_uom_factor
-                    elif product_uom_type == 'smaller':
-                        qty = line.product_qty / product_uom_factor
-
-                    if line.product_id.id in products.keys():
-                        products[line.product_id.id]['qty'] += qty
-                    else:
-                        products.update({line.product_id.id: {
-                            'qty_available': line.product_id.qty_available,
-                            'virtual_available': line.product_id.virtual_available,
-                            'incoming_qty': line.product_id.incoming_qty,
-                            'outgoing_qty': line.product_id.outgoing_qty,
-                            'qty': qty}})
-                for qty_field in ['qty_available', 'virtual_available', 'incoming_qty', 'outgoing_qty']:
-                    possible_qty = []
-                    for p in products:
-                        possible_qty.append(int(products[p][qty_field] / products[p]['qty']))
-                    if possible_qty:
-                        res[product.id][qty_field] = min(possible_qty)
+            components = product._get_bom_component_qty(product.bom_id)
+            res[product.id]['qty_available'] = res[product.id]['qty_available'] + product._get_possible_assembled_kit(components, res, 'qty_available')
+            res[product.id]['incoming_qty'] = res[product.id]['incoming_qty'] + product._get_possible_assembled_kit(components, res, 'incoming_qty')
+            res[product.id]['outgoing_qty'] = res[product.id]['outgoing_qty'] + product._get_possible_assembled_kit(components, res, 'outgoing_qty')
+            res[product.id]['virtual_available'] = res[product.id]['virtual_available'] + product._get_possible_assembled_kit(components, res, 'virtual_available')
         return res
+
+    @api.multi
+    def _get_bom_component_qty(self, bom):
+        bom_quantity = self.uom_id._compute_quantity(1.0, bom.product_uom_id)
+        boms, lines = bom.explode(self, bom_quantity)
+        components = {}
+        for line, line_data in lines:
+            if not line.to_exclude:
+                product = line.product_id.id
+                uom = line.product_uom_id
+                qty = line.product_qty
+                if components.get(product, False):
+                    if uom.id != components[product]['uom']:
+                        from_uom = uom
+                        to_uom = self.env['product.uom'].browse(components[product]['uom'])
+                        qty = from_uom._compute_quantity(qty, to_uom)
+                    components[product]['qty'] += qty
+                else:
+                    to_uom = self.browse(product).uom_id
+                    if uom.id != to_uom.id:
+                        from_uom = uom
+                        qty = from_uom._compute_quantity(qty, to_uom)
+                    components[product] = {'qty': qty, 'uom': to_uom.id}
+        return components
+
+    def _get_possible_assembled_kit(self, components, res_data, field):
+        """
+            this method will find the possible quantity based on minimum ratio
+            TODO: check with jam for possibility of uom conversion ???
+        """
+        qty_available = []
+        for product_id in components:
+            product = self.with_context(prefetch_fields=False).browse(product_id)
+            qty = res_data.get(product_id, 0) and res_data[product_id][field] or getattr(product, field)
+            if not qty:
+                qty_available = []
+                break
+            else:
+                qty_available.append(int(qty / components[product_id]['qty']))
+        if qty_available:
+            return min(qty_available)
+        return 0
 
     def action_view_stock_move_lines(self):
         self.ensure_one()
