@@ -2,7 +2,7 @@
 <odoo>
     <record id="tmg_product_pricelist_item_form_view" model="ir.ui.view">
         <field name="name">tmg.product.pricelist.item.extras.form</field>
-        <!--<field name="model">product.pricelist.item.extras</field>-->
+        <field name="model">product.pricelist.item.extras</field>
         <field name="inherit_id" ref="product.product_pricelist_item_form_view"/>
         <field name="arch" type="xml">
             <xpath expr="/form/group[1]" position="after">

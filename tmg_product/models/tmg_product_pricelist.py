@@ -56,4 +56,3 @@ class tmg_product_pricelist_item_extra(models.Model):
     attribute_id = fields.Many2one('product.attribute', string='Attribute', ondelete='restrict', required=True)
     value_ids = fields.Many2many('product.attribute.value', string='Attribute Values')
 
-
