@@ -17,6 +17,7 @@ import base64
 import hashlib
 import re
 import io
+import os
 _logger = logging.getLogger(__name__)
 try:
     import boto3
@@ -74,7 +75,8 @@ class IrHttp(models.AbstractModel):
                 if not cls._check_access_mode(env, id, access_mode, model, access_token=access_token,
                                              related_id=related_id):
                     return (403, [], None)
-            elif not consteq(obj.access_token or '', access_token):
+            # elif not consteq(obj.access_token or '', access_token):
+            elif not (obj.access_token or '') == access_token:
                 return (403, [], None)
 
         # check read access
