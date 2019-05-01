@@ -1,17 +1,16 @@
 # -*- coding: utf-8 -*-
 {
-    'name': "TMG Helpdesk Extensions",
+    'name': "TMG Project Extensions",
 
     'summary': """
-        Extends the Odoo Helpdesk module to check for tickets in the Urgent team that fails SLA policies
-    """,
+        TMG extensions to the base Project module.
+        """,
 
-    'sequence' : 2,
+    'sequence': 2,
 
     'description': """
-        This TMG module checks for urgent tickets that have not been assigned within 15 minutes.
-        If the ticket is not assigned a wider audience will be notified.
-    """,
+        Adds visibility to the task id, similar to how the Helpdesk module works.
+        """,
 
     'author': "The Magnet Group",
     'website': "http://www.themagnetgroup.com",
@@ -19,18 +18,17 @@
     # Categories can be used to filter modules in modules listing
     # Check https://github.com/odoo/odoo/blob/12.0/odoo/addons/base/data/ir_module_category_data.xml
     # for the full list
-    'category': 'Helpdesk',
+    'category': 'Project',
     'version': '0.1',
 
     # any module necessary for this one to work correctly
-    'depends': ['helpdesk'],
+    'depends': ['project'],
 
     # always loaded
     'data': [
-        'data/cron.xml',
-        'views/tmg_helpdesk_views.xml',
-        'wizard/tmg_portal_wizard_view.xml',
-        # 'views/templates.xml',
+        # 'security/ir.model.access.csv',
+        'views/tmg_project_views.xml',
+        'views/templates.xml',
     ],
     # only loaded in demonstration mode
     'demo': [

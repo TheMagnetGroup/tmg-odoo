@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+	<record id="mrp_job_view_form" model="ir.ui.view">
+		<field name="name">mrp.job.view.form</field>
+		<field name="model">mrp.job</field>
+		<field name="arch" type="xml">
+			<form string="Job">
+				<header>
+					<button name="action_mark_as_done" type="object" string="Mark all as done" attrs="{'invisible': [('status', 'in', ['draft', 'done', 'cancel'])]}"/>
+					<button name="action_reserve_all" type="object" string="Reserve All" attrs="{'invisible': [('status', 'in', ['draft', 'done', 'cancel'])]}"/>
+					<button name="action_plan_all" type="object" string="Plan All" attrs="{'invisible': [('status', 'in', ['done', 'cancel'])]}"/>
+					<field name="status" widget="statusbar"/>
+				</header>
+				<sheet>
+					<div class="oe_button_box" name="button_box">
+                        <button name="go_to_mrp_job_pickings" type="object" class="oe_stat_button" icon="fa-truck">
+                            <field name="picking_count" string="Pickings" widget="statinfo"/>
+                        </button>
+                    </div>
+                    <h1 class="d-none d-md-block">
+                        <field name="name" attrs="{'invisible': [('name','=','')]}" readonly="1"/>
+                    </h1>
+					<group>
+						<group>
+							<field name="product_tmpl_id"/>
+							<field name="qty"/>
+							<field name="date_planned_start"/>
+						</group>
+						<group>
+							<field name="sale_order_id"/>
+							<field name="art_ref"/>
+						</group>
+					</group>
+					<notebook>
+						<page name="mfg_order" string="Manufacturing Orders">
+							<field name="mfg_order_ids">
+								<tree>
+									<field name="name"/>
+									<field name="product_id"/>
+									<field name="product_qty"/>
+									<field name="availability"/>
+									<field name="state"/>
+									<field name="date_planned_start"/>
+									<field name="unreserve_visible" invisible="1"/>
+									<field name="is_locked" invisible="1"/>
+									<button type="object" name="action_assign" icon="fa-refresh" help="Check Availability" attrs="{'invisible': ['|', ('availability', 'in', ('assigned', 'none')), ('is_locked', '=', False)]}" title="Check Availability: Try to reserve components for this order"/>
+									<button type="object" name="button_unreserve" icon="fa-minus" help="Unreserve" attrs="{'invisible': [('unreserve_visible', '=', False)]}" title="Unreserve"/>
+									<button type="object" name="produce_product" icon="fa-cogs" title="Record Production" attrs="{'invisible': [('state', 'in', ['done', 'cancel'])]}"/>
+								</tree>
+							</field>
+						</page>
+						<page name="mfg_workorders" string="Workorders" attrs="{'invisible': [('workorder_ids', '=', [])]}">
+							<field name="workorder_ids">
+								<tree>
+									<field name="name"/>
+									<field name="workcenter_id"/>
+									<field name="product_id"/>
+									<field name="qty_production"/>
+									<field name="state"/>
+									<button name="process_order" type="object" string="Process"/>
+								</tree>
+							</field>
+						</page>
+						<page name="so_note" string="Notes">
+							<field name="so_notes" widget="text"/>
+						</page>
+					</notebook>
+				</sheet>
+			</form>
+		</field>
+	</record>
+	<record id="mrp_job_view_tree" model="ir.ui.view">
+		<field name="name">mrp.job.view.tree</field>
+		<field name="model">mrp.job</field>
+		<field name="arch" type="xml">
+			<tree string="Mrp Jobs">
+				<field name="name"/>
+				<field name="art_ref"/>
+				<field name="sale_order_id" string="Sale Order"/>
+				<field name="product_tmpl_id" string="Product"/>
+				<field name="qty"/>
+				<field name="date_planned_start"/>
+				<field name="status"/>
+			</tree>
+		</field>
+	</record>
+	<record id="mrp_job_view_search" model="ir.ui.view">
+		<field name="name">mrp.job.view.search</field>
+		<field name="model">mrp.job</field>
+		<field name="arch" type="xml">
+			<search>
+				<filter string="To Do" name="todo_jobs" domain="[('status', 'not in', [('done', 'cancel')])]"/>
+                <group expand="1" string="Group By">
+                    <filter string="Deadline" name='groupby_deadline' context="{'group_by':'date_planned_start'}"/>
+                    <filter string="Status" name="groupby_status" context="{'group_by': 'status'}"/>
+                </group>
+			</search>
+		</field>
+	</record>
+	<record id="action_open_all_jobs" model="ir.actions.act_window">
+		<field name="name">Jobs</field>
+		<field name="res_model">mrp.job</field>
+		<field name="view_type">form</field>
+		<field name="view_mode">tree,form,pivot</field>
+		<field name="search_view_id" ref="mrp_job_view_search"/>
+		<field name="context">{'search_default_todo_jobs': 1}</field>
+		<field name="domain">[]</field>
+	</record>
+	<menuitem id="menu_mrp_jobs_root" parent="mrp.menu_mrp_manufacturing" action="action_open_all_jobs" name="Jobs" sequence="20"/>
+</odoo>

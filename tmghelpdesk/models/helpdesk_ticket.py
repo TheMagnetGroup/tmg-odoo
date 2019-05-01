@@ -19,3 +19,16 @@ class HelpdeskTicket(models.Model):
                     urgent_channel.message_post(body=_('Urgent ticket %s was not assigned according to SLA!') % ticket.name, message_type='comment', subtype='mail.mt_comment')
 
         return True
+    
+    # Method to change Ticket Status to Assigned when Tech is added
+    @api.model
+    def create(self, vals):
+        if vals.get('user_id'):
+            vals['stage_id'] = 2
+        return super(HelpdeskTicket, self).create(vals)
+
+    @api.multi
+    def write(self, vals):
+        if vals.get('user_id'):
+            vals['stage_id'] = 2
+        return super(HelpdeskTicket, self).write(vals)
