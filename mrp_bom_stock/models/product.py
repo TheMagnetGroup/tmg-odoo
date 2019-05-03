@@ -101,7 +101,11 @@ class Product(models.Model):
     @api.multi
     def action_open_components_quants(self):
         self.ensure_one()
-        products = self + self.bom_id.bom_line_ids.mapped('product_id')
+        products = self.env['product.product']
+        bom_quantity = self.uom_id._compute_quantity(1.0, self.bom_id.product_uom_id)
+        boms, lines = self.bom_id.explode(self, bom_quantity)
+        for line, line_data in lines:
+            products += line.product_id
         action = self.env.ref('stock.product_open_quants').read()[0]
         action['domain'] = [('product_id', 'in', products.ids)]
         action['context'] = {
@@ -114,9 +118,8 @@ class Product(models.Model):
     @api.multi
     def action_open_components_forcasted(self):
         self.ensure_one()
-        product_templates = self.product_tmpl_id + self.bom_id.bom_line_ids.mapped('product_id').mapped('product_tmpl_id')
-        action = self.env.ref('stock.action_stock_level_forecast_report_template').read()[0]
-        action['domain'] = [('product_tmpl_id', 'in', product_templates.ids)]
+        action = self.env.ref('mrp_bom_stock.action_stock_kit_report_pivot').read()[0]
+        action['domain'] = [('product_id', '=', self.id)]
         action['context'] = {}
         return action
 
@@ -163,9 +166,8 @@ class ProductTemplate(models.Model):
     def action_open_quants(self):
         products = self.mapped('product_variant_ids')
         action = self.env.ref('stock.product_open_quants').read()[0]
-        action['domain'] = [('product_id', 'in', products.ids)]
+        action['context'] = {'search_default_internal_loc': 1}
         if self.bom_id:
             action = self.env.ref('mrp_bom_stock.action_stock_kit_report_template').read()[0]
-            action['domain'] = [('product_tmpl_id', 'in', products.mapped('product_tmpl_id').ids + self.bom_id.bom_line_ids.mapped('product_id').ids)]
-        action['context'] = {'search_default_internal_loc': 1}
+        action['domain'] = [('product_id', 'in', products.ids)]
         return action
