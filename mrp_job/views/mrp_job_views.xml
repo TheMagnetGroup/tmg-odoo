@@ -89,7 +89,11 @@
 		<field name="model">mrp.job</field>
 		<field name="arch" type="xml">
 			<search>
-				<filter string="To Do" name="todo_jobs" domain="[('status', 'not in', [('done', 'cancel')])]"/>
+				<field name="name" sting="Job Reference"/>
+				<field name="art_ref"/>
+				<field name="product_tmpl_id"/>
+				<field name="sale_order_id"/>
+				<filter string="Open Jobs" name="todo_jobs" domain="[('status', 'not in', ('done', 'cancel'))]"/>
                 <group expand="1" string="Group By">
                     <filter string="Deadline" name='groupby_deadline' context="{'group_by':'date_planned_start'}"/>
                     <filter string="Status" name="groupby_status" context="{'group_by': 'status'}"/>

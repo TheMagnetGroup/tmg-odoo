@@ -27,6 +27,7 @@ class MrpJob(models.Model):
     status = fields.Selection(selection=[
         ('draft', 'Draft'),
         ('confirm', 'Confirmed'),
+        ('planned', 'Planned'),
         ('in_progress', 'In Progress'),
         ('done', 'Done'),
         ('cancel', 'Cancelled')
@@ -40,7 +41,9 @@ class MrpJob(models.Model):
         for record in self:
             if all([mo.state == 'done' for mo in record.mfg_order_ids]):
                 record.status = 'done'
-            elif all([mo.state in ['confirmed', 'planned'] for mo in record.mfg_order_ids]) or all([mo.state in ['confirmed', 'planned', 'cancel'] for mo in record.mfg_order_ids]):
+            elif all([mo.state == 'planned']):
+                record.state = 'planned'
+            elif all([mo.state == 'confirmed' for mo in record.mfg_order_ids]):
                 record.status = 'confirm'
             elif any([mo.state == 'progress' for mo in record.mfg_order_ids]) or any([mo.state in ['draft', 'done'] for mo in record.mfg_order_ids]):
                 record.status = 'in_progress'
