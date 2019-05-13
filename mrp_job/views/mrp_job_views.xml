@@ -89,7 +89,7 @@
 		<field name="model">mrp.job</field>
 		<field name="arch" type="xml">
 			<search>
-				<field name="name" sting="Job Reference"/>
+				<field name="name" string="Job Reference"/>
 				<field name="art_ref"/>
 				<field name="product_tmpl_id"/>
 				<field name="sale_order_id"/>
