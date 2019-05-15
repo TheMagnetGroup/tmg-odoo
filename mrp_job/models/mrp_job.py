@@ -41,7 +41,7 @@ class MrpJob(models.Model):
         for record in self:
             if all([mo.state == 'done' for mo in record.mfg_order_ids]):
                 record.status = 'done'
-            elif all([mo.state == 'planned']):
+            elif all([mo.state == 'planned' for mo in record.mfg_order_ids]):
                 record.state = 'planned'
             elif all([mo.state == 'confirmed' for mo in record.mfg_order_ids]):
                 record.status = 'confirm'
