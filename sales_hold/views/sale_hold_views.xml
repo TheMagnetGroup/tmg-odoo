@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="sale_order_hold_view_form" model="ir.ui.view">
+		<field name="name">sale.order.hold.view.form</field>
+		<field name="model">sale.order.hold</field>
+		<field name="arch" type="xml">
+			<form string="Holds">
+				<header>
+
+				</header>
+				<sheet>
+
+					<group>
+						<group>
+                          <field name="name"/>
+							<field name="blocks_production"/>
+							<field name="blocks_delivery"/>
+                            <field name="color"/>
+                          <field name="active"/>
+                          <field name="group_ids"/>
+                          <field name="credit_hold"/>
+                          <field name="promostandards_hold_description"/>
+						</group>
+
+					</group>
+
+				</sheet>
+			</form>
+		</field>
+	</record>
+	<record id="sale_form_view_hold" model="ir.ui.view">
+            <field name="name">sale.order.form.hold.inherit</field>
+            <field name="model">sale.order</field>
+            <field name="inherit_id" ref="sale.view_order_form"/>
+            <field name="arch" type="xml">
+
+                <!-- Statusbar widget should also contain the new statuses -->
+                <field name="state" position="replace">
+                    <field name="state" widget="statusbar" statusbar_visible="draft,hold,sent,sale,invoiced,done" statusbar_colors='{"invoice_except":"red","waiting_date":"blue"}'/>
+
+                </field>
+                <xpath expr="//form//button[@name='action_confirm']" position="after">
+					<button name="action_confirm" id="action_confirm" string="Confirm" class="btn-primary" type="object" attrs="{'invisible': [('state', 'not in', ['hold'])]}"/>
+				</xpath>
+				<xpath expr="//form//field[@name='partner_shipping_id']" position="after">
+					<field name="order_holds" filter_domain="[('id', 'in', context.get('uid').groups)]"/>
+				</xpath>
+
+            </field>
+        </record>
+
+    <record id="account_terms_view_credit_inherit" model="ir.ui.view">
+            <field name="name">account.payment.term.form.credit.inherit</field>
+            <field name="model">account.payment.term</field>
+            <field name="inherit_id" ref="account.view_payment_term_form"/>
+            <field name="arch" type="xml">
+
+
+				<xpath expr="//field[@name='name']" position="after">
+					<field name="auto_credit_check" string="Automatic Credit Check" groups="account.group_account_invoice"/>
+				</xpath>
+
+            </field>
+        </record>
+
+    <record id="stock_picking_tree_hold_inherit" model="ir.ui.view">
+            <field name="name">stock.picking.tree.hold.inherit</field>
+            <field name="model">stock.picking</field>
+            <field name="inherit_id" ref="stock.vpicktree"/>
+            <field name="arch" type="xml">
+
+
+				<xpath expr="//field[@name='state']" position="after">
+					<field name="on_hold" string="On Hold" attrs="{'invisible': [('on_hold', '=', False)]}"/>
+				</xpath>
+
+            </field>
+        </record>
+    <record id="stock_picking_kanban_hold_inherit" model="ir.ui.view">
+            <field name="name">stock.picking.kanban.hold.inherit</field>
+            <field name="model">stock.picking</field>
+            <field name="inherit_id" ref="stock.stock_picking_kanban"/>
+            <field name="arch" type="xml">
+
+
+				<xpath expr="//field[@name='state']" position="after">
+					<field name="on_hold" string="On Hold" attrs="{'invisible': [('on_hold', '=', False)]}"/>
+				</xpath>
+
+            </field>
+        </record>
+    <record id="view_partner_form_credit_inherit" model="ir.ui.view">
+            <field name="name">res.partner.form.credit.inherit</field>
+            <field name="model">res.partner</field>
+            <field name="inherit_id" ref="base.view_partner_form"/>
+            <field name="arch" type="xml">
+				<xpath expr="//field[@name='property_payment_term_id']" position="after">
+					<field name="credit_limit" string="Credit Limit"/>
+				</xpath>
+
+            </field>
+        </record>
+	<record id="sale_order_hold_view_tree" model="ir.ui.view">
+		<field name="name">sale.order.hold.view.tree</field>
+		<field name="model">sale.order.hold</field>
+		<field name="arch" type="xml">
+			<tree string="Mrp Jobs">
+				<field name="name"/>
+				<field name="active"/>
+
+			</tree>
+		</field>
+	</record>
+    <record id="sale_hold_action" model="ir.actions.act_window">
+      <field name="name">Sale Hold</field>
+      <field name="res_model">sale.order.hold</field>
+      <field name="view_type">form</field>
+      <field name="view_mode">tree,form</field>
+
+    </record>
+
+
+    <menuitem id="menu_hold_settings" name="Holds"  action="sale_hold_action"
+        parent="sale.menu_sale_config"/>
+</odoo>
