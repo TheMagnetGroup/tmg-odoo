@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_report_stock_kit,access_report_stock_kit,model_report_stock_kit,base.group_user,1,0,0,0
+access_report_stock_kit_forcasted,access_report_stock_kit_forcasted,model_report_stock_kit_forcasted,base.group_user,1,0,0,0
