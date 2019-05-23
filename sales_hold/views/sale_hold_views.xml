@@ -29,6 +29,18 @@
 			</form>
 		</field>
 	</record>
+
+     <record id="sale_hold_action" model="ir.actions.act_window">
+      <field name="name">Sale Hold</field>
+      <field name="res_model">sale.order.hold</field>
+      <field name="view_type">form</field>
+      <field name="view_mode">tree,form</field>
+
+    </record>
+
+
+    <menuitem id="menu_hold_settings" name="Holds"  action="sale_hold_action"
+        parent="sale.menu_sale_config"/>
 	<record id="sale_form_view_hold" model="ir.ui.view">
             <field name="name">sale.order.form.hold.inherit</field>
             <field name="model">sale.order</field>
@@ -112,15 +124,5 @@
 			</tree>
 		</field>
 	</record>
-    <record id="sale_hold_action" model="ir.actions.act_window">
-      <field name="name">Sale Hold</field>
-      <field name="res_model">sale.order.hold</field>
-      <field name="view_type">form</field>
-      <field name="view_mode">tree,form</field>
 
-    </record>
-
-
-    <menuitem id="menu_hold_settings" name="Holds"  action="sale_hold_action"
-        parent="sale.menu_sale_config"/>
 </odoo>
