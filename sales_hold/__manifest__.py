@@ -15,6 +15,7 @@ Add sales holds to orders
     # always loaded
     'data': [
         'views/sale_hold_views.xml',
+        'security/ir.model.access.csv',
     ],
     # only loaded in demonstration mode
     'demo': [
