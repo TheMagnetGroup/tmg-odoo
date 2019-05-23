@@ -1,25 +1,36 @@
 # -*- coding: utf-8 -*-
+
 from datetime import datetime
 from odoo import models, fields, api, exceptions
-from odoo.exceptions import AccessError, UserError, RedirectWarning, ValidationError, Warning
+from odoo.exceptions import AccessError, UserError, RedirectWarning, \
+    ValidationError, Warning
 from odoo.tools import DEFAULT_SERVER_DATE_FORMAT as DF
 
-from odoo.tools import DEFAULT_SERVER_DATE_FORMAT as DF
 
 class SaleOrder(models.Model):
-    _inherit = "sale.order"
-    order_holds = fields.Many2many("sale.order.hold", string="Order Holds")
+
+    _inherit = 'sale.order'
+    order_holds = fields.Many2many('sale.order.hold',
+                                   string='Order Holds')
     state = fields.Selection(selection_add=[('hold', 'On Hold')])
-    on_production_hold = fields.Boolean(string="On Production Hold")
-    on_hold = fields.Boolean(string="On Hold")
+    on_production_hold = fields.Boolean(string='On Production Hold')
+    on_hold = fields.Boolean(string='On Hold')
+
 #     value = fields.Integer()
 #     value2 = fields.Float(compute="_value_pc", store=True)
 #     description = fields.Text()
 #
-    def menu_on_hold(self, cr, uid, ids, context=None):
-        res = self.write(cr, uid, ids, {'state': 'hold'}, context=context)
-        return res
 
+    def menu_on_hold(
+        self,
+        cr,
+        uid,
+        ids,
+        context=None,
+        ):
+        res = self.write(cr, uid, ids, {'state': 'hold'},
+                         context=context)
+        return res
 
     @api.multi
     @api.onchange('order_holds')
@@ -45,17 +56,8 @@ class SaleOrder(models.Model):
                     order.on_hold = True
                 else:
                     order.on_production_hold = False
-            if len(order.order_holds) ==0:
+            if len(order.order_holds) == 0:
                 order.on_hold = False
-
-
-
-
-
-
-
-
-
 
     @api.multi
     def check_limit(self):
@@ -66,10 +68,12 @@ class SaleOrder(models.Model):
 
         moveline_obj = self.env['account.move.line']
 
-        movelines = moveline_obj.search(
-            [('partner_id', '=', partner.id), ('account_id.user_type_id.name', 'in', ['Receivable', 'Payable']),('full_reconcile_id', '=', False)])
+        movelines = moveline_obj.search([('partner_id', '=',
+                partner.id), ('account_id.user_type_id.name', 'in',
+                ['Receivable', 'Payable']), ('full_reconcile_id', '=',
+                False)])
 
-        debit, credit = 0.0, 0.0
+        (debit, credit) = (0.0, 0.0)
 
         today_dt = datetime.strftime(datetime.now().date(), DF)
 
@@ -77,22 +81,20 @@ class SaleOrder(models.Model):
 
             if datetime.strftime(line.date_maturity, DF) < today_dt:
                 credit += line.debit
-
                 debit += line.credit
-        #
-        if (credit - debit + self.amount_total) > partner.credit_limit:
-            hold= self.env['sale.order.hold']
+
+        if credit - debit + self.amount_total > partner.credit_limit:
+            hold = self.env['sale.order.hold']
             hold_ids = hold.search([('credit_hold', '=', 'True')]).id
 
             holdsObj = hold.browse(hold_ids)
+
            # self.order_holds.write({''}) = holdsObj
+
             self.order_holds = holdsObj
+
            # res = self.write({'order_holds': holdsObj})
-            #return res
-
-
-
-
+            # return res
 
     @api.multi
     def _action_confirm(self):
@@ -105,12 +107,8 @@ class SaleOrder(models.Model):
                     if hold.blocks_production:
 
                         if order.state == 'hold':
-                            raise Warning('Order cannot be committed with production holds')
+                            raise Warning('Order cannot be committed with production holds'
+                                    )
                         order.state = 'hold'
                         return
         super(SaleOrder, self)._action_confirm()
-
-
-#     @api.depends('value')
-#     def _value_pc(self):
-#         self.value2 = float(self.value) / 100
