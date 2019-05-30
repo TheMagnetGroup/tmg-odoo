@@ -15,7 +15,7 @@ class SalesHold(models.Model):
     blocks_delivery = fields.Boolean(string="Blocks Delivery")
     color = fields.Char(string="Color")
     active = fields.Boolean(string="Active")
-    group_ids = fields.Many2many("res.groups", string="Security Group")
+
     group_ids = fields.Many2many("res.groups", "rel_sales_to_holds", "salesid", "holdid", string="Security Group")
     credit_hold = fields.Boolean(string="Credit Hold")
     promostandards_hold_description = fields.Char(string="Promostandards Hold Description")
