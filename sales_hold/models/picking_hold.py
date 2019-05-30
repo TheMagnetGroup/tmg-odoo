@@ -11,7 +11,7 @@ class picking_sales_hold(models.Model):
     @api.multi
     def button_validate(self):
         for h in self.sale_id.order_holds:
-            if h.credit_hold:
+            if h.blocks_delivery:
                 raise UserError('This order has holds preventing shipping.')
         ret=super(picking_sales_hold,self).button_validate()
         return ret
