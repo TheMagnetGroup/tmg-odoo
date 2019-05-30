@@ -50,16 +50,16 @@ class SaleOrder(models.Model):
 #     description = fields.Text()
 #
 
-    def menu_on_hold(
-        self,
-        cr,
-        uid,
-        ids,
-        context=None,
-        ):
-        res = self.write(cr, uid, ids, {'state': 'hold'},
-                         context=context)
-        return res
+    # def menu_on_hold(
+    #     self,
+    #     cr,
+    #     uid,
+    #     ids,
+    #     context=None,
+    #     ):
+    #     res = self.write(cr, uid, ids, {'state': 'hold'},
+    #                      context=context)
+    #     return res
 
     @api.multi
     @api.onchange('order_holds')
