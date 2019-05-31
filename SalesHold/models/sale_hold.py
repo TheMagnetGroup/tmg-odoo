@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 
 
-from datetime import datetime
+
 from odoo import models, fields, api, exceptions
 from odoo.exceptions import AccessError, UserError, RedirectWarning, \
     ValidationError, Warning
 from odoo.tools import DEFAULT_SERVER_DATE_FORMAT as DF
+from datetime import datetime
 
 class SalesHold(models.Model):
 
@@ -19,9 +20,9 @@ class SalesHold(models.Model):
     group_ids = fields.Many2many("res.groups", string="Security Group")
     credit_hold = fields.Boolean(string="Credit Hold")
     promostandards_hold_description = fields.Char(string="Promostandards Hold Description")
-  #  sales_order_ids = fields.Many2many("sale.order", string = "Sales Orders")
+    sales_order_ids = fields.Many2many("sale.order", string = "Sales Orders")
 
-
+    @api.multi
     def unlink(self, cr, uid, ids, context=None):
         if context is None:
             context = {}
@@ -40,7 +41,7 @@ class SaleOrder(models.Model):
 
     _inherit = 'sale.order'
     order_holds = fields.Many2many('sale.hold',
-                                   string='Order Holds')
+                                   string='Order Holds', track_visibility='onchange')
     state = fields.Selection(selection_add=[('hold', 'On Hold')])
     on_production_hold = fields.Boolean(string='On Production Hold')
     on_hold = fields.Boolean(string='On Hold')
@@ -87,6 +88,8 @@ class SaleOrder(models.Model):
                     order.on_production_hold = False
             if len(order.order_holds) == 0:
                 order.on_hold = False
+            if order.on_hold:
+                order.state = 'hold'
 
     @api.multi
     def check_limit(self):
