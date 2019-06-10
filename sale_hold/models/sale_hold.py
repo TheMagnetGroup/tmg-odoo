@@ -18,7 +18,7 @@ class sale_hold(models.Model):
     sales_order_ids = fields.Many2many("sale.order", string = "Sales Orders")
 
     @api.multi
-    def unlink(self, cr, uid, ids, context=None):
+    def unlink(self):
         if context is None:
             context = {}
         """Allows to delete sales order lines in draft,cancel states"""
@@ -31,4 +31,4 @@ class sale_hold(models.Model):
             if not hasGroup:
                 raise exceptions.except_osv(('Invalid Action!'),
                                             ('Cannot delete hold due to security \'%s\'.') % (rec.name,))
-        return super(sale_hold, self).unlink(cr, uid, ids, context=context)
+        return super(sale_hold, self).unlink()
