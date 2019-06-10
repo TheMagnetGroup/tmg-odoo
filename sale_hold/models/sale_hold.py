@@ -21,7 +21,7 @@ class sale_hold(models.Model):
     def unlink(self):
         """Allows to delete sales order lines in draft,cancel states"""
         for rec in self:
-            hasGroup = any([self.env.user.has_group(grp.id) for grp in rec.groups_id])
+            hasGroup = any([self.env.user.has_group(grp.id) for grp in rec.group_ids])
             if not hasGroup:
                 raise exceptions.ValidationError(('Cannot delete hold due to security \'%s\'.') % (rec.state,))
         return super(SalesHold, self).unlink()
