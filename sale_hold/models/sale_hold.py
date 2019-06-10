@@ -23,6 +23,6 @@ class sale_hold(models.Model):
         for rec in self:
             hasGroup = any([self.env.user.has_group(grp.id) for grp in rec.group_ids])
             if not hasGroup:
-                raise exceptions.ValidationError(('Cannot delete hold due to security \'%s\'.') % (rec.state,))
-        return super(SalesHold, self).unlink()
+                raise exceptions.ValidationError(('Cannot delete hold due to security \'%s\'.') % (rec.name,))
+        return super(sale_hold, self).unlink()
 
