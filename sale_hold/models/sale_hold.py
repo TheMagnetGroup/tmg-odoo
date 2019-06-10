@@ -17,9 +17,7 @@ class sale_hold(models.Model):
     promostandards_hold_description = fields.Char(string="Promostandards Hold Description")
     sales_order_ids = fields.Many2many("sale.order", string = "Sales Orders")
 
-
-
-
+    @api.multi
     def unlink(self):
         context = self.env.context
         if context is None:
