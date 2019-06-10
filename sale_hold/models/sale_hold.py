@@ -19,17 +19,10 @@ class sale_hold(models.Model):
 
     @api.multi
     def unlink(self):
-        context = self.env.context
-        if context is None:
-            context = {}
         """Allows to delete sales order lines in draft,cancel states"""
-        hasGroup = False
-        for rec in self.browse(self.env.cr, self.env.uid, self.ids, context=context):
-
-            for grp in rec.group_ids:
-                if self.env.user.has_group(rec.id):
-                    hasGroup = True
-            if not hasGroup :
-                raise exceptions.except_osv(('Invalid Action!'), ('Cannot delete hold due to security \'%s\'.') % (rec.state,))
-        return super(sale_hold, self).unlink()
+        for rec in self:
+            hasGroup = any([self.env.user.has_group(grp.id) for grp in rec.groups_id])
+            if not hasGroup:
+                raise exceptions.ValidationError(('Cannot delete hold due to security \'%s\'.') % (rec.state,))
+        return super(SalesHold, self).unlink()
 
