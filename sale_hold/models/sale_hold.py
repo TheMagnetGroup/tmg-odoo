@@ -1,10 +1,6 @@
 # -*- coding: utf-8 -*-
-
 from odoo import models, fields, api, exceptions
-
-
 class sale_hold(models.Model):
-
     _name = 'sale.hold'
     _description = "Order Hold"
     name = fields.Char(string="Name")
@@ -15,11 +11,9 @@ class sale_hold(models.Model):
     group_ids = fields.Many2many("res.groups", "rel_sales_to_holds", 'salesid', 'holdid',string="Security Group")
     credit_hold = fields.Boolean(string="Credit Hold")
     promostandards_hold_description = fields.Char(string="Promostandards Hold Description")
-    sales_order_ids = fields.Many2many("sale.order", string = "Sales Orders")
 
     @api.multi
     def unlink(self):
-
         """Allows to delete sales order lines in draft,cancel states"""
         hasGroup = False
         for rec in self:
@@ -32,7 +26,5 @@ class sale_hold(models.Model):
             if len(rec.group_ids)==0:
                 hasGroup= True
             if not hasGroup:
-                raise Warning('Cannot delete hold due to security '
-                              )
-
+                raise Warning('Cannot delete hold due to security ')
         return super(sale_hold, self).unlink()

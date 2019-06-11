@@ -7,15 +7,36 @@ from datetime import datetime
 class SaleOrder(models.Model):
 
     _inherit = 'sale.order'
-    order_holds = fields.Many2many('sale.hold', string='Order Holds', track_visibility='onchange')
+    order_holds = fields.Many2many('sale.hold', 'rel_sales_holds', 'salesid', 'holdid',string='Order Holds')
     state = fields.Selection(selection_add=[('hold', 'On Hold')])
     on_production_hold = fields.Boolean(string='On Production Hold')
     on_hold = fields.Boolean(string='On Hold')
 
     @api.multi
+    def write(self, values):
+        for order in self:
+            for cache in order._cache._record.order_holds:
+                hasGroup = False
+                removed = any(cache.id == hol.id for hol in order.order_holds)
+
+
+                if removed:
+                    for grp in cache.group_ids:
+                        rec_dic = grp.get_external_id()
+                        rec_list = list(rec_dic.values())
+                        rec_id = rec_list[0]
+                        if self.env.user.has_group(rec_id):
+                            hasGroup = True
+                    if len(cache.group_ids) == 0:
+                        hasGroup = True
+                    if not hasGroup:
+                        raise Warning('Cannot delete hold due to security ')
+            return super(SaleOrder, self).write(values)
+    @api.multi
     @api.onchange('order_holds')
     def on_hold_change(self):
         for order in self:
+
             if len(order.order_holds) > 0:
                 hasShippingBlock = False
                 hasProductionBlock = False
