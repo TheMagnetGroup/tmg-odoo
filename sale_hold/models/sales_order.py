@@ -18,13 +18,12 @@ class SaleOrder(models.Model):
             lambda u: any(u[f] != values[f] if f in values else False
                           for f in {'order_holds'}))
         for order in changed:
+            message_text = ''
             changed_holds = values['order_holds']
             for cache in order._cache._record.order_holds:
                 hasGroup = False
-
-                removed = any(cache.id == hol for hol in changed_holds[0][2])
-
-                if not removed:
+                exists = any(cache.id == hol for hol in changed_holds[0][2])
+                if not exists:
                     for grp in cache.group_ids:
                         rec_dic = grp.get_external_id()
                         rec_list = list(rec_dic.values())
@@ -35,6 +34,19 @@ class SaleOrder(models.Model):
                         hasGroup = True
                     if not hasGroup:
                         raise Warning('Cannot delete hold due to security on hold ')
+                    else:
+                        message_text = message_text + 'Removed Hold ' + cache.name + '<br/>'
+            for item in changed_holds[0][2]:
+                old = any(item == hol.id for hol in order.order_holds)
+
+                if not old:
+                    hold_obj = self.env['sale.hold']
+                    holds = hold_obj.search([('id', '=',
+                                                      item)])
+                    for hold in holds:
+                        message_text = message_text + 'Removed Hold ' + hold.name + ' <br/>'
+            if message_text != '':
+                order.message_post(body=message_text)
         return super(SaleOrder, self).write(values)
     @api.multi
     @api.onchange('order_holds')
