@@ -24,9 +24,10 @@ class sale_hold(models.Model):
         hasGroup = False
         for rec in self:
             for grp in rec.group_ids:
-                if self.env.user.has_group(grp.id):
+                rec_id = self.env.ref(grp).id
+                if self.env.user.has_group(grp._rec_id):
                     hasGroup = True
-            
+
             if not hasGroup:
                 raise exceptions.except_osv(('Invalid Action!'),
                                             ('Cannot delete hold due to security \'%s\'.') % (rec.name,))
