@@ -24,7 +24,7 @@ class sale_hold(models.Model):
         hasGroup = False
         for rec in self:
             for grp in rec.group_ids:
-                rec_id = self.env.ref(grp).id
+                rec_id = grp.get_external_id()
                 if self.env.user.has_group(rec_id):
                     hasGroup = True
 
