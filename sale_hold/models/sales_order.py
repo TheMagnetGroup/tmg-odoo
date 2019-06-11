@@ -14,13 +14,17 @@ class SaleOrder(models.Model):
 
     @api.multi
     def write(self, values):
-        for order in self:
+        changed = self.filtered(
+            lambda u: any(u[f] != values[f] if f in values else False
+                          for f in {'order_holds'}))
+        for order in changed:
+            changed_holds = values['order_holds']
             for cache in order._cache._record.order_holds:
                 hasGroup = False
-                removed = any(cache.id == hol.id for hol in order.order_holds)
 
+                removed = any(cache.id == hol for hol in changed_holds[0][2])
 
-                if removed:
+                if not removed:
                     for grp in cache.group_ids:
                         rec_dic = grp.get_external_id()
                         rec_list = list(rec_dic.values())
@@ -30,8 +34,8 @@ class SaleOrder(models.Model):
                     if len(cache.group_ids) == 0:
                         hasGroup = True
                     if not hasGroup:
-                        raise Warning('Cannot delete hold due to security ')
-            return super(SaleOrder, self).write(values)
+                        raise Warning('Cannot delete hold due to security on hold \'%s\'') %(cache.name)
+        return super(SaleOrder, self).write(values)
     @api.multi
     @api.onchange('order_holds')
     def on_hold_change(self):
