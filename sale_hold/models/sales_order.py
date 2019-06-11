@@ -34,7 +34,7 @@ class SaleOrder(models.Model):
                     if len(cache.group_ids) == 0:
                         hasGroup = True
                     if not hasGroup:
-                        raise Warning('Cannot delete hold due to security on hold \'%s\'') %(cache.name)
+                        raise Warning('Cannot delete hold due to security on hold ')
         return super(SaleOrder, self).write(values)
     @api.multi
     @api.onchange('order_holds')
