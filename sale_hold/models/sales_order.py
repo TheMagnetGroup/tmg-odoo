@@ -12,6 +12,23 @@ class SaleOrder(models.Model):
     on_production_hold = fields.Boolean(string='On Production Hold')
     on_hold = fields.Boolean(string='On Hold')
 
+
+    def checkSecurity(self, value):
+        hasGroup = False
+        for grp in value.group_ids:
+            rec_dic = grp.get_external_id()
+            rec_list = list(rec_dic.values())
+            rec_id = rec_list[0]
+            if self.env.user.has_group(rec_id):
+                hasGroup = True
+        if len(value.group_ids) == 0:
+            hasGroup = True
+        if not hasGroup:
+            return False
+
+        else:
+            return True
+
     @api.multi
     def write(self, values):
         changed = self.filtered(
@@ -24,27 +41,23 @@ class SaleOrder(models.Model):
                 hasGroup = False
                 exists = any(cache.id == hol for hol in changed_holds[0][2])
                 if not exists:
-                    for grp in cache.group_ids:
-                        rec_dic = grp.get_external_id()
-                        rec_list = list(rec_dic.values())
-                        rec_id = rec_list[0]
-                        if self.env.user.has_group(rec_id):
-                            hasGroup = True
-                    if len(cache.group_ids) == 0:
-                        hasGroup = True
+                    hasGroup = self.checkSecurity(cache)
                     if not hasGroup:
                         raise Warning('Cannot delete hold due to security on hold ')
                     else:
                         message_text = message_text + 'Removed Hold ' + cache.name + '<br/>'
             for item in changed_holds[0][2]:
                 old = any(item == hol.id for hol in order.order_holds)
-
                 if not old:
                     hold_obj = self.env['sale.hold']
-                    holds = hold_obj.search([('id', '=',
-                                                      item)])
+                    holds = hold_obj.search([('id', '=',item)])
+
                     for hold in holds:
-                        message_text = message_text + 'Removed Hold ' + hold.name + ' <br/>'
+                        hasGroup = self.checkSecurity(hold)
+                        if not hasGroup:
+                            raise Warning('Cannot add hold due to security on hold')
+                        else:
+                            message_text = message_text + 'Removed Hold ' + hold.name + ' <br/>'
             if message_text != '':
                 order.message_post(body=message_text)
         return super(SaleOrder, self).write(values)
