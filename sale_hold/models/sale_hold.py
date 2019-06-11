@@ -25,7 +25,7 @@ class sale_hold(models.Model):
         for rec in self:
             for grp in rec.group_ids:
                 rec_id = self.env.ref(grp).id
-                if self.env.user.has_group(grp._rec_id):
+                if self.env.user.has_group(rec_id):
                     hasGroup = True
 
             if not hasGroup:
