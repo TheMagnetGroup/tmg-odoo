@@ -24,11 +24,15 @@ class sale_hold(models.Model):
         hasGroup = False
         for rec in self:
             for grp in rec.group_ids:
-                rec_id = grp.get_external_id()
+                rec_dic = grp.get_external_id()
+                rec_list = list(rec_dic.values())
+                rec_id = rec_list[0]
                 if self.env.user.has_group(rec_id):
                     hasGroup = True
-
+            if len(rec.group_ids)==0:
+                hasGroup= True
             if not hasGroup:
-                raise exceptions.except_osv(('Invalid Action!'),
-                                            ('Cannot delete hold due to security \'%s\'.') % (rec.name,))
+                raise Warning('Cannot delete hold due to security '
+                              )
+
         return super(sale_hold, self).unlink()
