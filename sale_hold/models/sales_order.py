@@ -7,7 +7,7 @@ from datetime import datetime
 class SaleOrder(models.Model):
 
     _inherit = 'sale.order'
-    order_holds = fields.Many2many('sale.hold', 'rel_sales_holds', 'salesid', 'holdid',string='Order Holds')
+    order_holds = fields.Many2many('sale.hold' ,string='Order Holds')
     state = fields.Selection(selection_add=[('hold', 'On Hold')])
     on_production_hold = fields.Boolean(string='On Production Hold')
     on_hold = fields.Boolean(string='On Hold')
