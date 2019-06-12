@@ -135,7 +135,7 @@ class SaleOrder(models.Model):
 
         if credit - debit + self.amount_total > partner.credit_limit:
             hold = self.env['sale.hold']
-            hold_ids = hold.search([('credit_hold', '=', 'True')]).id
+            hold_ids = hold.search([('credit_hold', '=', True)]).id
 
             holdsObj = hold.browse(hold_ids)
 
