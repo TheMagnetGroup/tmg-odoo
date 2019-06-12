@@ -78,9 +78,10 @@
       <field name="inherit_id" ref="stock.stock_picking_kanban" />
       <field name="arch" type="xml">
          <xpath expr="//kanban/templates/t/div/div/strong" position="after">
-               <strong> <field name="on_hold_text" /> </strong>
-<!--            <field name="on_hold" />-->
-
+               
+            <p class="oe_module_name">
+               <field name="on_hold_text"/>
+            </p>
          </xpath>
 
       </field>
