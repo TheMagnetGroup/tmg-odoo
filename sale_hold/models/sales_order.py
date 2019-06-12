@@ -105,7 +105,7 @@ class SaleOrder(models.Model):
                 else:
                     for pi in self.picking_ids:
                         order.picking_ids.write({'on_hold': False})
-                        order.picking_ids.write({'on_hold_text': ''})
+                        order.picking_ids.write({'on_hold_text': 'PARTY'})
                 if hasProductionBlock:
                     order.on_production_hold = True
                     order.on_hold = True
