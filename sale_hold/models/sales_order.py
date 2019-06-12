@@ -135,13 +135,13 @@ class SaleOrder(models.Model):
 
         if credit - debit + self.amount_total > partner.credit_limit:
             hold = self.env['sale.hold']
-            hold_ids = hold.search([('credit_hold', '=', True)]).id
+            hold_ids = hold.search([('credit_hold', '=', 'True')])
 
-            holdsObj = hold.browse(hold_ids)
+           # holdsObj = hold.browse(hold_ids)
 
            # self.order_holds.write({''}) = holdsObj
 
-            self.order_holds = holdsObj
+            self.order_holds = self.order_holds | hold_ids
 
            # res = self.write({'order_holds': holdsObj})
             # return res
