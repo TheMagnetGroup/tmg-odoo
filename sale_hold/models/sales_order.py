@@ -130,7 +130,6 @@ class SaleOrder(models.Model):
         today_dt = datetime.strftime(datetime.now().date(), DF)
 
         for line in movelines:
-
             credit += line.debit
             debit += line.credit
 
