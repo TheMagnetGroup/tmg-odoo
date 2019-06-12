@@ -131,9 +131,8 @@ class SaleOrder(models.Model):
 
         for line in movelines:
 
-            if datetime.strftime(line.date_maturity, DF) < today_dt:
-                credit += line.debit
-                debit += line.credit
+            credit += line.debit
+            debit += line.credit
 
         if credit - debit + self.amount_total > partner.credit_limit:
             hold = self.env['sale.hold']
