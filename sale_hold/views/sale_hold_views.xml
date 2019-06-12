@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
-
+<data>
 <!--   <record id="sale_order_hold_view_main_form" model="ir.ui.view">-->
 <!--      <field name="name">sale.order.hold.view.main.form</field>-->
 <!--      <field name="model">sale.hold</field>-->
@@ -71,14 +71,18 @@
          </xpath>
       </field>
    </record>
+
    <record id="stock_picking_kanban_hold_inherit" model="ir.ui.view">
       <field name="name">stock.picking.kanban.hold.inherit</field>
       <field name="model">stock.picking</field>
       <field name="inherit_id" ref="stock.stock_picking_kanban" />
       <field name="arch" type="xml">
-         <xpath expr="//field[@name='state']" position="after">
-            <field name="on_hold" string="On Hold" attrs="{'invisible': [('on_hold', '=', False)]}" />
+         <xpath expr="//kanban/templates/t/div/div/strong" position="after">
+               <strong> <field name="on_hold_text" /> </strong>
+<!--            <field name="on_hold" />-->
+
          </xpath>
+
       </field>
    </record>
    <record id="view_partner_form_credit_inherit" model="ir.ui.view">
@@ -101,6 +105,6 @@
          </tree>
       </field>
    </record>
-
+</data>
 </odoo>
 

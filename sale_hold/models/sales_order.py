@@ -100,10 +100,12 @@ class SaleOrder(models.Model):
                 if hasShippingBlock:
                     for pi in self.picking_ids:
                         order.picking_ids.write({'on_hold': True})
+                        order.picking_ids.write({'on_hold_text': 'On Hold'})
                         order.on_hold = True
                 else:
                     for pi in self.picking_ids:
                         order.picking_ids.write({'on_hold': False})
+                        order.picking_ids.write({'on_hold_text': ''})
                 if hasProductionBlock:
                     order.on_production_hold = True
                     order.on_hold = True
