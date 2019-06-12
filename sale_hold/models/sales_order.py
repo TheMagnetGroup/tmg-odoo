@@ -31,36 +31,59 @@ class SaleOrder(models.Model):
 
     @api.multi
     def write(self, values):
+        'Make sure to ignore any changes that do not affect order_holds'
         changed = self.filtered(
             lambda u: any(u[f] != values[f] if f in values else False
                           for f in {'order_holds'}))
         for order in changed:
+            note_list = []
             message_text = ''
+            'Grab IDs of the records that have been changed'
             changed_holds = values['order_holds']
+
+            'Check to see if one of the changed holds is a removal'
             for cache in order._cache._record.order_holds:
                 hasGroup = False
                 exists = any(cache.id == hol for hol in changed_holds[0][2])
+                'if it is a removal, check to see if the current user has permission to remove'
                 if not exists:
                     hasGroup = self.checkSecurity(cache)
                     if not hasGroup:
                         raise Warning('Cannot delete hold due to security on hold ')
                     else:
-                        message_text = message_text + 'Removed Hold ' + cache.name + '<br/>'
+                        note_list.append('Removed Hold ' + cache.name)
+                       # message_text = message_text + 'Removed Hold ' + cache.name + ' <br/>'
+            'Check to see if one of the changed holds is an addition'
             for item in changed_holds[0][2]:
                 old = any(item == hol.id for hol in order.order_holds)
                 if not old:
+                    'if it is an additional hold, load the hold object from its ID'
                     hold_obj = self.env['sale.hold']
                     holds = hold_obj.search([('id', '=',item)])
-
+                    'if it is an addition, check to see if the current user has permission to add'
                     for hold in holds:
                         hasGroup = self.checkSecurity(hold)
                         if not hasGroup:
                             raise Warning('Cannot add hold due to security on hold')
                         else:
-                            message_text = message_text + 'Removed Hold ' + hold.name + ' <br/>'
+                            note_list.append('Added Hold ' + hold.name)
+                            #message_text = message_text + 'Added Hold ' + hold.name + ' <br/>'
+            message_text = self.create_ul_from_list(note_list)
             if message_text != '':
                 order.message_post(body=message_text)
         return super(SaleOrder, self).write(values)
+
+
+    def create_ul_from_list(self, ulist):
+        output = ''
+        if len(ulist) > 0:
+            output = '<ul>'
+            for line in ulist:
+                output = output + ' <li>' + line + '</li>'
+            output = output + ' </ul>'
+        return   output
+
+
     @api.multi
     @api.onchange('order_holds')
     def on_hold_change(self):
