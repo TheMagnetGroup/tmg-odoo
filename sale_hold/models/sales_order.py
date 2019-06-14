@@ -105,8 +105,9 @@ class SaleOrder(models.Model):
                     order.had_credit_hold = False
             if has_hold == True:
                 order.on_hold = True
-            else
-                order.on_hold = False
+            else:
+                if order.on_hold != False:
+                    order.on_hold = False
         return result
 
 
