@@ -25,15 +25,20 @@
       <field name="inherit_id" ref="sale.view_order_form" />
       <field name="arch" type="xml">
          <!-- Statusbar widget should also contain the new statuses -->
-         <field name="state" position="replace">
+         <!--<field name="state" position="replace">
             <field name="state" widget="statusbar" statusbar_visible="draft,hold,sent,sale,invoiced,done" statusbar_colors="{&quot;invoice_except&quot;:&quot;red&quot;,&quot;waiting_date&quot;:&quot;blue&quot;}" />
-         </field>
+         </field>-->
          <xpath expr="//form//button[@name='action_confirm']" position="after">
-            <button name="action_confirm" id="action_confirm" string="Confirm" class="btn-primary" type="object" attrs="{'invisible': [('state', 'not in', ['hold'])]}" />
+            <button name="action_confirm" id="action_confirm" string="Confirm" class="btn-primary" type="object" attrs="{'invisible': [('on_hold', '=', True)]}" />
          </xpath>
+
          <xpath expr="//form//field[@name='partner_shipping_id']" position="after">
 <!--            <field name="order_holds" widget="many2many_tags" />-->
             <field name="order_holds"   widget="many2many_tags" options="{'no_create_edit': True}" domain="[('active', '=', True)]"/>
+         </xpath>
+         <xpath expr="//form//field[@name='partner_shipping_id']" position="after">
+<!--            <field name="order_holds" widget="many2many_tags" />-->
+            <field name="on_hold"  attrs="{'invisible': True}"/>
          </xpath>
       </field>
    </record>

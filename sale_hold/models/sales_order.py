@@ -8,11 +8,11 @@ class SaleOrder(models.Model):
 
     _inherit = 'sale.order'
     order_holds = fields.Many2many('sale.hold' ,string='Order Holds')
-    state = fields.Selection(selection_add=[('hold', 'On Hold')])
+
     on_production_hold = fields.Boolean(string='On Production Hold')
     on_hold = fields.Boolean(string='On Hold')
-
-
+    approved_credit = fields.Boolean(string='Approved Credit', default=False)
+    had_credit_hold = fields.Boolean(string="Had Credit Hold", default=False)
     def checkSecurity(self, value):
         hasGroup = False
         for grp in value.group_ids:
@@ -35,18 +35,22 @@ class SaleOrder(models.Model):
         changed = self.filtered(
             lambda u: any(u[f] != values[f] if f in values else False
                           for f in {'order_holds'}))
+        had_credit_hold = False
         for order in changed:
             note_list = []
             message_text = ''
             'Grab IDs of the records that have been changed'
             changed_holds = values['order_holds']
-
+            # had_credit_hold = any(hol.credit_hold == True for hol in order._cache.record.order_holds)
+            # has_credit_hold = False
             'Check to see if one of the changed holds is a removal'
             for cache in order._cache._record.order_holds:
                 hasGroup = False
                 exists = any(cache.id == hol for hol in changed_holds[0][2])
+
                 'if it is a removal, check to see if the current user has permission to remove'
                 if not exists:
+
                     hasGroup = self.checkSecurity(cache)
                     if not hasGroup:
                         raise Warning('Cannot delete hold due to security on hold ')
@@ -60,6 +64,9 @@ class SaleOrder(models.Model):
                     'if it is an additional hold, load the hold object from its ID'
                     hold_obj = self.env['sale.hold']
                     holds = hold_obj.search([('id', '=',item)])
+                    # if holds.credit_hold == True:
+                    #     has_credit_hold == True
+
                     'if it is an addition, check to see if the current user has permission to add'
                     for hold in holds:
                         hasGroup = self.checkSecurity(hold)
@@ -68,10 +75,34 @@ class SaleOrder(models.Model):
                         else:
                             note_list.append('Added Hold ' + hold.name)
                             #message_text = message_text + 'Added Hold ' + hold.name + ' <br/>'
+            # if had_credit_hold:
+            #     if not has_credit_hold:
+            #         order.approved_credit = False
             message_text = self.create_ul_from_list(note_list)
             if message_text != '':
                 order.message_post(body=message_text)
-        return super(SaleOrder, self).write(values)
+
+        result = super(SaleOrder, self).write(values)
+
+        for order in self:
+            credit_hold = False
+            for hol in order.order_holds:
+
+
+
+
+                if hol.credit_hold:
+                    if not order.had_credit_hold:
+                        order.had_credit_hold = True
+                    credit_hold = True
+                    if order.approved_credit:
+                        order.approved_credit = False
+                    break
+
+            if not credit_hold:
+                if order.had_credit_hold:
+                    order.had_credit_hold = False
+        return result
 
 
     def create_ul_from_list(self, ulist):
@@ -105,7 +136,7 @@ class SaleOrder(models.Model):
                 else:
                     for pi in self.picking_ids:
                         order.picking_ids.write({'on_hold': False})
-                        order.picking_ids.write({'on_hold_text': 'PARTY'})
+                        order.picking_ids.write({'on_hold_text': ''})
                 if hasProductionBlock:
                     order.on_production_hold = True
                     order.on_hold = True
@@ -113,8 +144,15 @@ class SaleOrder(models.Model):
                     order.on_production_hold = False
             if len(order.order_holds) == 0:
                 order.on_hold = False
-            if order.on_hold:
-                order.state = 'hold'
+            else:
+                order.on_hold = True
+            if any(hol.credit_hold == True for hol in order.order_holds):
+                order.approved_credit = False
+            else:
+                if order.had_credit_hold:
+                    order.approved_credit = True
+
+
 
     @api.multi
     def check_limit(self):
@@ -152,15 +190,16 @@ class SaleOrder(models.Model):
     def _action_confirm(self):
 
         for order in self:
-            if order.payment_term_id.auto_credit_check:
-                order.check_limit()
-            if len(order.order_holds) > 0:
-                for hold in order.order_holds:
-                    if hold.blocks_production:
+            if not order.approved_credit:
+                if order.payment_term_id.auto_credit_check:
+                    order.check_limit()
+                if len(order.order_holds) > 0:
+                    for hold in order.order_holds:
+                        if hold.blocks_production:
 
-                        if order.state == 'hold':
+
                             raise Warning('Order cannot be committed with production holds'
-                                    )
-                        order.state = 'hold'
-                        return
+                                        )
+
+                            return
         super(SaleOrder, self)._action_confirm()
