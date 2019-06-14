@@ -28,9 +28,7 @@
          <!--<field name="state" position="replace">
             <field name="state" widget="statusbar" statusbar_visible="draft,hold,sent,sale,invoiced,done" statusbar_colors="{&quot;invoice_except&quot;:&quot;red&quot;,&quot;waiting_date&quot;:&quot;blue&quot;}" />
          </field>-->
-         <xpath expr="//form//button[@name='action_confirm']" position="after">
-            <button name="action_confirm" id="action_confirm" string="Confirm" class="btn-primary" type="object" attrs="{'invisible': [('on_hold', '=', True)]}" />
-         </xpath>
+
 
          <xpath expr="//form//field[@name='partner_shipping_id']" position="after">
 <!--            <field name="order_holds" widget="many2many_tags" />-->

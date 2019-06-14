@@ -12,19 +12,19 @@ class sale_hold(models.Model):
     credit_hold = fields.Boolean(string="Credit Hold")
     promostandards_hold_description = fields.Char(string="Promostandards Hold Description")
 
-    @api.multi
-    def unlink(self):
-        """Allows to delete sales order lines in draft,cancel states"""
-        hasGroup = False
-        for rec in self:
-            for grp in rec.group_ids:
-                rec_dic = grp.get_external_id()
-                rec_list = list(rec_dic.values())
-                rec_id = rec_list[0]
-                if self.env.user.has_group(rec_id):
-                    hasGroup = True
-            if len(rec.group_ids)==0:
-                hasGroup= True
-            if not hasGroup:
-                raise Warning('Cannot delete hold due to security ')
-        return super(sale_hold, self).unlink()
+    # @api.multi
+    # def unlink(self):
+    #     """Allows to delete sales order lines in draft,cancel states"""
+    #     hasGroup = False
+    #     for rec in self:
+    #         for grp in rec.group_ids:
+    #             rec_dic = grp.get_external_id()
+    #             rec_list = list(rec_dic.values())
+    #             rec_id = rec_list[0]
+    #             if self.env.user.has_group(rec_id):
+    #                 hasGroup = True
+    #         if len(rec.group_ids)==0:
+    #             hasGroup= True
+    #         if not hasGroup:
+    #             raise Warning('Cannot delete hold due to security ')
+    #     return super(sale_hold, self).unlink()

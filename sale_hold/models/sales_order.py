@@ -86,10 +86,11 @@ class SaleOrder(models.Model):
 
         for order in self:
             credit_hold = False
+            has_hold = False
             for hol in order.order_holds:
 
 
-
+                had_hold = True
 
                 if hol.credit_hold:
                     if not order.had_credit_hold:
@@ -102,6 +103,10 @@ class SaleOrder(models.Model):
             if not credit_hold:
                 if order.had_credit_hold:
                     order.had_credit_hold = False
+            if has_hold == True:
+                order.on_hold = True
+            else
+                order.on_hold = False
         return result
 
 
@@ -195,7 +200,7 @@ class SaleOrder(models.Model):
                     order.check_limit()
                 if len(order.order_holds) > 0:
                     for hold in order.order_holds:
-                        if hold.blocks_production:
+                        if hold.blocks_production or hold.credit_hold:
 
 
                             raise Warning('Order cannot be committed with production holds'
