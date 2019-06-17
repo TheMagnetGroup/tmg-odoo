@@ -171,6 +171,8 @@ class SaleOrder(models.Model):
                 ['Receivable', 'Payable']), ('full_reconcile_id', '=',
                 False)])
 
+
+
         (debit, credit) = (0.0, 0.0)
 
         today_dt = datetime.strftime(datetime.now().date(), DF)
@@ -193,19 +195,21 @@ class SaleOrder(models.Model):
             # return res
 
     @api.multi
-    def _action_confirm(self):
-
+    def action_confirm(self):
+        has_stop_hold = False
         for order in self:
             if not order.approved_credit:
                 if order.payment_term_id.auto_credit_check:
                     order.check_limit()
-                if len(order.order_holds) > 0:
-                    for hold in order.order_holds:
-                        if hold.blocks_production or hold.credit_hold:
+            if len(order.order_holds) > 0:
+                for hold in order.order_holds:
+                    if hold.blocks_production or hold.credit_hold:
+                        has_stop_hold = True
 
+        if has_stop_hold == False:
+            super(SaleOrder, self)._action_confirm()
+        else: return
 
-                            raise Warning('Order cannot be committed with production holds'
-                                        )
+                            #raise Warning('Cannot add hold due to security on hold')
 
-                            return
-        super(SaleOrder, self)._action_confirm()
+                            #return
