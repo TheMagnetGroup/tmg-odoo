@@ -178,7 +178,9 @@ class SaleOrder(models.Model):
                 partner.id), ('account_id.user_type_id.name', 'in',
                 ['Receivable', 'Payable']), ('full_reconcile_id', '=',
                 False)])
-
+        order_obj = self.env['sale.order']
+        orders = order_obj.search([('partner_id', '=', partner.id),
+                                           ('state', '=', 'sale')])
 
 
         (debit, credit) = (0.0, 0.0)
@@ -188,6 +190,8 @@ class SaleOrder(models.Model):
         for line in movelines:
             credit += line.debit
             debit += line.credit
+        for lines in orders:
+            credit += lines.amount_total
 
         if credit - debit + self.amount_total > partner.credit_limit:
             hold = self.env['sale.hold']
