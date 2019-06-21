@@ -64,8 +64,8 @@ class SaleOrder(models.Model):
                     'if it is an additional hold, load the hold object from its ID'
                     hold_obj = self.env['sale.hold']
                     holds = hold_obj.search([('id', '=',item)])
-                    # if holds.credit_hold == True:
-                    #     has_credit_hold == True
+                    if holds.credit_hold == True:
+                        values.update({'had_credit_hold': True})
 
                     'if it is an addition, check to see if the current user has permission to add'
                     for hold in holds:
