@@ -82,9 +82,8 @@ class SaleOrder(models.Model):
             if message_text != '':
                 order.message_post(body=message_text)
 
-        result = super(SaleOrder, self).write(values)
 
-        for order in self:
+
             credit_hold = False
             has_hold = False
             for hol in order.order_holds:
@@ -94,20 +93,29 @@ class SaleOrder(models.Model):
 
                 if hol.credit_hold:
                     if not order.had_credit_hold:
-                        order.had_credit_hold = True
+                        values.update({'had_credit_hold': True})
+                        #order.had_credit_hold = True
                     credit_hold = True
                     if order.approved_credit:
-                        order.approved_credit = False
+                        values.update({'approved_credit': False})
+                        #order.approved_credit = False
                     break
 
             if not credit_hold:
                 if order.had_credit_hold:
-                    order.had_credit_hold = False
+                    values.update({'had_credit_hold': False})
+                    #order.had_credit_hold = False
             if has_hold == True:
-                order.on_hold = True
+                values.update({'on_hold': True})
+                #order.on_hold = True
             else:
                 if order.on_hold != False:
-                    order.on_hold = False
+                    values.update({'on_hold': False})
+                    #order.on_hold = False
+
+        result = super(SaleOrder, self).write(values)
+
+
         return result
 
 
