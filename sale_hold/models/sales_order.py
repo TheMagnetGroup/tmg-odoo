@@ -207,7 +207,7 @@ class SaleOrder(models.Model):
                         has_stop_hold = True
 
         if has_stop_hold == False:
-            super(SaleOrder, self)._action_confirm()
+            super(SaleOrder, self).action_confirm()
         else: return
 
                             #raise Warning('Cannot add hold due to security on hold')
