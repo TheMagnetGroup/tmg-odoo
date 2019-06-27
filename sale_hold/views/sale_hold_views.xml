@@ -37,6 +37,8 @@
          <xpath expr="//form//field[@name='partner_shipping_id']" position="after">
 <!--            <field name="order_holds" widget="many2many_tags" />-->
             <field name="on_hold"  attrs="{'invisible': True}"/>
+            <field name="approved_credit"  attrs="{'invisible': True}"/>
+            <field name="had_credit_hold"  attrs="{'invisible': True}"/>
          </xpath>
       </field>
    </record>
@@ -74,6 +76,26 @@
          </xpath>
       </field>
    </record>
+   <record id="stock_picking_tree_hold_inherit" model="ir.ui.view">
+      <field name="name">stock.picking.tree.hold.inherit</field>
+      <field name="model">stock.picking</field>
+      <field name="inherit_id" ref="stock.vpicktree" />
+      <field name="arch" type="xml">
+         <xpath expr="//field[@name='state']" position="after">
+            <field name="on_hold" string="On Hold" attrs="{'invisible': [('on_hold', '=', False)]}" />
+         </xpath>
+      </field>
+   </record>
+      <record id="stock_picking_form_hold_inherit" model="ir.ui.view">
+      <field name="name">stock.picking.form.hold.inherit</field>
+      <field name="model">stock.picking</field>
+      <field name="inherit_id" ref="stock.view_picking_form" />
+      <field name="arch" type="xml">
+      <xpath expr="//form[1]/sheet[1]/group[1]/group[1]/field[@name='picking_type_id']" position="after">
+         <field name="on_hold" readonly="1"/>
+      </xpath>
+      </field>
+   </record>
 
    <record id="stock_picking_kanban_hold_inherit" model="ir.ui.view">
       <field name="name">stock.picking.kanban.hold.inherit</field>
@@ -109,6 +131,7 @@
          </tree>
       </field>
    </record>
+
 </data>
 </odoo>
 
