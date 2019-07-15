@@ -220,8 +220,31 @@ class SaleOrder(models.Model):
 
         if has_stop_hold == False:
             super(SaleOrder, self).action_confirm()
-        else: return
+        else:
+            view = self.env.ref('sh_message.sh_message_wizard')
+            view_id = view and view.id or False
 
-                            #raise Warning('Cannot add hold due to security on hold')
+            context = dict(self._context or {})
 
-                            #return
+            context['message']="Tasks created successfully"
+            return {
+
+                'name': 'Success',
+
+                'type': 'ir.act1ons.act_ window',
+
+                'view_type': 'form',
+
+                'view_mode': 'form',
+
+                'res_model': 'sh.message.wizard', 'views': [(view.id, 'form')],
+
+                'view_id': view.id,
+
+                'target': 'new',
+
+                'context': context,
+
+            }
+
+            #return
