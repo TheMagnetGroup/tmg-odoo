@@ -142,22 +142,34 @@ class SaleOrder(models.Model):
                         hasProductionBlock = True
                     if hold.blocks_delivery:
                         hasShippingBlock = True
-                if hasShippingBlock:
-                    for pi in self.picking_ids:
-                        order.picking_ids.write({'on_hold': True})
-                        order.picking_ids.write({'on_hold_text': 'On Hold'})
-                        order.on_hold = True
-                else:
-                    for pi in self.picking_ids:
-                        order.picking_ids.write({'on_hold': False})
-                        order.picking_ids.write({'on_hold_text': ''})
-                if hasProductionBlock:
-                    order.on_production_hold = True
-                    order.on_hold = True
-                else:
-                    order.on_production_hold = False
+                # if hasShippingBlock:
+                #
+                #     order.on_hold = True
+                # else:
+                #     for pi in self.picking_ids:
+                #         order.picking_ids.write({'on_hold': False})
+                #         order.picking_ids.write({'on_hold_text': ''})
+                # if hasProductionBlock:
+                #     for li in self.order_line:
+                #         li.job_id.write({'on_hold': True})
+                #         # for mo in li.job_id.mfg_order_ids:
+                #         #     mo.on_hold = True
+                #     order.on_production_hold = True
+                #     order.on_hold = True
+                # else:
+                #     for li in self.order_line:
+                #         li.job_id.write({'on_hold': False})
+                #         # for mo in li.job_id.mfg_order_ids:
+                #         #     mo.on_hold = False
+                #     order.on_production_hold = False
+            self.set_holds(hasShippingBlock, hasProductionBlock)
             if len(order.order_holds) == 0:
                 order.on_hold = False
+                for pi in self.picking_ids:
+                    order.picking_ids.write({'on_hold': False})
+                    order.picking_ids.write({'on_hold_text': ''})
+                for li in self.order_line:
+                    li.job_id.write({'on_hold': False})
             else:
                 order.on_hold = True
             if any(hol.credit_hold == True for hol in order.order_holds):
@@ -165,6 +177,45 @@ class SaleOrder(models.Model):
             else:
                 if order.had_credit_hold:
                     order.approved_credit = True
+
+    def set_holds(self, ship, prod):
+        if ship:
+            for pi in self.picking_ids:
+                self.picking_ids.write({'on_hold': True})
+                self.picking_ids.write({'on_hold_text': 'On Hold'})
+            self.on_hold = True
+        else:
+            for pi in self.picking_ids:
+                self.picking_ids.write({'on_hold': False})
+                self.picking_ids.write({'on_hold_text': ''})
+        if prod:
+            for li in self.order_line:
+                li.job_id.write({'on_hold': True})
+                for mo in li.job_id.mfg_order_ids:
+                    mo.write({'on_hold': True})
+                    for wo in mo.workorder_ids:
+                        wo.write({'on_hold': True})
+            for pi in self.picking_ids:
+                self.picking_ids.write({'on_hold': True})
+                self.picking_ids.write({'on_hold_text': 'On Hold'})
+
+            self.on_production_hold = True
+            self.on_hold= True
+        else:
+            for li in self.order_line:
+                li.job_id.write({'on_hold': False})
+                for mo in li.job_id.mfg_order_ids:
+                    mo.write({'on_hold': False})
+                    for wo in mo.workorder_ids:
+                        wo.write({'on_hold': True})
+            if not ship:
+                for pi in self.picking_ids:
+                    self.picking_ids.write({'on_hold': False})
+                    self.picking_ids.write({'on_hold_text': ''})
+
+
+            self.on_production_hold = False
+
 
 
 
@@ -218,33 +269,9 @@ class SaleOrder(models.Model):
                     if hold.blocks_production or hold.credit_hold:
                         has_stop_hold = True
 
-        if has_stop_hold == False:
-            super(SaleOrder, self).action_confirm()
-        else:
-            view = self.env.ref('sh_message.sh_message_wizard')
-            view_id = view and view.id or False
 
-            context = dict(self._context or {})
+            ret = super(SaleOrder, self).action_confirm()
 
-            context['message']="Tasks created successfully"
-            return {
 
-                'name': 'Success',
 
-                'type': 'ir.act1ons.act_ window',
-
-                'view_type': 'form',
-
-                'view_mode': 'form',
-
-                'res_model': 'sh.message.wizard', 'views': [(view.id, 'form')],
-
-                'view_id': view.id,
-
-                'target': 'new',
-
-                'context': context,
-
-            }
-
-            #return
+            return ret
