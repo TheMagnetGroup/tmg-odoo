@@ -279,6 +279,6 @@ class SaleOrder(models.Model):
 
             ret = super(SaleOrder, self).action_confirm()
 
-            self.CheckHolds
-            return ret
+            self.CheckHolds()
+
 
