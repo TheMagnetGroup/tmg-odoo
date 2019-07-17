@@ -10,12 +10,13 @@ Add sales holds to orders that can block production or delivery. Also implements
     'category': 'Sale',
     'version': '0.1',
     # any module necessary for this one to work correctly
-    'depends': ['sale_management', 'sale_stock', 'mrp', 'sh_message'],
+    'depends': ['sale_management', 'sale_stock', 'mrp_job', 'tmg_mrp', 'sh_message'],
 
     # always loaded
     'data': [
         'views/sale_hold_views.xml',
         'security/ir.model.access.csv',
+        'views/manufacturing_views.xml',
     ],
     # only loaded in demonstration mode
     'demo': [
