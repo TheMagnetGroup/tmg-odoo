@@ -22,7 +22,7 @@
                 <xpath expr="//kanban/templates/t/div/div[1]" position="after">
 
                     <p class="oe_module_name">
-                    <strong> <field name="on_hold"/></strong>
+                    <strong> <field name="on_hold_text"/></strong>
                     </p>
                 </xpath>
 
