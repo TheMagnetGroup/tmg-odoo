@@ -128,10 +128,8 @@ class SaleOrder(models.Model):
             output = output + ' </ul>'
         return   output
 
-
     @api.multi
-    @api.onchange('order_holds')
-    def on_hold_change(self):
+    def CheckHolds(self):
         for order in self:
             hasShippingBlock = False
             hasProductionBlock = False
@@ -178,6 +176,11 @@ class SaleOrder(models.Model):
             else:
                 if order.had_credit_hold:
                     order.approved_credit = True
+
+    @api.multi
+    @api.onchange('order_holds')
+    def on_hold_change(self):
+        self.CheckHolds()
 
     def set_holds(self, ship, prod):
         if ship:
@@ -276,6 +279,6 @@ class SaleOrder(models.Model):
 
             ret = super(SaleOrder, self).action_confirm()
 
+            self.CheckHolds()
 
 
-            return ret
