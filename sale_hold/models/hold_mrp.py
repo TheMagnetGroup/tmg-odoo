@@ -31,3 +31,11 @@ class hold_mrp(models.Model):
 
         ret = super(hold_mrp, self).produce_product()
         return ret
+
+    @api.multi
+    def open_produce_product(self):
+        if self.on_hold:
+            raise UserError('This order has holds preventing processing.')
+
+        ret = super(hold_mrp, self).produce_product()
+        return ret
