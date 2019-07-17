@@ -193,8 +193,10 @@ class SaleOrder(models.Model):
                 li.job_id.write({'on_hold': True})
                 for mo in li.job_id.mfg_order_ids:
                     mo.write({'on_hold': True})
+                    mo.write({'on_hold_text': "On Hold"})
                     for wo in mo.workorder_ids:
                         wo.write({'on_hold': True})
+
             for pi in self.picking_ids:
                 self.picking_ids.write({'on_hold': True})
                 self.picking_ids.write({'on_hold_text': 'On Hold'})
@@ -206,6 +208,7 @@ class SaleOrder(models.Model):
                 li.job_id.write({'on_hold': False})
                 for mo in li.job_id.mfg_order_ids:
                     mo.write({'on_hold': False})
+                    mo.write({'on_hold_text': ""})
                     for wo in mo.workorder_ids:
                         wo.write({'on_hold': True})
             if not ship:

@@ -16,6 +16,7 @@ Add sales holds to orders that can block production or delivery. Also implements
     'data': [
         'views/sale_hold_views.xml',
         'security/ir.model.access.csv',
+        'views/manufacturing_views.xml',
     ],
     # only loaded in demonstration mode
     'demo': [

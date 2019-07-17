@@ -5,7 +5,7 @@ from odoo.exceptions import UserError
 class hold_mrp(models.Model):
     _inherit = 'mrp.production'
     on_hold = fields.Boolean(string="On Hold")
-
+    on_hold_text = fields.Char(string="On Hold Text")
 
 
     @api.multi
