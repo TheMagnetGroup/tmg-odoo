@@ -133,7 +133,8 @@ class SaleOrder(models.Model):
     @api.onchange('order_holds')
     def on_hold_change(self):
         for order in self:
-
+            hasShippingBlock = False
+            hasProductionBlock = False
             if len(order.order_holds) > 0:
                 hasShippingBlock = False
                 hasProductionBlock = False
