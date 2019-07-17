@@ -23,3 +23,11 @@ class hold_mrp(models.Model):
 
         ret = super(hold_mrp, self).button_plan()
         return ret
+
+    @api.multi
+    def produce_product(self):
+        if self.on_hold:
+            raise UserError('This order has holds preventing processing.')
+
+        ret = super(hold_mrp, self).produce_product()
+        return ret
