@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+
+
+       <record id="mrp_job_view_tree_hold_inherit" model="ir.ui.view">
+            <field name="name">mrp.job.view.tree.hold.inherit</field>
+            <field name="model">mrp.job</field>
+            <field name="inherit_id" ref="mrp_job.mrp_job_view_tree" />
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='date_planned_start']" position="after">
+                    <field name="on_hold" string="On Hold" attrs="{'invisible': [('on_hold', '=', False)]}" />
+                </xpath>
+            </field>
+        </record>
+
+        <record id="mrp_production_kanban_view_hold_inherit" model="ir.ui.view">
+            <field name="name">mrp.production.kanban.hold.inherit</field>
+            <field name="model">mrp.production</field>
+            <field name="inherit_id" ref="mrp.mrp_production_kanban_view" />
+            <field name="arch" type="xml">
+                <xpath expr="//kanban/templates/t/div/div[1]" position="after">
+
+                    <p class="oe_module_name">
+                    <strong> <field name="on_hold_text"/></strong>
+                    </p>
+                </xpath>
+
+            </field>
+        </record>
+
+        <record id="mrp_production_tree_view_hold_inherit" model="ir.ui.view">
+          <field name="name">production.tree.hold.inherit</field>
+          <field name="model">mrp.production</field>
+          <field name="inherit_id" ref="mrp.mrp_production_tree_view" />
+          <field name="arch" type="xml">
+             <xpath expr="//field[@name='state']" position="after">
+                <field name="on_hold" string="On Hold" attrs="{'invisible': [('on_hold', '=', False)]}" />
+             </xpath>
+          </field>
+        </record>
+    </data>
+</odoo>
