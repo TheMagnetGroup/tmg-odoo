@@ -1,16 +1,12 @@
 # -*- coding: utf-8 -*-
 {
-    'name': "TMG Helpdesk Extensions",
+    'name': "TMG Sales Order In Hands",
 
     'summary': """
-        Extends the Odoo Helpdesk module to check for tickets in the Urgent team that fails SLA policies
-    """,
-
-    'sequence' : 2,
+        Adds In-Hands date to the Sales Order""",
 
     'description': """
-        This TMG module checks for urgent tickets that have not been assigned within 15 minutes.
-        If the ticket is not assigned a wider audience will be notified.
+        Adds an informational field, In-Hands Date to the Sales order and as a related field in the job and delivery order.
     """,
 
     'author': "The Magnet Group",
@@ -19,18 +15,19 @@
     # Categories can be used to filter modules in modules listing
     # Check https://github.com/odoo/odoo/blob/12.0/odoo/addons/base/data/ir_module_category_data.xml
     # for the full list
-    'category': 'Helpdesk',
+    'category': 'Sale',
     'version': '0.1',
 
     # any module necessary for this one to work correctly
-    'depends': ['helpdesk'],
+    'depends': ['mrp_job' , "tmg_mrp", "sale"],
 
     # always loaded
     'data': [
-        'data/cron.xml',
-        'views/tmg_helpdesk_views.xml',
-        'wizard/tmg_portal_wizard_view.xml',
-        # 'views/templates.xml',
+        # 'security/ir.model.access.csv',
+        'views/sales_order.xml',
+        'views/mrp_view.xml',
+        'views/picking_view.xml'
+
     ],
     # only loaded in demonstration mode
     'demo': [
