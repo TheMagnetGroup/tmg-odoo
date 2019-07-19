@@ -5,7 +5,7 @@
     <record id="tmg_order_form_inherits_in_hands" model="ir.ui.view">
 
     <field name="arch" type="xml">
-        <xpath expr="//field[@name='confirmation_date']" position="after">
+        <xpath expr="//field[@name='expected_date']" position="after">
             <field name="in_hands"></field>
         </xpath>
 
