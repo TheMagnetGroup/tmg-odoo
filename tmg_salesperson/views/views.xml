@@ -1,0 +1,12 @@
+<odoo>
+  <data>
+    <record id="tmg_salesperson_order_view" model="ir.ui.view">
+      <field name="name">tmg.salesperson.order.view</field>
+      <field name="model">sale.order</field>
+      <field name="inherit_id" ref="sale.view_order_form"/>
+      <field name="arch" type="xml">
+
+      </field>
+    </record>
+  </data>
+</odoo>
