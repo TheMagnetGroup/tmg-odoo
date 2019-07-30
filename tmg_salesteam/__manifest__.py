@@ -1,31 +1,31 @@
 # -*- coding: utf-8 -*-
 {
-    'name': "tmg_salesteam",
+    'name': "TMG Sales Team Extensions",
 
     'summary': """
-        Short (1 phrase/line) summary of the module's purpose, used as
-        subtitle on modules listing or apps.openerp.com""",
+        Adds a many 2 many team id membership to Odoo""",
 
     'description': """
-        Long description of module's purpose
+        The current sales team implementation only allows a user to be on one team. For
+        TMG a user can be on multiple teams
     """,
 
-    'author': "My Company",
-    'website': "http://www.yourcompany.com",
+    'author': "The Magnet Group",
+    'website': "http://www.themagnetgroup.com",
 
     # Categories can be used to filter modules in modules listing
     # Check https://github.com/odoo/odoo/blob/12.0/odoo/addons/base/data/ir_module_category_data.xml
     # for the full list
-    'category': 'Uncategorized',
+    'category': 'Sales',
     'version': '0.1',
 
     # any module necessary for this one to work correctly
-    'depends': ['base'],
+    'depends': ['base','sale','sales_team'],
 
     # always loaded
     'data': [
         # 'security/ir.model.access.csv',
-        'views/views.xml',
+        'views/tmg_salesteam_views.xml',
         'views/templates.xml',
     ],
     # only loaded in demonstration mode
