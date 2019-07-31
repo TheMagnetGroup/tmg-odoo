@@ -53,7 +53,7 @@
    </record>
       <menuitem id="menu_hold_settings" name="Holds"
                 action="sale_hold_action"
-            parent="sale.menu_sales_config" sequence="20" />
+            parent="sale.menu_sales_config" sequence="40" />
 <!--   <menuitem id="menu_hold_settings" name="Holds" action="sale_hold_action" parent="sale.sale_menu_root" sequence="8" />-->
 
    <record id="account_terms_view_credit_inherit" model="ir.ui.view">
