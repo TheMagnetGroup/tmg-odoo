@@ -265,9 +265,9 @@ class SaleOrder(models.Model):
            # holdsObj = hold.browse(hold_ids)
 
            # self.order_holds.write({''}) = holdsObj
-
-            self.order_holds = self.order_holds | hold_ids
             self.is_automated_hold = True
+            self.order_holds = self.order_holds | hold_ids
+
            # res = self.write({'order_holds': holdsObj})
             # return res
 
