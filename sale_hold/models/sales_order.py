@@ -75,7 +75,7 @@ class SaleOrder(models.Model):
                             if self.is_automated_hold and hold.credit_hold:
                                 nothold = True
                             else:
-                                raise Warning('Cannot add hold due to security on hold')
+                                raise Warning('Cannot add hold due to security on hold.')
 
 
                         else:

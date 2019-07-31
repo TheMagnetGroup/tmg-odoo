@@ -39,6 +39,7 @@
             <field name="on_hold"  attrs="{'invisible': True}"/>
             <field name="approved_credit"  attrs="{'invisible': True}"/>
             <field name="had_credit_hold"  attrs="{'invisible': True}"/>
+            <field name="is_automated_hold" attrs="{'invisible': True}"/>
          </xpath>
       </field>
    </record>
