@@ -13,7 +13,7 @@ class SaleOrder(models.Model):
     on_hold = fields.Boolean(string='On Hold')
     approved_credit = fields.Boolean(string='Approved Credit', default=False)
     had_credit_hold = fields.Boolean(string="Had Credit Hold", default=False)
-    is_automated_hold = fields.Boolean(default=False)
+    is_automated_hold = fields.Boolean(string = "Automated Credit Hold", default=False)
     def checkSecurity(self, value):
         hasGroup = False
         for grp in value.group_ids:
@@ -29,6 +29,33 @@ class SaleOrder(models.Model):
 
         else:
             return True
+
+    @api.model
+    def create(self, values):
+        vals = values['order_holds']
+        note_list = []
+        if vals:
+            for t in vals[0][2]:
+                hold_obj = self.env['sale.hold']
+                holds = hold_obj.search([('id', '=', t)])
+                for hold in holds:
+                    hasGroup = self.checkSecurity(hold)
+                    if not hasGroup:
+                        if self.is_automated_hold and hold.credit_hold:
+                            nothold = True
+                        else:
+                            raise Warning('Cannot add hold due to security on hold.')
+
+
+                    else:
+                        note_list.append('Added Hold ' + hold.name)
+                        # message_text = message_text + 'Added Hold ' + hold.name + ' <br/>'
+
+        result = super(SaleOrder, self).create(values)
+        message_text = self.create_ul_from_list(note_list)
+        if message_text != '':
+            self.message_post(body=message_text)
+        return result
 
     @api.multi
     def write(self, values):
