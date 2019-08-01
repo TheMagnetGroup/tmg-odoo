@@ -1,32 +1,32 @@
 # -*- coding: utf-8 -*-
 {
-    'name': "tmg_customer",
+    'name': "TMG customer extensions",
 
     'summary': """
-        Short (1 phrase/line) summary of the module's purpose, used as
-        subtitle on modules listing or apps.openerp.com""",
+        TMG customer extensions""",
 
     'description': """
-        Long description of module's purpose
+        Add bool field to res.partner named "Rebate". 
+        Add "Rebate" field to res.partner form view but only show the field if "Is Customer" is true
     """,
 
-    'author': "My Company",
-    'website': "http://www.yourcompany.com",
+    'author': "The Magnet Group",
+    'website': "http://www.themagnetgroup.com",
 
     # Categories can be used to filter modules in modules listing
     # Check https://github.com/odoo/odoo/blob/12.0/odoo/addons/base/data/ir_module_category_data.xml
     # for the full list
-    'category': 'Uncategorized',
+    'category': 'Sales',
     'version': '0.1',
 
     # any module necessary for this one to work correctly
-    'depends': ['base'],
+    'depends': ['sale'],
 
     # always loaded
     'data': [
         # 'security/ir.model.access.csv',
-        'views/views.xml',
-        'views/templates.xml',
+        'views/tmg_customer_views.xml',
+       # 'views/templates.xml',
     ],
     # only loaded in demonstration mode
     'demo': [
