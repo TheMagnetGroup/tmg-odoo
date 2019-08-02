@@ -2,13 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="381617a5-210b-44c8-a3a3-eab8d945a92f" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/models/tmg_customer_models.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/views/tmg_customer_views.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/__manifest__.py" beforeDir="false" afterPath="$PROJECT_DIR$/__manifest__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/models/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/models.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/views/views.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/models/tmg_customer_models.py" beforeDir="false" afterPath="$PROJECT_DIR$/models/tmg_customer_models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/views/tmg_customer_views.xml" beforeDir="false" afterPath="$PROJECT_DIR$/views/tmg_customer_views.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../tmg_salesperson/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../tmg_salesperson/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
