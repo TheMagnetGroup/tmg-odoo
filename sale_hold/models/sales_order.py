@@ -9,7 +9,7 @@ class SaleOrder(models.Model):
     _inherit = 'sale.order'
     order_holds = fields.Many2many('sale.hold' ,string='Order Holds')
 
-    on_production_hold = fields.Boolean(string='On Production Hold')
+
     on_hold = fields.Boolean(string='On Hold')
     approved_credit = fields.Boolean(string='Approved Credit', default=False)
     had_credit_hold = fields.Boolean(string="Had Credit Hold", default=False)
