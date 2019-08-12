@@ -37,5 +37,5 @@ class hold_mrp(models.Model):
         if self.on_hold:
             raise UserError('This order has holds preventing processing.')
 
-        ret = super(hold_mrp, self).produce_product()
+        ret = super(hold_mrp, self).open_produce_product()
         return ret
