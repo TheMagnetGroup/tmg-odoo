@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+	<record id="view_mrp_production_filter_inherit_mrp_job" model="ir.ui.view">
+	    <field name="name">mrp.production.search.inherit.mrp_job</field>
+	    <field name="model">mrp.production</field>
+	    <field name="inherit_id" ref="mrp.view_mrp_production_filter"/>
+	    <field name="arch" type="xml">
+	    	<xpath expr="//filter[@name='status']" position="after">
+	    		<filter string="JOB" name="job" domain="[]" context="{'group_by': 'job_id'}"/>
+	    	</xpath>
+	    </field>
+	</record>
+	<record id="workorder_form_inherit_mrp_job" model="ir.ui.view">
+		<field name="name">mrp.workorder.inherit.mrp_job</field>
+		<field name="model">mrp.workorder</field>
+		<field name="inherit_id" ref="mrp.mrp_production_workorder_form_view_inherit"/>
+		<field name="arch" type="xml">
+			<field name="production_id" position="after">
+				<field name="job_id" readonly="1"/>
+			</field>
+		</field>
+	</record>
+	<record id="mrp.mrp_production_action" model="ir.actions.act_window">
+		<field name="context">{'search_default_todo': True, 'search_default_job': True}</field>
+	</record>
+	<record id="mrp.menu_mrp_root" model="ir.ui.menu">
+		<field name="action" ref="mrp_job.action_open_all_jobs"/>
+	</record>
+</odoo>
