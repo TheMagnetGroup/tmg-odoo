@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+pr1_s3_bucket_filter_general,pr1_s3_bucket_filter,model_pr1_s3_bucket_filter,base.group_user,1,0,0,0
+pr1_s3_connection_general,pr1_s3_s3_connection,model_pr1_s3_s3_connection,base.group_user,1,0,0,0
+pr1_s3_bucket_filter_admin,pr1_s3_bucket_filter_admin,model_pr1_s3_bucket_filter,g_pr1_s3_admin_user,1,1,1,1
+pr1_s3_connection_admin,pr1_s3_s3_connection_admin,model_pr1_s3_s3_connection,g_pr1_s3_admin_user,1,1,1,1
