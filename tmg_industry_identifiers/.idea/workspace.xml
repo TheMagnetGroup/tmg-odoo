@@ -119,6 +119,14 @@
       <option name="presentableId" value="Default" />
       <updated>1565027365599</updated>
     </task>
+    <task id="LOCAL-00001" summary="initial commit">
+      <created>1567618333433</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1567618333433</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TodoView">
@@ -152,5 +160,7 @@
     <ignored-roots>
       <path value="$PROJECT_DIR$" />
     </ignored-roots>
+    <MESSAGE value="initial commit" />
+    <option name="LAST_COMMIT_MESSAGE" value="initial commit" />
   </component>
 </project>
