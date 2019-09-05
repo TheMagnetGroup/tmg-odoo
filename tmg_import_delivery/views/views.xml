@@ -1,0 +1,34 @@
+<odoo>
+  <data>
+     <act_window id="action_open_sale_line_delivery_entry_wizard"
+            name="Sale Line Delivery Entry Wizard"
+            src_model="sale.order.line"
+            res_model="sale.order.line.delivery.entry.wizard"
+            target="new"
+            view_mode="form"
+            view_id="wizard_import_entered_deliveries"
+            multi="False"
+            context="{}"/>
+
+
+
+    <record id="view_sale_view_order_form_inherit_tmg_manual" model="ir.ui.view">
+            <field name="name">sale_view_order_form_inherit_tmg_manual</field>
+            <field name="model">sale.order</field>
+            <field name="inherit_id" ref="sale.view_order_form"/>
+            <field name="arch" type="xml">
+
+                <xpath expr="//form[1]/sheet[1]/notebook[1]/page[@name='order_lines']/field[@name='order_line']/form[1]//button[@name='action_unlink_all_additional_delivery_addresses']" position="after">
+                    <button name="%(action_open_sale_line_delivery_entry_wizard)d" type="action" string="Upload File" class="btn-sm btn-primary" />
+
+
+
+                </xpath>
+                <!--<xpath expr="//form[1]/sheet[1]/notebook[1]/page[@name='order_lines']/field[@name='order_line']/tree[1]" position="inside">-->
+                    <!--<field name="delivery_ids" readonly="0"/>-->
+                    <!--<field name="delivery_qty_sum"/>-->
+                <!--</xpath>-->
+            </field>
+        </record>
+  </data>
+</odoo>
