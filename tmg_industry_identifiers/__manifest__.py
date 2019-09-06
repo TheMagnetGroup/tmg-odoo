@@ -21,7 +21,7 @@
     'version': '0.1',
 
     # any module necessary for this one to work correctly
-    'depends': ['Sales'],
+    'depends': ['sale'],
 
     # always loaded
     'data': [
@@ -29,6 +29,6 @@
     ],
     # only loaded in demonstration mode
     'demo': [
-       # 'demo/demo.xml',
+        'demo/demo.xml',
     ],
 }
