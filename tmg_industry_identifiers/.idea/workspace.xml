@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="506c765f-8c1d-45c1-9de3-b99aec62301a" name="Default Changelist" comment="initial commit">
+    <list default="true" id="506c765f-8c1d-45c1-9de3-b99aec62301a" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/../tmg_customer/.idea/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../tmg_customer/.idea/vcs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/__manifest__.py" beforeDir="false" afterPath="$PROJECT_DIR$/__manifest__.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -18,16 +21,10 @@
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$/.." value="11e2b0854634c8ce8b25b748c6f3827486ae5c04" />
+        <entry key="$PROJECT_DIR$/.." value="tmg_available_to_Sell" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
-  </component>
-  <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="65" />
-    <option name="y" value="309" />
-    <option name="width" value="1611" />
-    <option name="height" value="682" />
   </component>
   <component name="ProjectId" id="1QNOmMsQzcfUXX7fpWF5xIHmrZB" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true">
@@ -35,7 +32,7 @@
   </component>
   <component name="PropertiesComponent">
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../tmg_customer" />
     <property name="settings.editor.selected.configurable" value="vcs.Git" />
   </component>
   <component name="RunDashboard">
@@ -126,7 +123,14 @@
       <option name="project" value="LOCAL" />
       <updated>1567618333433</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="initial commit">
+      <created>1567621007325</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1567621007325</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TodoView">
