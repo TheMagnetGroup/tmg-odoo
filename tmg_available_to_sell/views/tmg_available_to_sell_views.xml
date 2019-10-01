@@ -1,0 +1,38 @@
+<odoo>
+    <data>
+        <record id="tmg_available_to_sell_view" model="ir.ui.view">
+            <field name="name">tmg.available.to.sell.view</field>
+            <field name="model">product.template</field>
+            <field name="inherit_id" ref="product.product_template_only_form_view"></field>
+            <field name="arch" type="xml">
+                <xpath expr="//button[@name='321']" position="replace">
+                    <button type="action" name="3211" attrs="{'invisible':[('type', '!=', 'product')]}"
+                            class="oe_stat_button" icon="fa-building-o"
+                            modifiers="{'invisible':[['type','!=','product']]}"
+                            options="{}">
+                        <div class="o_field_widget o_stat_info" modifiers="{}">
+                            <span class="o_stat_value" modifiers="{}">
+                                <field name="virtual_available_qty" widget="statinfo" nolabel="1"
+                                       modifiers="{'readonly':true}"/>
+<!--                                <span attrs="{'invisible':[('outgoing_qty', '=', 0),('qty_available','=',0)]}"-->
+<!--                                      modifiers="{'invisible':[['outgoing_qty','=',0],['qty_available','=',0]]}">-->
+
+
+<!--                                    <field name="qty_available" widget="statinfo" nolabel="1"-->
+<!--                                           modifiers="{'readonly':true}"/>-->
+<!--                                    - -->
+<!--                                    <field name="outgoing_qty" widget="statinfo" nolabel="1"-->
+<!--                                           modifiers="{'readonly':true}"/>-->
+<!--                                </span>-->
+                                <field name="uom_name" class="ml4" modifiers="{'readonly':true}"/>
+                            </span>
+                            <span class="o_stat_text" modifiers="{}">
+                                Available Quantity
+                            </span>
+                        </div>
+                    </button>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>
