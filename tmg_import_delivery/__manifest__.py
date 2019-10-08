@@ -20,7 +20,7 @@
     'version': '0.1',
 
     # any module necessary for this one to work correctly
-    'depends': ['sale_stock','delivery_ups'],
+    'depends': ['delivery_ups', 'tmg_sale_stock','tmg_mrp'],
 
     # always loaded
     'data': [

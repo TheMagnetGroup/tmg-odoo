@@ -30,10 +30,16 @@ class SaleOrderLineDeliveryEntryWizard(models.TransientModel):
     carrier_id = fields.Many2one('delivery.carrier' ,string="Delivery Carrier")
     ups_bill_my_account = fields.Boolean(related='carrier_id.ups_bill_my_account', readonly=True)
     ups_carrier_account = fields.Char(string='Carrier Account', copy=False)
-    ups_carrier_id = fields.Char(string="Carrier ID")
+    # ups_carrier_id = fields.Char(string="Carrier ID")
     ups_service_type = fields.Selection(_get_ups_service_types, string="UPS Service Type")
     # a helper function to set the criteria of what is considered a duplicate
     # for a customer contact
+
+    # @api.constrains('ups_service_type')
+    # def _validate_account(self):
+    #     if self.ups_service_type:
+    #         if not self.ups_carrier_id and self.ups_bill_my_account:
+    #             raise ValidationError("You cannot select a third party shipper without supplying an account number")
 
     @api.onchange('carrier_id')
     def _onchange_carrier_id(self):
@@ -104,8 +110,8 @@ class SaleOrderLineDeliveryEntryWizard(models.TransientModel):
             # according to our duplicate domain
             corrected_partner_lst = []
             for i in range(len(partner_lst)):
-                partner = partner_lst[i]
-                partner_id = partner
+                partner = partner_lst[i].id
+                partner_id = self.env['res.partner'].browse(partner)
                 partner_id.write({
                     'customer': True,
                     'type': 'delivery' if partner_id.parent_id else 'contact'
@@ -118,11 +124,16 @@ class SaleOrderLineDeliveryEntryWizard(models.TransientModel):
                 corrected_partner_lst.append(partner)
             # print(corrected_partner_lst)
             delOrd = self.env['sale.order.line.delivery']
+            service_type = self.ups_service_type
+            if self.carrier_id.delivery_type != "ups":
+                service_type = False
+
             outOrd = delOrd.create({
-                'shipping_partner_id': corrected_partner_lst[0].id,
+                'carrier_id' : self.carrier_id.id,
+                'shipping_partner_id': corrected_partner_lst[0],
                 'sale_line_id': self.sale_line_id.id,
                 'ups_carrier_account': self.ups_carrier_account,
-                'ups_service_type': self.ups_service_type,
+                'ups_service_type': service_type,
                 'qty': self.quantity,
             })
             # result_lst = self.do_import('sale.order.line.delivery', decoded_file, options)
