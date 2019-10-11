@@ -23,7 +23,7 @@
 
     # always loaded
     'data': [
-        #'security/ir.model.access.csv',
+        'security/ir.model.access.csv',
         'views/tmg_account_invoice_view.xml',
         'wizard/credit_note_claim.xml',
     ],
