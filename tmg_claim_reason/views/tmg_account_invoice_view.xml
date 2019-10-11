@@ -1,0 +1,55 @@
+<odoo>
+  <data>
+          <record id="tmg_account_invoice_claim_inherit" model="ir.ui.view">
+            <field name="name">account.invoice.form.refund.inherit</field>
+            <field name="model">account.invoice</field>
+            <field name="inherit_id" ref="account.invoice_form"/>
+            <field name="field_parent" eval="False"/>
+            <field name="groups_id" eval="[(6, 0, [])]"/>
+            <field name="priority">32</field>
+            <field name="arch" type="xml">
+                <xpath expr="/form/sheet/notebook/page[2]/group/group[1]//field[5]" position="replace">
+                    <field name="name"  attrs="{'invisible': True}"/>
+                </xpath>
+                <xpath expr="//form[1]/sheet[1]/notebook[1]/page[@name='other_info']/group[1]/group[1]/field[@name='name']" position="after">
+                     <field name="claim_reason"  />
+                </xpath>
+
+
+            </field>
+          </record>
+          <record id="account_claim_reason_view_tree" model="ir.ui.view">
+              <field name="name">account.claim.reason.view.tree</field>
+              <field name="model">claim.reason</field>
+              <field name="arch" type="xml">
+                 <tree string="Claims">
+                    <field name="name" />
+                    <field name="description" />
+                 </tree>
+              </field>
+          </record>
+          <record id="account_claim_reason_view_form" model="ir.ui.view">
+              <field name="name">account.claim.reason.view.form</field>
+              <field name="model">claim.reason</field>
+              <field name="arch" type="xml">
+                 <form string="Claims">
+                     <sheet>
+                         <group>
+                            <field name="name" />
+                            <field name="description" />
+                            <field name="channel_id"/>
+                         </group>
+                     </sheet>
+                 </form>
+              </field>
+          </record>
+          <record id="claim_reason_action" model="ir.actions.act_window">
+              <field name="name">Claim Reason</field>
+              <field name="res_model">claim.reason</field>
+              <field name="view_type">form</field>
+              <field name="view_mode">tree,form</field>
+          </record>
+          <menuitem id="menu_claim_settings" name="Claim Reason"
+                action="claim_reason_action" parent="account.menu_finance_configuration" sequence="40" />
+  </data>
+</odoo>
