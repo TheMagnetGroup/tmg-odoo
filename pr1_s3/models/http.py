@@ -156,7 +156,7 @@ class IrHttp(models.AbstractModel):
                 attach_mimetype = env['ir.attachment'].search_read(domain=[('res_model', '=', model), ('res_id', '=', id), ('res_field', '=', field)], fields=['mimetype'], limit=1)
                 mimetype = attach_mimetype and attach_mimetype[0]['mimetype']
             if not mimetype:
-                mimetype = guess_mimetype(base64.b64decode(content), default=default_mimetype)
+                mimetype = guess_mimetype(base64.b64decode(content + "==="), default=default_mimetype)
 
         headers += [('Content-Type', mimetype), ('X-Content-Type-Options', 'nosniff')]
 
