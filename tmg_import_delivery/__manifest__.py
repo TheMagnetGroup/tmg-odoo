@@ -28,6 +28,9 @@
 
         'wizard/sale_order_line_delivery_entry_wizard.xml',
         'views/views.xml',
+        'views/picking_view.xml',
+        'views/fedex_provider_view.xml',
+
     ],
     # only loaded in demonstration mode
     'demo': [

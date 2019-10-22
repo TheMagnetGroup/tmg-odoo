@@ -8,7 +8,18 @@
             view_mode="form"
             view_id="wizard_import_entered_deliveries"
             multi="False"
-            context="{}"/>
+            context="{}" />
+
+
+
+<!--    <record id="view_order_form_inherit_delivery_ups" model="ir.ui.view">-->
+<!--        <field name="name">sale.order.form.inherit.delivery.ups</field>-->
+<!--        <field name="model">sale.order</field>-->
+<!--        <field name="inherit_id" ref="sale.view_order_form"/>-->
+<!--        <field name="arch" type="xml">-->
+
+<!--        </field>-->
+<!--    </record>-->
 
 
 
@@ -22,6 +33,11 @@
                     <button name="%(action_open_sale_line_delivery_entry_wizard)d" type="action" string="Upload File" class="btn-sm btn-primary" />
 
 
+
+                </xpath>
+                <xpath expr="//field[@name='payment_term_id']" position="after">
+                    <field name="fedex_bill_my_account" invisible="1"/>
+                    <field name="fedex_carrier_account" attrs="{'invisible': [('fedex_bill_my_account', '!=', True)], 'required':[('fedex_bill_my_account', '!=', False)]}"/>
 
                 </xpath>
                 <!--<xpath expr="//form[1]/sheet[1]/notebook[1]/page[@name='order_lines']/field[@name='order_line']/tree[1]" position="inside">-->
