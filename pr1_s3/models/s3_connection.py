@@ -11,6 +11,7 @@ import random
 import time
 import base64
 import hashlib
+import re
 try:
     import boto3
 except:
@@ -75,27 +76,34 @@ class S3Connection(models.Model):
             for attach in attachments:
                 value = attach.datas
                 bin_data = base64.b64decode(value) if value else b''
-                
                 fname = hashlib.sha1(bin_data).hexdigest()
         
                 if(len(fname)>6): #small random fname
                     fname=fname[:6]
-                
+
+                s3_filename = ''
+                if(attach.datas_fname!=False):
+                    s3_filename = re.sub(r'[ ]', r'_', attach.datas_fname)
+                    s3_filename = re.sub(r'[\&\$\@\=\;\:\+\,\?\\\{\^\}\%\`\]\>\[\~\<\#\|]',r'', s3_filename)
+
                 fname=str(attach.id)+fname
                 if(attach.datas_fname!=False):
                     Metadata={
-                        'FileName': attach.datas_fname
+                        #'FileName': attach.datas_fname
+                        'FileName' : s3_filename
                         }
                 else:
                     Metadata={}
                 
                 if(connection.append_file_name_to_start):
                     if(attach.datas_fname!=False):
-                        fname=fname+"/"+attach.datas_fname
+                        #fname=fname+"/"+attach.datas_fname
+                        fname=fname+"/"+s3_filename
                     else:
                         fname = hashlib.sha1(bin_data).hexdigest()
                 if(connection.sub_folder!="" and connection.sub_folder!=False):
                     fname=connection.sub_folder+"/"+fname
+
                 try:
                     s3_bucket.put_object(Key=fname,Body=bin_data,ACL='public-read',ContentType=attach.mimetype,Metadata=Metadata)
                 except Exception as e:
@@ -163,7 +171,7 @@ class S3Connection(models.Model):
     
     @api.model
     def get_s3_connection(self, model, mime_type):
-        res=self.env['pr1_s3.bucket_filter'].search([('res_model.model','=',model)])
+        res=self.env['pr1_s3.bucket_filter'].search([('res_model.model','=',model),('s3_connection_id','!=',False)])
         if(len(res)==1):
             if(res[0].s3_connection_id.can_use(res[0].s3_connection_id)):
                 return res[0].s3_connection_id  
@@ -176,7 +184,7 @@ class S3Connection(models.Model):
             elif(len(res)==0 or self.env['pr1_s3.s3_connection'].can_use(res[0])==False):
                 return False
 
-        res=self.env['pr1_s3.bucket_filter'].search([('res_model.model','=',model),('mime_type','like',mime_type)])
+        res=self.env['pr1_s3.bucket_filter'].search([('res_model.model','=',model),('s3_connection_id','!=',False),('mime_type','like',mime_type)])
         if(len(res)==0):
             return False
         for record in res: #through all the buckets for this model...

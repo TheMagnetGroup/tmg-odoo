@@ -2,6 +2,7 @@ import base64
 import os
 import hashlib
 import logging
+import re
 from odoo import api, models,fields, _
 from odoo.tools.safe_eval import safe_eval
 from odoo.exceptions import UserError, ValidationError
@@ -68,7 +69,7 @@ class Document(models.Model):
         s3_to_do = self.filtered('datas')
         connection=False
         for attach in s3_to_do: #todo find out what this does if res_model is blank
-            if(connection==False or (conection.res_model.name!=attach.res_model and connection.has_mime_type(connection,attach.mimetype))):
+            if(connection==False or (connection.res_model.name!=attach.res_model and connection.has_mime_type(connection,attach.mimetype))):
                 connection=self.env['pr1_s3.s3_connection'].get_s3_connection(attach.res_model,attach.mimetype)
                 if(connection==False): #nothing to do here
                     super(Document,self)._inverse_datas()
@@ -88,24 +89,34 @@ class Document(models.Model):
             else:
                 fname = self.res_name + '-' + str(self.res_id) # create folder based on resource name and id(sales order, task, etc)
 
+            s3_filename = ''
+            if(attach.datas_fname!=False):
+                s3_filename = re.sub(r'[ ]', r'_', attach.datas_fname)
+                s3_filename = re.sub(r'[\&\$\@\=\;\:\+\,\?\\\{\^\}\%\`\]\>\[\~\<\#\|]',r'', s3_filename)
+
             if(attach.datas_fname!=False):
                 Metadata={
-                'FileName': attach.datas_fname
+                # 'FileName': attach.datas_fname
+                'FileName' : s3_filename
                 }
             else:
                 Metadata={}
             
             if(connection.append_file_name_to_start):
                 if(attach.datas_fname!=False):
-                    fname=fname+"/"+attach.datas_fname
+                    #fname=fname+"/"+attach.datas_fname
+                    fname = fname + "/" + s3_filename
                 else:
                     fname = hashlib.sha1(bin_data).hexdigest()
             
             if(connection.sub_folder!="" and connection.sub_folder!=False):
                 fname=connection.sub_folder+"/"+fname
-            
-            
-            s3_obj = s3_bucket.put_object(Key=fname,Body=bin_data,ACL='public-read',ContentType=attach.mimetype,Metadata=Metadata)
+
+            try:
+                s3_obj = s3_bucket.put_object(Key=fname,Body=bin_data,ACL='public-read',ContentType=attach.mimetype,Metadata=Metadata)
+            except Exception as e:
+                raise exceptions.UserError(e.message)
+
             vals = {
                 'checksum': self._compute_checksum(bin_data),
                 'url': connection.get_s3_url(fname, s3_service),
