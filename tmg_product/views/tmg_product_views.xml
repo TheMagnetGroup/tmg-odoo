@@ -54,5 +54,16 @@
             </field>
         </record>
 
+        <record id="tmg_product_product_view_tree" model="ir.ui.view">
+            <field name="name">tmg.product.product.tree.view</field>
+            <field name="model">product.product</field>
+            <field name="inherit_id" ref="product.product_product_tree_view"/>
+            <field name="arch" type="xml">
+                <field name="lst_price" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </field>
+            </field>
+        </record>
+
     </data>
 </odoo>
