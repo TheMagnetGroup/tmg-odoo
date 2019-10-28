@@ -6,6 +6,6 @@ from odoo import models, fields
 class StockPicking(models.Model):
     _inherit = 'stock.picking'
 
-    fedex_carrier_account = fields.Char(related='sale_id.fedex_carrier_account', string='Carrier Account', readonly=False)
+    fedex_carrier_account = fields.Char(related='sale_id.fedex_carrier_account', string='Fedex Carrier Account', readonly=False)
     ups_carrier_account = fields.Char(string='Carrier Account', readonly=False)
-    ups_service_type = fields.Selection(string="UPS Service Type", readonly=False)
+    ups_service_type = fields.Selection( string="UPS Service Type", readonly=False)

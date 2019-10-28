@@ -69,6 +69,9 @@ class StockMove(models.Model):
                     # we force the partner_id to change
                     if new_mid == self.id:
                         self.partner_id = partner_id
+                        self.carrier_id = delivery.carrier_id.id
+                        self.ups_service_type = delivery.ups_service_type
+                        self.ups_carrier_account = delivery.ups_carrier_account
             # after all splitting, our move is also a split move, yay
             # this is necessary so that recursion don't punish us later
             self.is_split_move = True
@@ -76,8 +79,10 @@ class StockMove(models.Model):
     def _get_new_picking_values(self):
 
         vals = super(StockMove, self)._get_new_picking_values()
-       # vals['carrier_id'] = self.carrier_id
-        del(vals['carrier_id'])
+        vals['carrier_id'] = self.carrier_id.id
+        vals['ups_service_type'] = self.ups_service_type
+        vals['ups_carrier_account'] = self.ups_carrier_account
+        # del(vals['carrier_id'])
         return vals
 
     @api.model

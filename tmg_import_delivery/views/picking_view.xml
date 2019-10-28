@@ -6,9 +6,13 @@
         <field name="arch" type="xml">
             <xpath expr="//field[@name='delivery_type']" position="after">
                 <field name="fedex_carrier_account" attrs="{'invisible': [('fedex_carrier_account', '=', False)]}"/>
-
+                <field name="ups_carrier_account" attrs="{'invisible': [('ups_carrier_account', '=', False)]}"/>
+                <field name="ups_service_type" attrs="{'invisible': [('ups_carrier_account', '=', False)]}"/>
             </xpath>
         </field>
     </record>
 
     </odoo>
+
+
+
