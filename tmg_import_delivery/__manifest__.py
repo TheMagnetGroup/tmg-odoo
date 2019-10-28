@@ -1,23 +1,19 @@
 # -*- coding: utf-8 -*-
 {
-    'name': "tmg_import_delivery",
+    'name': "TMG Import Delivery",
 
-    'summary': """
-        Short (1 phrase/line) summary of the module's purpose, used as
-        subtitle on modules listing or apps.openerp.com""",
-
+    'summary': "Gives the user the ability to enter individual delivery orders and adds 3rd party fedex.",
     'description': """
-        Long description of module's purpose
+    Adds the ability to add a third party shipper number for fedex deliveries and adds to tmg_sale_stock's ability to enter bulk shipments by adding the ability to enter individual shipments in wizard
     """,
 
-    'author': "My Company",
-    'website': "http://www.yourcompany.com",
-
+    "author": "The Magnet Group",
+    'website': "http://www.themagnetgroup.com",
+    'category': 'Sale',
+    'version': '0.1',
     # Categories can be used to filter modules in modules listing
     # Check https://github.com/odoo/odoo/blob/12.0/odoo/addons/base/data/ir_module_category_data.xml
     # for the full list
-    'category': 'Uncategorized',
-    'version': '0.1',
 
     # any module necessary for this one to work correctly
     'depends': [ 'tmg_sale_stock','tmg_mrp','delivery_ups'],
