@@ -50,7 +50,9 @@ class PriceList(models.Model):
 
 class ProductTemplate(models.Model):
     _inherit = 'product.template'
-
+    
+    product_tags_ids = fields.Many2many('product.template.tags', string='Product Tags')
+    
     @api.multi
     def _get_combination_info(self, combination=False, product_id=False, add_qty=1, pricelist=False, parent_combination=False, only_template=False):
 

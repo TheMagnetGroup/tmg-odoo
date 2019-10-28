@@ -36,7 +36,7 @@
          </xpath>
          <xpath expr="//form//field[@name='partner_shipping_id']" position="after">
 <!--            <field name="order_holds" widget="many2many_tags" />-->
-            <field name="on_hold"  attrs="{'invisible': True}"/>
+<!--            <field name="on_hold"  attrs="{'invisible': True}"/>-->
             <field name="approved_credit"  attrs="{'invisible': True}"/>
             <field name="had_credit_hold"  attrs="{'invisible': True}"/>
             <field name="is_automated_hold" attrs="{'invisible': True}"/>

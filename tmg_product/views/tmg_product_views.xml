@@ -43,5 +43,16 @@
             </field>
         </record>
 
+        <record id="tmg_product_template_form_view" model="ir.ui.view">
+            <field name="name">tmg.product.template.form</field>
+            <field name="model">product.template</field>
+            <field name="inherit_id" ref="product.product_template_form_view"/>
+            <field name="arch" type="xml">
+                <field name="categ_id" position="after">
+                    <field name="product_tags_ids" widget="many2many_tags" options="{'color_field': 'color', 'no_create_edit': True}"/>
+                </field>
+            </field>
+        </record>
+
     </data>
 </odoo>
