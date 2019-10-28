@@ -16,7 +16,7 @@
     # for the full list
 
     # any module necessary for this one to work correctly
-    'depends': [ 'tmg_sale_stock','tmg_mrp','delivery_ups'],
+    'depends': [ 'tmg_sale_stock','tmg_mrp','delivery_ups', 'delivery_fedex'],
 
     # always loaded
     'data': [
