@@ -41,6 +41,13 @@ class Delivery_Fedex(models.Model):
         curr_match = {v: k for k, v in FEDEX_CURR_MATCH.items()}
         return curr_match.get(code, code)
 
+    def fedex_rate_shipment(self, order):
+        vals = super(Delivery_Fedex, self).fedex_rate_shipment()
+        if self.fedex_bill_my_account and order.fedex_carrier_account:
+            # Don't show delivery amount, if ups bill my account option is true
+            vals['price'] = 0.0
+        return vals
+
     def fedex_send_shipping(self, pickings):
         res = []
 

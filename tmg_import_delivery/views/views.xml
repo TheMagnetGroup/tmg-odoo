@@ -30,7 +30,7 @@
             <field name="arch" type="xml">
 
                 <xpath expr="//form[1]/sheet[1]/notebook[1]/page[@name='order_lines']/field[@name='order_line']/form[1]//button[@name='action_unlink_all_additional_delivery_addresses']" position="after">
-                    <button name="%(action_open_sale_line_delivery_entry_wizard)d" type="action" string="Upload File" class="btn-sm btn-primary" />
+                    <button name="%(action_open_sale_line_delivery_entry_wizard)d" type="action" string="Add Address" class="btn-sm btn-primary" />
 
 
 

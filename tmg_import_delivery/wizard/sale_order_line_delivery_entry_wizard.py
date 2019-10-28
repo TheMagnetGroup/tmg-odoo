@@ -32,6 +32,8 @@ class SaleOrderLineDeliveryEntryWizard(models.TransientModel):
     ups_carrier_account = fields.Char(string='Carrier Account', copy=False)
     # ups_carrier_id = fields.Char(string="Carrier ID")
     ups_service_type = fields.Selection(_get_ups_service_types, string="UPS Service Type")
+    fedex_bill_my_account = fields.Boolean(related='carrier_id.fedex_bill_my_account', readonly=True)
+    fedex_carrier_account = fields.Char(string='Fedex Carrier Account', readonly=False)
     # a helper function to set the criteria of what is considered a duplicate
     # for a customer contact
 
@@ -135,6 +137,7 @@ class SaleOrderLineDeliveryEntryWizard(models.TransientModel):
                 'ups_carrier_account': self.ups_carrier_account,
                 'ups_service_type': service_type,
                 'qty': self.quantity,
+                'fedex_carrier_account': self.fedex_carrier_account
             })
             # result_lst = self.do_import('sale.order.line.delivery', decoded_file, options)
             # result_lst = []

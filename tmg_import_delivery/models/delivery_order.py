@@ -11,3 +11,4 @@ class DeliveryOrder(models.Model):
     carrier_id = fields.Many2one('delivery.carrier', string="Delivery Carrier")
     ups_carrier_account = fields.Char(string='Carrier Account', readonly=False)
     ups_service_type = fields.Selection(_get_ups_service_types, string="UPS Service Type")
+    fedex_carrier_account = fields.Char(string='Fedex Carrier Account', readonly=False)
