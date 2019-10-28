@@ -5,7 +5,7 @@ from odoo import api, models, fields, _, tools
 from odoo.exceptions import UserError
 from odoo.tools import pdf
 
-from delivery_fedex.models.fedex_request import FedexRequest
+from enterprise.delivery_fedex.models.fedex_request import FedexRequest
 _logger = logging.getLogger(__name__)
 
 FEDEX_CURR_MATCH = {
