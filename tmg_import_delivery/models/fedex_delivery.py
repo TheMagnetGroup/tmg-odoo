@@ -29,7 +29,7 @@ FEDEX_CURR_MATCH = {
     u'LVL': u'EURO',
 }
 
-class Delivery_Fedex(models.Model):
+class DeliveryFedex(models.Model):
     _inherit = 'delivery.carrier'
     fedex_bill_my_account = fields.Boolean(string='Bill My Account',
                                          help="If checked, ecommerce users will be prompted their FedEx account number\n"
@@ -42,7 +42,7 @@ class Delivery_Fedex(models.Model):
         return curr_match.get(code, code)
 
     def fedex_rate_shipment(self, order):
-        vals = super(Delivery_Fedex, self).fedex_rate_shipment()
+        vals = super(DeliveryFedex, self).fedex_rate_shipment()
         if self.fedex_bill_my_account and order.fedex_carrier_account:
             # Don't show delivery amount, if ups bill my account option is true
             vals['price'] = 0.0
