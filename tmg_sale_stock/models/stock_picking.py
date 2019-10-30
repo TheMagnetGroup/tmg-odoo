@@ -6,6 +6,9 @@ class StockQuantPackage(models.Model):
     _inherit = 'stock.quant.package'
     alt_picking_id = fields.Many2one('stock.picking', ondelete='cascade', string='Alt Picking')
 
+    height = fields.Integer(related='packaging_id.height')
+    width = fields.Integer(related='packaging_id.width')
+    length = fields.Integer(related='packaging_id.length')
     
 class StockPicking(models.Model):
     _inherit = 'stock.picking'

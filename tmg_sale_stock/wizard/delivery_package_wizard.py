@@ -24,6 +24,7 @@ class PickingDeliveryPackageWizard(models.TransientModel):
         return self.env['stock.picking'].browse(self.env.context.get('active_id'))
 
     picking_id = fields.Many2one('stock.picking', string='Picking', ondelete='cascade', required=True, default=_default_picking)
+    package_carrier_type = fields.Selection(related='picking_id.carrier_id.delivery_type')
 
     def _default_packages(self):
         picking = self._default_picking()
@@ -68,10 +69,12 @@ class PickingDeliveryPackageWizard(models.TransientModel):
     
     def action_define_packages(self):
         self.ensure_one()
-        if self.picking_id and self.delivery_package_ids:
-            # translate delivery package wizard to regular packages
-            packages = self.convert_packages_to('stock.quant.package', self.delivery_package_ids, mode='unfold')
+        
+        if self.picking_id:
             self.picking_id.alt_package_ids.unlink()  # remove these trash from db
-            self.picking_id.write({'alt_package_ids': [(6, 0, packages.ids)]})
+            if self.delivery_package_ids:
+                # translate delivery package wizard to regular packages
+                packages = self.convert_packages_to('stock.quant.package', self.delivery_package_ids, mode='unfold')
+                self.picking_id.write({'alt_package_ids': [(6, 0, packages.ids)]})
 
         return {'type': 'ir.actions.act_window_close'}
