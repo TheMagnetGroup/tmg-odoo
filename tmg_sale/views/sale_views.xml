@@ -1,0 +1,14 @@
+<odoo>
+  <data>
+    <record id="view_sales_order_filter_custref" model="ir.ui.view">
+            <field name="name">sale.order.list.select.custref</field>
+            <field name="model">sale.order</field>
+            <field name="inherit_id" ref="sale.view_sales_order_filter"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='team_id']" position="after">
+                    <field name="client_order_ref"/>
+                </xpath>
+            </field>
+        </record>
+  </data>
+</odoo>
