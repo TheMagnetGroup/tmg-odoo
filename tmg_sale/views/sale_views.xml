@@ -6,7 +6,7 @@
             <field name="inherit_id" ref="sale.view_sales_order_filter"/>
             <field name="arch" type="xml">
                 <xpath expr="//field[@name='team_id']" position="after">
-                    <field name="client_order_ref"/>
+                    <field name="client_order_ref" string="Customer Reference"/>
                 </xpath>
             </field>
         </record>
