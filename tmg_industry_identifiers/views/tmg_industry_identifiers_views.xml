@@ -28,6 +28,9 @@
             <field name="arch" type="xml">
                 <xpath expr="//search/field[@name='name']" position="after">
                     <field name="id"/>
+                    <field name="name" string = "Industry Identifiers" filter_domain="['|','|',('asi_number', 'ilike', self),
+                                                                ('sage_number', 'ilike', self),
+                                                                ('ppai_number', 'ilike', self)]"/>
                 </xpath>
             </field>
         </record>
