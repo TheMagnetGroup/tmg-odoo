@@ -42,5 +42,16 @@
       </field>
     </record>
 
+    <record id="tmg_view_partner_form" model="ir.ui.view">
+        <field name="name">tmg.partner.form</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form[1]/sheet[1]/notebook[1]/page[@name='sales_purchases']/group[1]/group[1]/field[@name='user_id']" position="after">
+                <field name="team_id" attrs="{'required':[('customer', '=', True)]}"/>
+            </xpath>
+        </field>
+    </record>
+
   </data>
 </odoo>
