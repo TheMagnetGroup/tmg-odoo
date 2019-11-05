@@ -1,0 +1,2 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_tmg_so_extensions_tmg_so_extensions,tmg_so_extensions.tmg_so_extensions,model_tmg_so_extensions_tmg_so_extensions,,1,0,0,0
