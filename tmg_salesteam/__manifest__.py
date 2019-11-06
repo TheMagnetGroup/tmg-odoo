@@ -21,8 +21,8 @@
 
     # any module necessary for this one to work correctly
     'depends': [
-        'sales_team',
-        'sale'
+        'sale',
+        'sales_team'
     ],
 
     # always loaded
