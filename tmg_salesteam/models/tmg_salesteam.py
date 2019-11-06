@@ -11,5 +11,5 @@ class tmg_salesteam(models.Model):
 class SaleOrder(models.Model):
     _inherit = 'sale.order'
 
-    # provide link to partner/contact "is customer" flag to condition salesteam in sales.view_order_form
-    partner_is_customer = fields.Boolean('Is Customer', related='partner_id.customer')
+    # provide link to partner "is customer" flag to condition salesteam in sales.view_order_form
+    partner_is_customer = fields.Boolean('Is a Customer', related='partner_id.customer')

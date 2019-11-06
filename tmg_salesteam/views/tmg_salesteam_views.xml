@@ -54,7 +54,7 @@
         </field>
     </record>
 
-    <!-- Ensure salesteam is required on orders for flagged customers -->
+    <!-- Ensure salesteam is required on orders for partners flagged as customers -->
     <record id="tmg_view_sale_order_form" model="ir.ui.view">
         <field name="name">tmg.sale.order.form</field>
         <field name="model">sale.order</field>
@@ -62,7 +62,9 @@
         <field name="arch" type="xml">
             <xpath expr="//form[1]/sheet[1]/notebook[1]/page[@name='other_information']/group[1]/group[2]" position="inside">
                 <field name="partner_is_customer" invisible="True" />
-                <field name="team_id" attrs="{'required':[('partner_is_customer', '=', True)]}" />
+            </xpath>
+            <xpath expr="//form[1]/sheet[1]/notebook[1]/page[@name='other_information']/group[1]/group[2]/field[@name='team_id']" position="attributes">
+                <attribute name="attrs">{'required':[('partner_is_customer', '=', True)]}</attribute>
             </xpath>
         </field>
     </record>
