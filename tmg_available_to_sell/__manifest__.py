@@ -3,17 +3,15 @@
     'name': "tmg_available_to_sell",
 
     'summary': """
-        Adds a new field labeled "Available Quantity" that calculates (Quantity On Hand - Outgoing)
-        """,
+        Short (1 phrase/line) summary of the module's purpose, used as
+        subtitle on modules listing or apps.openerp.com""",
 
     'description': """
-        Adds computed field labeled "Available Quantity" (technical name virtual_available_qty) 
-        with the formula Quantity On Hand - Outgoing.
-        Replaces the "Forecasted" stat button on the product detail form
+        Long description of module's purpose
     """,
 
-    'author': "The Magnet Group",
-    'website': "http://www.themagnetgroup.com",
+    'author': "My Company",
+    'website': "http://www.yourcompany.com",
 
     # Categories can be used to filter modules in modules listing
     # Check https://github.com/odoo/odoo/blob/12.0/odoo/addons/base/data/ir_module_category_data.xml
@@ -22,12 +20,13 @@
     'version': '0.1',
 
     # any module necessary for this one to work correctly
-    'depends': ['sale', 'stock'],
+    'depends': ['base'],
 
     # always loaded
     'data': [
         # 'security/ir.model.access.csv',
-        'views/tmg_available_to_sell_views.xml',
+        'views/views.xml',
+        'views/templates.xml',
     ],
     # only loaded in demonstration mode
     'demo': [

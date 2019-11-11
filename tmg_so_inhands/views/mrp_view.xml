@@ -1,0 +1,29 @@
+<odoo>
+  <data>
+
+
+    <record id="tmg_mrp_form_inherits_in_hands" model="ir.ui.view">
+
+    <field name="arch" type="xml">
+        <xpath expr="//field[@name='date_planned_start']" position="after">
+            <field name="in_hands"></field>
+        </xpath>
+
+
+    </field>
+
+    <field name="inherit_id" ref="mrp_job.mrp_job_view_form"/>
+    <field name="model">mrp.job</field>
+    <field name="name">tmg.date.mrp.form</field>
+    <field name="priority">31</field>
+    </record>
+
+
+
+
+
+
+
+
+  </data>
+</odoo>

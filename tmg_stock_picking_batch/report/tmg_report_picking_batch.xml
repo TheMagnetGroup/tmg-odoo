@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <template id="tmg_stock_picking_batch.report_picking_batch" inherit_id="stock_picking_batch.report_picking_batch">
+            <xpath expr="/t[1]/t[1]/t[1]/t[6]/div[1]/t[1]/table[1]/tbody[1]/tr[1]/td[4]" position="replace">
+                <td>
+                    <img class="barcode" t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s&amp;humanreadable=1' % ('Code128', move_operation.mapped('picking_id').display_name, 200, 75)" alt="Barcode"/>
+                </td>
+            </xpath>
+        </template>
+    </data>
+</odoo>
