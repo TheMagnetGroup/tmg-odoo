@@ -10,14 +10,19 @@
 
 
                     <div class="row">
+                        <div class="col-7">
+                            <h2><span t-field="o.id"/></h2>
+
+                        </div>
 
                         <div class="col-7">
+
                             <h2><span t-field="o.name"/></h2>
                         </div>
 
                         <div class="col-5">
                             <span class="text-right">
-                                <img t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', o.id, 600, 100)" style="width:350px;height:60px"/>
+                                <img t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', o.id, 300, 100)" style="width:350px;height:60px"/>
                             </span>
                         </div>
                     </div>
@@ -100,9 +105,22 @@
             </div>
 
                     <div t-foreach="o.mfg_order_ids" t-as="mfg" style="border:1px solid black;">
-                        <h3>
-                            <span t-field="mfg.name"/>
-                        </h3>
+
+                         <div class="row">
+                            <div class="col-7">
+                                <h3>
+                                    <span t-field="mfg.name"/>
+                                </h3>
+                            </div>
+
+
+                            <div class="col-5">
+                                <span class="text-right">
+                                     <img t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', mfg.name, 450, 100)" style="height:35px" alt="Barcode"/>
+                                </span>
+                            </div>
+                        </div>
+
                         <table  class="table table-sm">
                             <tr>
                                 <th><strong>Item</strong></th>
@@ -155,9 +173,9 @@
                         </td>
                                 <td><span t-field="ship1.date_expected"/></td>
                                 <td>
-                                    <span t-field="mfg.product_qty"/>
+                                    <span t-field="ship1.product_uom_qty"/>
                                 </td>
-                                <td><img t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', ship1.id, 600, 100)" style="width:100%;height:35px" alt="Barcode"/></td>
+                                <td><img t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', ship1.name, 600, 100)" style="height:35px" alt="Barcode"/></td>
                             </tr>
                         </table>
 
