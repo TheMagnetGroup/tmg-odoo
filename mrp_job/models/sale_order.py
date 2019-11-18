@@ -72,8 +72,9 @@ class SaleOrderLine(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         for values in vals_list:
-            if 'art_ref' in values and not values['art_ref']:
-                raise ValidationError('Art Reference is required')
+            if values['display_type'] != 'line_section' and values['display_type'] != 'line_note':
+                if 'art_ref' in values and not values['art_ref']:
+                    raise ValidationError('Art Reference is required')
         result = super(SaleOrderLine, self).create(vals_list)
         return  result
 
