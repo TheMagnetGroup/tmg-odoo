@@ -1,0 +1,2 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_to_attachment_categories,access_to_attachment_categories,model_tmg_attachment_types,tmg_attachment_types.group_attachments_admin,1,1,1,1

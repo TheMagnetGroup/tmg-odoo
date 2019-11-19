@@ -22,11 +22,12 @@
     'version': '0.1',
 
     # any module necessary for this one to work correctly
-    'depends': ['sale'],
+    'depends': ['base','sale'],
 
     # always loaded
     'data': [
-        # 'security/ir.model.access.csv',
+        'security/ir.model.access.csv',
+        'security/tmg_attachment_types_security.xml',
         'views/tmg_attachment_types_views.xml',
     ],
     # only loaded in demonstration mode

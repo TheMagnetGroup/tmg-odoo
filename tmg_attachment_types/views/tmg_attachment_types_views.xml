@@ -1,29 +1,25 @@
 <odoo>
     <data>
-        <record id="tmg_attachment_types_tree" model="ir.ui.view">
-            <field name="name">tmg_attachment.types.tree</field>
-            <field name="model">sale.order</field>
+        <record id="tmg_attachment_types" model="ir.ui.view">
+            <field name="name">tmg.attachment.types</field>
+            <field name="model">ir.attachment</field>
             <field name="inherit_id" ref="sale.view_order_form"/>
-            <field name="arch" type="xml">
-                <xpath expr="//form[1]/sheet[1]/notebook[1]" position="inside">
-                    <page name="attachment_tab" string="Attachments">
-                        <field name="attachment_category" attrs="{}">
-                            <tree class="attachment_category_tree" create="false" edit="false">
-                                <field name="type" invisible="1"/>
-                                <field name="thumbnail" options="{'size':[90,90]}" widget="image"/>
-                                <field name="datas" widget="binary" filename="datas_fname"
-                                       attrs="{'invisible':[('type','=','url')]}"/>
-                                <field name="datas_fname" invisible="1" attrs="{'invisible':[('type','=','url')]}"
-                                       class="oe_inline oe_right"/>
-                                <field name="url" widget="binary" filename="datas_fname"
-                                       attrs="{'invisible':[('type','=','binary')]}"/>
-                                <field name="write_uid"/>
-                                <field name="create_date"/>
-                            </tree>
-                        </field>
-                    </page>
-                </xpath>
-            </field>
+            <!--            <field name="arch" type="xml">-->
+            <!--                <xpath expr="//form[1]/sheet[1]/notebook[1]" position="inside">-->
+            <!--                    <page name="attachment_tab" string="Attachments">-->
+            <!--                        <field name="attachment_category">-->
+            <!--                            <tree class="attachment_category_tree">-->
+            <!--                                <control>-->
+            <!--                                    <create string="Add a product"/>-->
+            <!--                                </control>-->
+            <!--                                <field name="display_name"/>-->
+            <!--                                <field name="type"/>-->
+            <!--                            </tree>-->
+            <!--                        </field>-->
+            <!--                    </page>-->
+            <!--                </xpath>-->
+            <!--            </field>-->
         </record>
     </data>
 </odoo>
+
