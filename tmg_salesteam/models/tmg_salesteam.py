@@ -6,8 +6,9 @@ from odoo import models, fields, api, _
 class SaleOrder(models.Model):
     _inherit = 'sale.order'
 
-    # provide link to partner "is customer" flag to condition salesteam in sales.view_order_form
-    partner_is_customer = fields.Boolean('Is a Customer', related='partner_id.customer')
+    # this instruction "blanks-out" the Sales Team when Customer (i.e. partner_id) is blank
+    # ... (e.g. when beginning CREATE() of a sales order)
+    team_id = fields.Many2one(default=fields.Integer(0))
 
 
 class tmg_salesteam(models.Model):
