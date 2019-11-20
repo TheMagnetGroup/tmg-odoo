@@ -2,23 +2,18 @@
     <data>
         <record id="tmg_attachment_types" model="ir.ui.view">
             <field name="name">tmg.attachment.types</field>
-            <field name="model">ir.attachment</field>
+            <field name="model">sale.order</field>
             <field name="inherit_id" ref="sale.view_order_form"/>
-            <!--            <field name="arch" type="xml">-->
-            <!--                <xpath expr="//form[1]/sheet[1]/notebook[1]" position="inside">-->
-            <!--                    <page name="attachment_tab" string="Attachments">-->
-            <!--                        <field name="attachment_category">-->
-            <!--                            <tree class="attachment_category_tree">-->
-            <!--                                <control>-->
-            <!--                                    <create string="Add a product"/>-->
-            <!--                                </control>-->
-            <!--                                <field name="display_name"/>-->
-            <!--                                <field name="type"/>-->
-            <!--                            </tree>-->
-            <!--                        </field>-->
-            <!--                    </page>-->
-            <!--                </xpath>-->
-            <!--            </field>-->
+            <field name="arch" type="xml">
+                <xpath expr="//form[1]/sheet[1]/notebook[1]" position="inside">
+                    <page name="attachment_tab" string="Attachments">
+                        <group name="attachment_group">
+                            <field name="attachment_category" widget="many2many_tags"
+                                   options="{'no_quick_create':True,'no_create_edit':True}"/>
+                        </group>
+                    </page>
+                </xpath>
+            </field>
         </record>
     </data>
 </odoo>

@@ -3,10 +3,8 @@
         <!--attachment category security-->
         <record id="group_attachments_admin" model="res.groups">
             <field name="name">Access to Attachment Categories</field>
-            <field name="comment">Allows read/write/create/edit in Attachment Category.(Model: attachment_category)</field>
+            <field name="comment">Allows read/write/create/edit in Attachment Category - tags.(Model: attachment_category)
+            </field>
         </record>
     </data>
 </odoo>
-
-<!--http://pythagoreanodoo.com/en/uncategorized-en/basic-security-->
-<!--access_to_attachment_categories,access_to_attachment_categories,model_tmg_attachment_types,tmg_attachment_types.group_attachments_admin,1,1,1,1-->
