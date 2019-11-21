@@ -60,7 +60,7 @@ class SaleOrder(models.Model):
 class SaleOrderLine(models.Model):
     _inherit = "sale.order.line"
 
-    art_ref = fields.Char(string="Art Reference", required=True, default="to follow...")  # the default permits create() with required art_ref AND reminder to replace later with real entry value
+    art_ref = fields.Char(string="Art Reference", required=True, default="to follow...")
     job_id = fields.Many2one('mrp.job', string="Job Reference", help="Job reference in which MO for this sale order line is included.", copy=False)
 
     @api.multi
@@ -69,7 +69,6 @@ class SaleOrderLine(models.Model):
         values['art_ref'] = self.art_ref or ''
         return values
 
-    # These are kept as potential solutions if more specific control of messaging is required in tree/list view
     # @api.model_create_multi
     # def create(self, vals_list):
     #     for values in vals_list:
