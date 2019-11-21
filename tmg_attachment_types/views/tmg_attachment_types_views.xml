@@ -8,8 +8,8 @@
                 <xpath expr="//form[1]/sheet[1]/notebook[1]" position="inside">
                     <page name="attachment_tab" string="Attachments">
                         <group name="attachment_group">
-                            <field name="attachment_category" widget="many2many_tags"
-                                   options="{'no_quick_create':True,'no_create_edit':True}"/>
+                            <field name="attachment_category" string="Tags" widget="many2many_tags"
+                                   create="false" edit="false"/>
                         </group>
                     </page>
                 </xpath>
@@ -17,4 +17,3 @@
         </record>
     </data>
 </odoo>
-
