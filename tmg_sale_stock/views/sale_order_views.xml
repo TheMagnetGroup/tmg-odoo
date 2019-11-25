@@ -1,6 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data noupdate="0">
+        <act_window id="action_open_sale_line_delivery_entry_wizard"
+            name="Sale Line Delivery Entry Wizard"
+            src_model="sale.order.line"
+            res_model="sale.order.line.delivery.entry.wizard"
+            target="new"
+            view_mode="form"
+            view_id="wizard_import_entered_deliveries"
+            multi="False"
+            context="{}" />
 
         <act_window id="action_open_sale_line_delivery_wizard"
             name="Sale Line Delivery Wizard"
@@ -55,6 +64,7 @@
                             <label for="delivery_ids"/>
                             <button name="%(action_open_sale_line_delivery_wizard)d" type="action" string="Upload File" class="btn-sm btn-primary" style="float:right;"/>
                             <button name="action_unlink_all_additional_delivery_addresses" type="object" string="Remove All" confirm="This will delete all the additional addresses for this sale order line, confirm?" class="btn-sm btn-secondary" attrs="{'invisible': ['|', ('delivery_ids', '=', False), ('parent.state', 'in', ('sale', 'done'))]}" style="float:right;"/>
+                            <button name="%(action_open_sale_line_delivery_entry_wizard)d" type="action" string="Add Address" class="btn-sm btn-primary" />
                         </div>
                         <field name="delivery_ids" mode="tree" editable="bottom" context="{'default_sale_line_id': active_id}">
                             <tree editable="bottom">
@@ -63,6 +73,11 @@
                             </tree>
                         </field>
                     </div>
+
+                </xpath>
+                <xpath expr="//field[@name='payment_term_id']" position="after">
+                    <field name="fedex_bill_my_account" invisible="1"/>
+                    <field name="fedex_carrier_account" attrs="{'invisible': [('fedex_bill_my_account', '!=', True)], 'required':[('fedex_bill_my_account', '!=', False)]}"/>
 
                 </xpath>
                 <!--<xpath expr="//form[1]/sheet[1]/notebook[1]/page[@name='order_lines']/field[@name='order_line']/tree[1]" position="inside">-->

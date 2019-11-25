@@ -6,10 +6,19 @@ from odoo.exceptions import ValidationError
 class StockMove(models.Model):
     _inherit = 'stock.move'
 
+    def _get_ups_service_types(self):
+        return self.env['delivery.carrier']._get_ups_service_types()
     is_split_move = fields.Boolean('Is a Split Move',
                                    help='This is a technical field to detect if a move is a split move')
 
+
+    carrier_id = fields.Many2one('delivery.carrier', string="Delivery Carrier")
+    ups_carrier_account = fields.Char( string='Carrier Account', readonly=False)
+    ups_service_type = fields.Selection(_get_ups_service_types, string="UPS Service Type")
+    fedex_carrier_account = fields.Char(string='Fedex Carrier Account', readonly=False)
     # we need to pass the sale_line_id info for the sake of figuring out splitting
+
+
     def _prepare_procurement_values(self):
         res = super(StockMove, self)._prepare_procurement_values()
         res.update({'sale_line_id': self.sale_line_id.id})
@@ -24,6 +33,23 @@ class StockMove(models.Model):
             vals['is_split_move'] = True
             if self.env.context.get('partner_id_int'):
                 vals['partner_id'] = self.env.context.get('partner_id_int')
+            if not self.carrier_id:
+                ord = self.sale_line_id.order_id
+                vals['carrier_id'] = self.env.context.get('carrier_id_int')
+                # res.update({'carrier_id': ord.carrier_id})
+
+                if ord.ups_service_type:
+                    carrier = self.env['delivery.carrier'].browse(self.env.context.get('carrier_id'))
+                    if carrier.delivery_type == 'ups' :
+                        if self.env.context.get('ups_service_type'):
+
+                            vals['ups_service_type'] = self.env.context.get('ups_service_type')
+                        # res.update({'ups_service_type': ord.ups_service_type})
+                        if ord.ups_carrier_account:
+                            vals['ups_carrier_account'] = self.env.context.get('ups_carrier_account')
+                    if carrier.delivery_type =='fedex':
+                        if ord.fedex_carrier_account:
+                            vals['fedex_carrier_account'] = self.env.context.get('fedex_carrier_account')
         return vals
 
     # Modify the existing search picking method so that
@@ -72,12 +98,20 @@ class StockMove(models.Model):
                     partner_id = delivery.shipping_partner_id
                     new_mid = self.with_context({
                         'is_split_move_flag': True,
-                        'partner_id_int': partner_id.id
+                        'partner_id_int': partner_id.id,
+                        'carrier_id_int': delivery.carrier_id.id,
+                        'ups_service_type': delivery.ups_service_type,
+                        'ups_carrier_account': delivery.ups_carrier_account,
+                        'fedex_carrier_account': delivery.fedex_carrier_account
                     })._split(delivery.qty)
                     # if _split() didn't register due to complete split
                     # we force the partner_id to change
                     if new_mid == self.id:
                         self.partner_id = partner_id
+                        self.carrier_id = delivery.carrier_id.id
+                        self.ups_service_type = delivery.ups_service_type
+                        self.ups_carrier_account = delivery.ups_carrier_account
+                        self.fedex_carrier_account = delivery.fedex_carrier_account
             # after all splitting, our move is also a split move, yay
             # this is necessary so that recursion don't punish us later
             self.is_split_move = True
@@ -87,4 +121,30 @@ class StockMove(models.Model):
         for move in self:
             move._split_move_before_assigning_picking()
         return super(StockMove, self)._assign_picking()
+
+    def _get_new_picking_values(self):
+
+        vals = super(StockMove, self)._get_new_picking_values()
+        vals['carrier_id'] = self.carrier_id.id
+        vals['ups_service_type'] = self.ups_service_type
+        vals['ups_carrier_account'] = self.ups_carrier_account
+        vals['fedex_carrier_account'] = self.fedex_carrier_account
+        # del(vals['carrier_id'])
+        return vals
+
+    @api.model
+    def _prepare_merge_moves_distinct_fields(self):
+        distinct_fields = super(StockMove, self)._prepare_merge_moves_distinct_fields()
+        distinct_fields.append('carrier_id')
+        distinct_fields.append('ups_service_type')
+        distinct_fields.append('ups_carrier_account')
+        distinct_fields.append('fedex_carrier_account')
+        return distinct_fields
+
+    @api.model
+    def _prepare_merge_move_sort_method(self, move):
+        move.ensure_one()
+        keys_sorted = super(StockMove, self)._prepare_merge_move_sort_method(move)
+        keys_sorted.append(move.sale_line_id.id)
+        return keys_sorted
 
