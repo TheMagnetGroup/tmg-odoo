@@ -9,6 +9,7 @@
                     <page name="attachment_tab" string="Attachments">
                         <group name="attachment_group">
                             <field name="attachment_category" string="Tags" widget="many2many_tags"/>
+                            <!--                                   create="false" edit="false"/>-->
                         </group>
                     </page>
                 </xpath>
