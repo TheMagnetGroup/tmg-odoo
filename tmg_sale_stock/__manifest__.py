@@ -166,13 +166,10 @@
     'license': 'OEEL-1',
     'author': 'Odoo Inc',
     'version': '0.2',
-    'depends': ['sale_management', 'sale_stock', 'tmg_mrp','delivery_ups', 'delivery_fedex'],
+    'depends': ['sale_management', 'sale_stock', 'mrp'],
     'data': [
         'security/ir.model.access.csv',
         'wizard/sale_order_line_delivery_wizard.xml',
-        'wizard/sale_order_line_delivery_entry_wizard.xml',
         'views/sale_order_views.xml',
-        'views/picking_view.xml',
-        'views/fedex_procider_view.xml',
     ],
 }

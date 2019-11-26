@@ -13,8 +13,6 @@ class SaleOrderLineDelivery(models.Model):
     shipping_partner_id = fields.Many2one('res.partner', ondelete='cascade', string='Additional Delivery Address (SOL)', required=False)
     qty = fields.Float('Delivery Quantity', digits=dp.get_precision('Product Unit of Measure'))
 
-    fedex_carrier_account = fields.Char(string='FedEx Carrier Account', copy=False)
-    fedex_bill_my_account = fields.Boolean(related='carrier_id.fedex_bill_my_account', readonly=True)
     # # todo: not necessary
     # name = fields.Char(readonly=True, compute='_compute_default_name')
     #

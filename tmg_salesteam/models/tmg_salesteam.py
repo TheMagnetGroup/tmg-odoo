@@ -3,6 +3,14 @@
 from odoo import models, fields, api, _
 
 
+class SaleOrder(models.Model):
+    _inherit = 'sale.order'
+
+    # this instruction "blanks-out" the Sales Team when Customer (i.e. partner_id) is blank
+    # ... (e.g. when beginning CREATE() of a sales order)
+    team_id = fields.Many2one(default=fields.Integer(0))
+
+
 class tmg_salesteam(models.Model):
     _inherit = 'crm.team'
 
