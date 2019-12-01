@@ -2,6 +2,11 @@
 <odoo>
     <data>
         <template id="tmg_stock_picking_batch.report_picking_batch" inherit_id="stock_picking_batch.report_picking_batch">
+            <xpath expr="/t[1]/t[1]/t[1]/t[6]/div[1]/t[1]/table[1]/tbody[1]/tr[1]/td[3]" position="after">
+                <td>
+                    <span t-esc="move_operation.mapped('picking_id').job_id"/>
+                </td>
+            </xpath>
             <xpath expr="/t[1]/t[1]/t[1]/t[6]/div[1]/t[1]/table[1]/tbody[1]/tr[1]/td[4]" position="replace">
                 <td>
                     <span t-esc="move_operation.mapped('picking_id').job_id"/>
