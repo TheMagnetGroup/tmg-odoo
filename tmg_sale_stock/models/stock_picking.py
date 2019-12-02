@@ -18,7 +18,7 @@ class StockPicking(models.Model):
     @api.multi
     def button_validate(self):
         self.ensure_one()
-        if self.carrier_id and not self.package_ids:
+        if self.picking_type_code == 'outgoing' and self.carrier_id and not self.package_ids:
             raise ValidationError(_('Please define one or more packages before validating the delivery order.'))
         return super(StockPicking, self).button_validate()
 
