@@ -34,7 +34,7 @@
 	      </field>
 	    </group>
 	    <group>
-	      <button name="%(action_open_picking_delivery_package_wizard)d" type="action" string="Define Packages" class="btn-sm btn-primary" attrs="{'invisible': [('state', '=', 'done')]}"/>
+	      <button name="%(action_open_picking_delivery_package_wizard)d" type="action" string="Define Packages" class="btn-sm btn-primary" attrs="{'invisible': [('state', '=', 'done'), ('carrier_tracking_ref', 'not in', ['', False])]}"/>
 	    </group>
 	  </page>
         </xpath>
