@@ -16,7 +16,7 @@ class SaleOrderLineDeliveryEntryWizard(models.TransientModel):
         return self.env['delivery.carrier']._get_ups_service_types()
 
     sale_line_id = fields.Many2one('sale.order.line', string='Active SOLs', ondelete='cascade', required=True, default=_default_sol)
-
+    scheduled_date = fields.Date(string='Scheduled Date')
     name = fields.Char(string='Name')
     street = fields.Char(string="Address1")
     street2 = fields.Char(string="Address2")
@@ -46,6 +46,12 @@ class SaleOrderLineDeliveryEntryWizard(models.TransientModel):
     @api.onchange('carrier_id')
     def _onchange_carrier_id(self):
         self.ups_service_type = self.carrier_id.ups_default_service_type
+        if self.fedex_bill_my_account:
+            self.fedex_carrier_account = self.sale_line_id.order_id.partner_id.default_fedex_third_party
+        if self.ups_bill_my_account:
+            self.ups_carrier_account = self.sale_line_id.order_id.partner_id.default_ups_third_party
+
+
 
     def _get_existing_partner_searching_domain(self, partner_id):
         return [
@@ -105,7 +111,8 @@ class SaleOrderLineDeliveryEntryWizard(models.TransientModel):
                 'zip': self.Zip,
                 'country': self.country_id,
                 'phone': self.phone,
-                'email': self.email
+                'email': self.email,
+                'customer' : False
             })
             partner_lst.append(new_partner)
             # go through our partner lst and unlink any duplicated ones
@@ -137,7 +144,9 @@ class SaleOrderLineDeliveryEntryWizard(models.TransientModel):
                 'ups_carrier_account': self.ups_carrier_account,
                 'ups_service_type': service_type,
                 'qty': self.quantity,
-                'fedex_carrier_account': self.fedex_carrier_account
+                'fedex_carrier_account': self.fedex_carrier_account,
+                'scheduled_date': self.scheduled_date
+
             })
             # result_lst = self.do_import('sale.order.line.delivery', decoded_file, options)
             # result_lst = []

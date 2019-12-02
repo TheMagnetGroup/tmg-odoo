@@ -29,7 +29,7 @@
             <field name="inherit_id" ref="sale.view_order_form"/>
             <field name="arch" type="xml">
 
-                <xpath expr="//form[1]/sheet[1]/notebook[1]/page[@name='order_lines']/field[@name='order_line']/form[1]//button[@name='action_unlink_all_additional_delivery_addresses']" position="after">
+                <xpath expr="//form[1]/sheet[1]/notebook[1]/page[@name='order_lines']/field[@name='order_line']/form[1]//field[@name='delivery_ids']" position="before">
                     <button name="%(action_open_sale_line_delivery_entry_wizard)d" type="action" string="Add Address" class="btn-sm btn-primary" />
 
 
@@ -40,11 +40,17 @@
                     <field name="fedex_carrier_account" attrs="{'invisible': [('fedex_bill_my_account', '!=', True)], 'required':[('fedex_bill_my_account', '!=', False)]}"/>
 
                 </xpath>
-                <xpath expr="//field[@name='shipping_partner_id']" position="after">
+                <xpath expr="//field[@name='partner_shipping_id']" position="after">
                     <field name="carrier_id" invisible="1"/>
                     
 
                 </xpath>
+                 <xpath expr="//form[1]/sheet[1]/notebook[1]/page[@name='order_lines']/field[@name='order_line']/form[1]//field[@name='delivery_ids']" position="after">
+<!--                    <field name="fedex_bill_my_account" invisible="1"/>-->
+
+
+                </xpath>
+
 
                 <!--<xpath expr="//form[1]/sheet[1]/notebook[1]/page[@name='order_lines']/field[@name='order_line']/tree[1]" position="inside">-->
                     <!--<field name="delivery_ids" readonly="0"/>-->

@@ -30,9 +30,14 @@ class StockMove(models.Model):
         vals = super(StockMove, self)._prepare_move_split_vals(qty)
         # the good ole context trick
         if self.env.context.get('is_split_move_flag'):
+            ord = self.sale_line_id.order_id
             vals['is_split_move'] = True
+            if self.env.context.get('scheduled_date'):
+                vals['scheduled_date'] = self.env.context.get('scheduled_date')
+            else:
+                vals['scheduled_date'] = ord.scheduled_date
             if not self.carrier_id:
-                ord = self.sale_line_id.order_id
+
                 vals['carrier_id'] = self.env.context.get('carrier_id_int')
                 # res.update({'carrier_id': ord.carrier_id})
 
@@ -68,7 +73,8 @@ class StockMove(models.Model):
                         'carrier_id_int' : delivery.carrier_id.id,
                         'ups_service_type' : delivery.ups_service_type,
                         'ups_carrier_account' : delivery.ups_carrier_account,
-                        'fedex_carrier_account' : delivery.fedex_carrier_account
+                        'fedex_carrier_account' : delivery.fedex_carrier_account,
+                        'scheduled_date' : delivery.scheduled_date
                     })._split(delivery.qty)
                     # if _split() didn't register due to complete split
                     # we force the partner_id to change
