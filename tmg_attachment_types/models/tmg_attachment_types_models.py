@@ -14,7 +14,7 @@ class tmg_attachment_types(models.Model):
 class tmg_attachment(models.Model):
     _inherit = 'ir.attachment'
 
-    attachment_category = fields.Many2many('attachment.type', string="many2many_tags", required=False)
+    attachment_category = fields.Many2many('attachment.type', help="Attachment Category Tags", required=False)
 
 
 class tmg_so_attachment(models.Model):
