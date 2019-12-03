@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <data>
+
+    <record id="tmg_salesteam_form_view" model="ir.ui.view">
+      <field name="name">tmg.salesteam.form</field>
+      <field name="model">crm.team</field>
+      <field name="inherit_id" ref="sales_team.crm_team_view_form"/>
+      <field name="arch" type="xml">
+        <xpath expr="//field[@name='member_ids']" position="attributes">
+          <attribute name="attrs">{}</attribute>
+          <attribute name="invisible">1</attribute>
+        </xpath>
+      </field>
+    </record>
+
+    <record id="tmg_salesteam_team_form_view" model="ir.ui.view">
+      <field name="name">tmg.salesteam.team.form</field>
+      <field name="model">crm.team</field>
+      <field name="inherit_id" ref="sales_team.crm_team_view_form"/>
+      <field name="arch" type="xml">
+        <xpath expr="//field[@name='member_ids']" position="after">
+          <field name="team_member_ids" widget="many2many" options="{'not_delete': True}">
+            <kanban quick_create="false" create="true" delete="true">
+              <field name="id"/>
+              <field name="name"/>
+              <templates>
+                <t t-name="kanban-box">
+                  <div class="oe_kanban_global_click" style="max-width: 200px">
+                    <div class="o_kanban_record_top">
+                      <img t-att-src="kanban_image('res.users', 'image_small', record.id.raw_value)" height="40" width="40" class="oe_avatar oe_kanban_avatar_smallbox mb0" alt="Avatar"/>
+                      <div class="o_kanban_record_headings ml8">
+                        <strong class="o_kanban_record_title"><field name="name"/></strong>
+                      </div>
+                    </div>
+                  </div>
+                </t>
+              </templates>
+            </kanban>
+          </field>
+        </xpath>
+      </field>
+    </record>
+
+    <!-- Make salesteam available and conditionally required in partner/contact view -->
+    <record id="tmg_view_partner_form" model="ir.ui.view">
+        <field name="name">tmg.partner.form</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form[1]/sheet[1]/notebook[1]/page[@name='sales_purchases']/group[1]/group[1]/field[@name='user_id']" position="after">
+                <field name="team_id" attrs="{'required':[('customer', '=', True)]}"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Ensure salesteam is required on orders [it is assumed that Sale Order CREATE() results in a partner id that "is customer"] -->
+    <record id="tmg_view_sale_order_form" model="ir.ui.view">
+        <field name="name">tmg.sale.order.form</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form[1]/sheet[1]/notebook[1]/page[@name='other_information']/group[1]/group[2]/field[@name='team_id']" position="attributes">
+                <attribute name="required">1</attribute>
+            </xpath>
+        </field>
+    </record>
+
+  </data>
+</odoo>

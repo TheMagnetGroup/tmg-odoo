@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+	<record id="duplicate_sale_order_line_action" model="ir.actions.server">
+        <field name="name">Duplicate Sale Order Line</field>
+        <field name="model_id" ref="sale.model_sale_order_line"/>
+        <field name="state">code</field>
+        <field name="code">
+<![CDATA[
+active_id = env.context.get('active_id', False)
+if active_id:
+    sol = env['sale.order.line'].browse(active_id)
+    sol.copy({'order_id': sol.order_id.id})
+action = {'type': 'ir.actions.act_window_close'}
+]]>
+        </field>
+    </record>
+</odoo>

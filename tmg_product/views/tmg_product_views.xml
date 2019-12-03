@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="tmg_product_pricelist_item_form_view" model="ir.ui.view">
+            <field name="name">tmg.product.pricelist.item.extras.form</field>
+            <field name="model">product.pricelist.item</field>
+            <field name="inherit_id" ref="product.product_pricelist_item_form_view"/>
+            <field name="arch" type="xml">
+                <xpath expr="/form/group[1]" position="after">
+                    <group>
+                        <field name="extra_ids" widget="one2many_list" context="{'show_attribute': False}" modifiers="{'readonly':'false'}" attrs="{'invisible':[('applied_on', '!=', '1_product'),('applied_on', '!=', '0_product_variant')]}">
+                            <tree string="Price Extras" editable="bottom">
+                                <field name="attribute_id"/>
+                                <field name="value_ids" widget="many2many_tags" options="{'no_create_edit': True}" domain="[('attribute_id', '=', attribute_id)]" context="{'default_attribute_id': attribute_id}"/>
+                                <field name="price_extra"/>
+                            </tree>
+                        </field>
+                    </group>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="tmg_sale_order_view_tree" model="ir.ui.view">
+            <field name="name">tmg.sale.order.view.tree</field>
+            <field name="model">sale.order</field>
+            <field name="inherit_id" ref="sale.view_order_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='order_line']/tree/field[@name='product_uom_qty']" position="after">
+                    <field name="price_at_qty"/>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="tmg_sale_order_view_form" model="ir.ui.view">
+            <field name="name">tmg.sale.order.view.form</field>
+            <field name="model">sale.order</field>
+            <field name="inherit_id" ref="sale.view_order_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='order_line']/form/group/group/field[@name='price_unit']" position="before">
+                    <field name="price_at_qty"/>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="tmg_product_template_form_view" model="ir.ui.view">
+            <field name="name">tmg.product.template.form</field>
+            <field name="model">product.template</field>
+            <field name="inherit_id" ref="product.product_template_form_view"/>
+            <field name="arch" type="xml">
+                <field name="categ_id" position="after">
+                    <field name="product_tags_ids" widget="many2many_tags" options="{'color_field': 'color', 'no_create_edit': True}"/>
+                </field>
+            </field>
+        </record>
+
+        <record id="tmg_product_product_view_tree" model="ir.ui.view">
+            <field name="name">tmg.product.product.tree.view</field>
+            <field name="model">product.product</field>
+            <field name="inherit_id" ref="product.product_product_tree_view"/>
+            <field name="arch" type="xml">
+                <field name="lst_price" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </field>
+            </field>
+        </record>
+
+    </data>
+</odoo>

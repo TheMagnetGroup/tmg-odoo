@@ -1,0 +1,16 @@
+<odoo>
+    <data>
+        <!--attachment category security-->
+        <!--        <record id="group_attachments_admin" model="res.groups">-->
+        <!--            <field name="name">Admin Access to Attachment Categories</field>-->
+        <!--            <field name="comment">Allows read/write/create/edit in Attachment Category - tags.(Model:-->
+        <!--                attachment_category)-->
+        <!--            </field>-->
+        <!--        </record>-->
+        <!--        <record id="group_attachments_user" model="res.groups">-->
+        <!--            <field name="name">User Access to Attachment Categories</field>-->
+        <!--            <field name="comment">Allows read in Attachment Category - tags.(Model: attachment_category)-->
+        <!--            </field>-->
+        <!--        </record>-->
+    </data>
+</odoo>

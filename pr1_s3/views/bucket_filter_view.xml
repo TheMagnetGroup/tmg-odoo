@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+ 
+	<data>
+    <record model="ir.ui.view" id="s3_bucket_filter_form_view">
+        <field name="name">Bucket Filters</field>
+        <field name="model">pr1_s3.bucket_filter</field>
+        <field name="type">form</field>
+        <field name="arch" type="xml">
+            <form string="Bucket Filters">
+
+            <sheet>
+			<group>
+			<group>
+				<field name="name" readonly="1"/>
+				<field name="res_model"/>
+			
+				
+			</group>
+			<group>
+				<field name="mime_type"/>
+			</group>
+			</group>            
+	           
+	         </sheet>
+            </form>
+        </field>
+    </record>
+
+        
+        <record model="ir.ui.view" id="s3_bucket_filter_tree_view">
+            <field name="name">s3_bucket_filter_tree_view</field>
+            <field name="model">pr1_s3.bucket_filter</field>
+            <field name="type">tree</field>
+            <field name="arch" type="xml">
+                <tree string="Bucket Filters">
+                <field name="name" readonly="1"/>
+				<field name="res_model"/>
+				<field name="mime_type"/>
+                  <!-- <field name="business_id"/> -->
+                 
+                </tree>
+            </field>
+        </record> 
+ 
+        
+    </data>
+

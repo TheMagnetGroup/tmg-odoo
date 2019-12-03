@@ -1,0 +1,19 @@
+<odoo>
+    <data>
+        <record id="tmg_attachment_types" model="ir.ui.view">
+            <field name="name">tmg.attachment.types</field>
+            <field name="model">sale.order</field>
+            <field name="inherit_id" ref="sale.view_order_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//form[1]/sheet[1]/notebook[1]" position="inside">
+                    <page name="attachment_tab" string="Attachments">
+                        <group name="attachment_group">
+                            <field name="attachments" string="Attachment tags"
+                                   widget="many2many_tags"/>
+                        </group>
+                    </page>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>

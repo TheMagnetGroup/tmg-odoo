@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+<data>
+    <template id="mrp_job.castelli_report_mrp">
+        <t t-call="web.html_container">
+        <t t-foreach="docs" t-as="o">
+        <t t-call="web.internal_layout">
+            <div class="page">
+                    <div class="oe_structure"/>
+
+
+                    <div class="row">
+
+                        <div class="col-7">
+                            <h2><span t-field="o.name"/></h2>
+                        </div>
+
+                        <div class="col-5">
+                            <span class="text-right">
+                                <img t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', o.id, 600, 100)" style="width:350px;height:60px"/>
+                            </span>
+                        </div>
+                    </div>
+                    <strong t-if="o.sale_order_id.partner_shipping_id == o.sale_order_id.partner_invoice_id">Invoicing and shipping address:</strong>
+                <strong t-if="o.sale_order_id.partner_shipping_id != o.sale_order_id.partner_invoice_id">Invoicing address:</strong>
+                <div t-field="o.sale_order_id.partner_invoice_id"
+                t-options='{"widget": "contact", "fields": ["address", "name", "phone"], "no_marker": True, "phone_icons": True}'/>
+                <t t-if="o.sale_order_id.partner_shipping_id != o.sale_order_id.partner_invoice_id">
+                    <strong>Shipping address:</strong>
+                    <div t-field="o.sale_order_id.partner_shipping_id"
+                        t-options='{"widget": "contact", "fields": ["address", "name", "phone"], "no_marker": True, "phone_icons": True}'/>
+                </t>
+                    <div class="row mt32 mb32">
+
+
+                        <div class="col-3">
+                            <strong>Scheduled Date:</strong><br/>
+                            <span t-field="o.sale_order_id.commitment_date"/>
+
+                        </div>
+                        <div class="col-3">
+                            <strong>In Hands Date:</strong><br/>
+                            <span t-field="o.sale_order_id.in_hands"/>
+
+                        </div>
+                        <div class="col-3">
+                            <strong>Customer Ref</strong><br/>
+                            <span t-field="o.sale_order_id.client_order_ref"/>
+
+                        </div>
+
+                         <div class="col-3">
+                            <strong>Art Ref:</strong><br/>
+                            <span t-field="o.art_ref"/>
+
+                        </div>
+                        <div class="col-3">
+                            <strong>Sales Order Number</strong><br/>
+                            <span t-field="o.sale_order_id.name"/>
+
+                        </div>
+                    </div>
+                    <div class="row mt32 mb32">
+                        <div class="col-3">
+                            <strong>Finished Product:</strong><br/>
+                            <span t-field="o.product_tmpl_id"/>
+                        </div>
+                        <div class="col-3">
+                            <strong>Quantity to Produce:</strong><br/>
+                            <span t-field="o.qty"/>
+
+                        </div>
+                        <div class="col-3">
+                            <strong>Printing date:</strong><br/>
+                            <span t-esc="time.strftime('%Y-%m-%d')"
+                                  t-options='{"widget": "date"}'/>
+                        </div>
+                    </div>
+
+<!--                    <div class="row mt32 mb32">-->
+<!--                            <div class="col-3">-->
+<!--                                <strong>Product Description:</strong><br/>-->
+<!--                                <span t-field="o.sale_line_description"/>-->
+<!--                            </div>-->
+<!--                            <div class="col-3">-->
+<!--                                <strong>Attributes</strong><br/>-->
+<!--                                <t t-foreach="o.sale_line_attr_value_id" t-as="ml">-->
+<!--                                <span t-field="ml.name"/>-->
+<!--                                </t>-->
+<!--                            </div>-->
+<!--                    </div>-->
+
+
+            <div class="row mt32 mb32">
+                <div class="col-3">
+                                <strong>Order Notes</strong><br/>
+                                <span t-field="o.sale_order_id.order_notes"/>
+
+                </div>
+            </div>
+
+                    <div t-foreach="o.mfg_order_ids" t-as="mfg" style="border:1px solid black;">
+                        <h3>
+                            <span t-field="mfg.name"/>
+                        </h3>
+                        <table  class="table table-sm">
+                            <tr>
+                                <th><strong>Item</strong></th>
+                                <th><strong>Description</strong></th>
+                                <th><strong>Quantity</strong></th>
+                            </tr>
+                            <tr >
+                                <td><span t-field="mfg.product_id"/></td>
+                                <td><span t-field="mfg.sale_line_description"/></td>
+                                <td>
+                                    <span t-field="mfg.product_qty"/>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <div t-if="mfg.workorder_ids">
+                        <h3>
+                            <t t-if="mfg.state == 'done'">Operations Done</t>
+                            <t t-else="">Operations Planned</t>
+                        </h3>
+                        <table class="table table-sm">
+                            <tr>
+                                <th><strong>Operation</strong></th>
+                                <th><strong>WorkCenter</strong></th>
+                                <th><strong>Nmfg. Of Minutes</strong></th>
+                            </tr>
+                            <tr t-foreach="mfg.workorder_ids" t-as="line2">
+                                <td><span t-field="line2.name"/></td>
+                                <td><span t-field="line2.workcenter_id.name"/></td>
+                                <td>
+                                    <span t-if="mfg.state != 'done'" t-field="line2.duration_expected"/>
+                                    <span t-if="mfg.state == 'done'" t-field="line2.duration"/>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <h3>Shipments</h3>
+                    <table  class="table table-sm">
+                            <tr>
+                                <th><strong>Address</strong></th>
+                                <th><strong>Ship Date</strong></th>
+                                <th><strong>Quantity</strong></th>
+                                <th></th>
+                            </tr>
+                            <tr t-foreach="mfg.move_dest_ids" t-as="ship1">
+
+                                <td><span t-field="ship1.partner_id"
+                t-options='{"widget": "contact", "fields": ["address", "name", "phone"], "no_marker": True, "phone_icons": True}'/>
+                        </td>
+                                <td><span t-field="ship1.date_expected"/></td>
+                                <td>
+                                    <span t-field="mfg.product_qty"/>
+                                </td>
+                                <td><img t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', ship1.id, 600, 100)" style="width:100%;height:35px" alt="Barcode"/></td>
+                            </tr>
+                        </table>
+
+                    <h3 t-if="mfg.move_raw_ids">
+                        <t t-if="mfg.state == 'done'">
+                            Consumed Products
+                        </t>
+                        <t t-else="">
+                            Products to Consume
+                        </t>
+                    </h3>
+
+                    <table class="table table-sm" t-if="mfg.move_raw_ids">
+                        <t t-set="has_location" t-value="any(mfg.move_raw_ids.filtered(lambda x: x.move_line_ids.filtered(lambda x: x.location_id.id)))" groups="stock.group_stock_multi_locations"/>
+                        <t t-set="has_serial_number" t-value="any(mfg.move_raw_ids.filtered(lambda x: x.move_line_ids.filtered(lambda x: x.lot_id or x.lot_name)))" groups="stock.group_production_lot"/>
+                        <t t-set="has_product_barcode" t-value="any(mfg.move_raw_ids.filtered(lambda x: x.product_id.barcode))"/>
+                        <t t-set="has_product_available" t-value="any(mfg.move_raw_ids.filtered(lambda x: x.move_line_ids.filtered(lambda x: x.product_qty)))"/>
+                        <t t-if="mfg.state=='done'">
+                            <t t-set="has_product_available" t-value="any(mfg.move_raw_ids.filtered(lambda x: x.move_line_ids.filtered(lambda x: x.qty_done)))"/>
+                        </t>
+                        <thead>
+                            <tr t-if="has_product_available">
+                                <th>Product</th>
+                                <th>Quantity</th>
+                                <th><span t-if="has_location">From</span></th>
+                                <th t-if="has_serial_number" width="15%">Lot/Serial barcode</th>
+                                <th t-if="has_product_barcode" width="15%" class="text-center">Barcode</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-if="has_product_available and mfg.move_raw_ids" >
+                                <t t-set="lines" t-value="mfg.move_raw_ids"/>
+                                <t t-foreach="lines" t-as="line">
+                                    <t t-set="move_lines" t-value="line.move_line_ids.filtered(lambda x: x.state != 'done' and x.product_qty)"/>
+                                    <t t-if="mfg.state == 'done'">
+                                        <t t-set="move_lines" t-value="line.move_line_ids.filtered(lambda x: x.state == 'done' and x.qty_done)"/>
+                                    </t>
+                                    <t t-foreach="move_lines" t-as="ml">
+                                        <tr>
+                                            <td>
+                                                <span t-field="line.product_id"/>
+                                            </td>
+                                            <td>
+                                                <span t-esc="ml.product_uom_qty" t-if="ml.state !='done'"/>
+                                                <span t-esc="ml.qty_done"  t-if="ml.state =='done'"/>
+                                                <span t-field="ml.product_uom_id" groups="uom.group_uom"/>
+                                            </td>
+                                            <td>
+                                                <span t-if="has_location">
+                                                    <span t-field="ml.location_id"/>
+                                                </span>
+                                            </td>
+                                            <td t-if="has_serial_number" width="15%">
+                                                <t t-if="has_serial_number and (ml.lot_id or ml.lot_name)">
+                                                    <img t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', ml.lot_id.name, 600, 100)" style="width:100%;height:35px" alt="Barcode"/>
+                                                </t>
+                                            </td>
+                                            <td t-if="has_product_barcode" width="15%" class="text-center">
+                                                <t t-if="line.product_id.barcode">
+                                                    <img t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', line.product_id.barcode, 600, 100)" style="width:100%;height:35px" alt="Barcode"/>
+                                                </t>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                </t>
+                            </t>
+                        </tbody>
+                    </table>
+                    <t t-set="has_product_reserved" t-value="mfg.move_raw_ids.filtered(lambda x: x.product_uom_qty != x.reserved_availability)"/>
+                    <p t-if="mfg.state !='done' and (not has_product_available or has_product_reserved)" class="fa fa-exclamation-triangle">
+                        All components could not be reserved. Click on the "Check Availability button" to try to reserve components.
+                    </p>
+                    <div class="oe_structure"/>
+                </div>
+
+
+
+                    <div class="oe_structure"/>
+                </div>
+
+
+        </t>
+        </t>
+        </t>
+    </template>
+</data>
+</odoo>
