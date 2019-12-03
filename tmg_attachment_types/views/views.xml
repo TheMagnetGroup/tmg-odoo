@@ -1,0 +1,60 @@
+<odoo>
+  <data>
+    <!-- explicit list view definition -->
+    <!--
+    <record model="ir.ui.view" id="tmg_attachment_types.list">
+      <field name="name">tmg_attachment_types list</field>
+      <field name="model">tmg_attachment_types.tmg_attachment_types</field>
+      <field name="arch" type="xml">
+        <tree>
+          <field name="name"/>
+          <field name="value"/>
+          <field name="value2"/>
+        </tree>
+      </field>
+    </record>
+    -->
+
+    <!-- actions opening views on models -->
+    <!--
+    <record model="ir.actions.act_window" id="tmg_attachment_types.action_window">
+      <field name="name">tmg_attachment_types window</field>
+      <field name="res_model">tmg_attachment_types.tmg_attachment_types</field>
+      <field name="view_mode">tree,form</field>
+    </record>
+    -->
+
+    <!-- server action to the one above -->
+    <!--
+    <record model="ir.actions.server" id="tmg_attachment_types.action_server">
+      <field name="name">tmg_attachment_types server</field>
+      <field name="model_id" ref="model_tmg_attachment_types_tmg_attachment_types"/>
+      <field name="state">code</field>
+      <field name="code">
+        action = {
+          "type": "ir.actions.act_window",
+          "view_mode": "tree,form",
+          "res_model": self._name,
+        }
+      </field>
+    </record>
+    -->
+
+    <!-- Top menu item -->
+    <!--
+    <menuitem name="tmg_attachment_types" id="tmg_attachment_types.menu_root"/>
+    -->
+    <!-- menu categories -->
+    <!--
+    <menuitem name="Menu 1" id="tmg_attachment_types.menu_1" parent="tmg_attachment_types.menu_root"/>
+    <menuitem name="Menu 2" id="tmg_attachment_types.menu_2" parent="tmg_attachment_types.menu_root"/>
+    -->
+    <!-- actions -->
+    <!--
+    <menuitem name="List" id="tmg_attachment_types.menu_1_list" parent="tmg_attachment_types.menu_1"
+              action="tmg_attachment_types.action_window"/>
+    <menuitem name="Server to list" id="tmg_attachment_types" parent="tmg_attachment_types.menu_2"
+              action="tmg_attachment_types.action_server"/>
+    -->
+  </data>
+</odoo>
