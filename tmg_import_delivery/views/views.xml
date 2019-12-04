@@ -48,7 +48,7 @@
 
                 <xpath expr="//form[1]/sheet[1]/notebook[1]/page[@name='order_lines']/field[@name='order_line']/form[1]//field[@name='delivery_ids']" position="replace">
                      <field name="delivery_ids" mode="tree" options="{'no_create': True, 'no_create_edit':True}" context="{'default_sale_line_id': active_id}">
-                            <tree >
+                            <tree options="{'no_create': True, 'no_create_edit':True}">
                                 <field name="shipping_partner_id" attrs="{'required': 1}"/>
                                 <field name="qty"/>
 
