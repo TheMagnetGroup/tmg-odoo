@@ -45,17 +45,21 @@
                     
 
                 </xpath>
-                 <xpath expr="//form[1]/sheet[1]/notebook[1]/page[@name='order_lines']/field[@name='order_line']/form[1]//field[@name='delivery_ids']" position="after">
-<!--                    <field name="fedex_bill_my_account" invisible="1"/>-->
+
+                <xpath expr="//form[1]/sheet[1]/notebook[1]/page[@name='order_lines']/field[@name='order_line']/form[1]//field[@name='delivery_ids']" position="replace">
+                     <field name="delivery_ids" mode="tree" options="{'no_create': True, 'no_create_edit':True}" context="{'default_sale_line_id': active_id}">
+                            <tree >
+                                <field name="shipping_partner_id" attrs="{'required': 1}"/>
+                                <field name="qty"/>
+
+                            </tree>
+                     </field>
 
 
                 </xpath>
 
 
-                <!--<xpath expr="//form[1]/sheet[1]/notebook[1]/page[@name='order_lines']/field[@name='order_line']/tree[1]" position="inside">-->
-                    <!--<field name="delivery_ids" readonly="0"/>-->
-                    <!--<field name="delivery_qty_sum"/>-->
-                <!--</xpath>-->
+
             </field>
         </record>
   </data>

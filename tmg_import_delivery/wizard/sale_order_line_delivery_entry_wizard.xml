@@ -24,12 +24,12 @@
                             <field name="email"/>
                             <field name="scheduled_date"/>
                             <field name="quantity"/>
-                            <field name="carrier_id"/>
-                            <field name="ups_bill_my_account" invisible="1"/>
-                            <field name="fedex_bill_my_account" invisible="1"/>
-                            <field name="fedex_carrier_account" attrs="{'invisible': [('fedex_bill_my_account', '!=', True)], 'required':[('fedex_bill_my_account', '!=', False)]}"/>
-                            <field name="ups_carrier_account" attrs="{'invisible': [('ups_bill_my_account', '!=', True)], 'required':[('ups_bill_my_account', '!=', False)]}"/>
-                            <field name="ups_service_type" attrs="{'invisible': [('ups_bill_my_account', '!=', True)]}"/>
+<!--                            <field name="carrier_id"/>-->
+<!--                            <field name="ups_bill_my_account" invisible="1"/>-->
+<!--                            <field name="fedex_bill_my_account" invisible="1"/>-->
+<!--                            <field name="fedex_carrier_account" attrs="{'invisible': [('fedex_bill_my_account', '!=', True)], 'required':[('fedex_bill_my_account', '!=', False)]}"/>-->
+<!--                            <field name="ups_carrier_account" attrs="{'invisible': [('ups_bill_my_account', '!=', True)], 'required':[('ups_bill_my_account', '!=', False)]}"/>-->
+<!--                            <field name="ups_service_type" attrs="{'invisible': [('ups_bill_my_account', '!=', True)]}"/>-->
 
                         </group>
                     </sheet>

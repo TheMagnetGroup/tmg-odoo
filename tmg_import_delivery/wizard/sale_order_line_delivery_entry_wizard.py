@@ -122,7 +122,7 @@ class SaleOrderLineDeliveryEntryWizard(models.TransientModel):
                 partner = partner_lst[i].id
                 partner_id = self.env['res.partner'].browse(partner)
                 partner_id.write({
-                    'customer': True,
+                    'customer': False,
                     'type': 'delivery' if partner_id.parent_id else 'contact'
                 })  # todo: maybe other default fields
                 existing_partner_id = self.env['res.partner'].search(self._get_existing_partner_searching_domain(partner_id), limit=1)
