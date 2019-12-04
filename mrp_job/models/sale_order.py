@@ -2,7 +2,8 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 from odoo import api, fields, models
-
+from odoo.exceptions import AccessError, UserError, RedirectWarning, \
+    ValidationError, Warning
 
 class SaleOrder(models.Model):
     _inherit = "sale.order"
@@ -59,7 +60,7 @@ class SaleOrder(models.Model):
 class SaleOrderLine(models.Model):
     _inherit = "sale.order.line"
 
-    art_ref = fields.Char(string="Art Reference", required=True, default="New")
+    art_ref = fields.Char(string="Art Reference", required=True, default="to follow...")
     job_id = fields.Many2one('mrp.job', string="Job Reference", help="Job reference in which MO for this sale order line is included.", copy=False)
 
     @api.multi
@@ -67,3 +68,20 @@ class SaleOrderLine(models.Model):
         values = super(SaleOrderLine, self)._prepare_procurement_values(group_id)
         values['art_ref'] = self.art_ref or ''
         return values
+
+    # @api.model_create_multi
+    # def create(self, vals_list):
+    #     for values in vals_list:
+    #         if values['display_type'] != 'line_section' and values['display_type'] != 'line_note':
+    #             if 'art_ref' in values and not values['art_ref']:
+    #                 raise ValidationError('Art Reference is required')
+    #     result = super(SaleOrderLine, self).create(vals_list)
+    #     return result
+    #
+    # @api.multi
+    # def write(self, values):
+    #     for line in self:
+    #         if 'art_ref' in values and not values['art_ref']:
+    #             raise ValidationError('Art Reference is required')
+    #     result = super(SaleOrderLine, self).write(values)
+    #     return result
