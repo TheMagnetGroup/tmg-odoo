@@ -51,7 +51,9 @@
                             <tree options="{'no_create': True, 'no_create_edit':True}">
                                 <field name="shipping_partner_id" attrs="{'required': 1}"/>
                                 <field name="qty"/>
-
+                                <field name="street"/>
+                                <field name="city"/>
+                                <field name="state_id"/>
                             </tree>
                      </field>
 

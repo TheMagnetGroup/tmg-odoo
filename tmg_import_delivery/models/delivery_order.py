@@ -13,3 +13,7 @@ class DeliveryOrder(models.Model):
     ups_service_type = fields.Selection(_get_ups_service_types, string="UPS Service Type")
     fedex_carrier_account = fields.Char(string='Fedex Carrier Account', readonly=False)
     scheduled_date = fields.Date(string="Scheduled Date")
+    street = fields.Char(related="shipping_partner_id.street")
+    street2 = fields.Char(related="shipping_partner_id.street2")
+    city = fields.Char(related="shipping_partner_id.city")
+    state_id = fields.Many2one(related="shipping_partner_id.state_id")
