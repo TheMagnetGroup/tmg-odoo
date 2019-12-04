@@ -13,16 +13,16 @@
 
 
                         <group>
-                            <field name="name"/>
-                            <field name="street"/>
+                            <field name="name"  required="true"/>
+                            <field name="street" required="true"/>
                             <field name="street2"/>
-                            <field name="city"/>
-                            <field name="state_id"/>
-                            <field name="Zip"/>
+                            <field name="city" required="true"/>
+                            <field name="state_id" required="true"/>
+                            <field name="Zip" required="true"/>
                             <field name="country_id"/>
                             <field name="phone"/>
                             <field name="email"/>
-                            <field name="scheduled_date"/>
+<!--                            <field name="scheduled_date"/>-->
                             <field name="quantity"/>
 <!--                            <field name="carrier_id"/>-->
 <!--                            <field name="ups_bill_my_account" invisible="1"/>-->
