@@ -44,7 +44,7 @@ class Delivery_Fedex(models.Model):
 
     def fedex_rate_shipment(self, order):
 
-        vals = super(Delivery_Fedex, self).fedex_rate_shipment()
+        vals = super(Delivery_Fedex, self).fedex_rate_shipment(order)
         if self.fedex_bill_my_account and order.fedex_carrier_account:
             # Don't show delivery amount, if ups bill my account option is true
             vals['price'] = 0.0
