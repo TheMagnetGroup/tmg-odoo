@@ -22,7 +22,6 @@
                             <field name="country_id"/>
                             <field name="phone"/>
                             <field name="email"/>
-<!--                            <field name="scheduled_date"/>-->
                             <field name="quantity"/>
 <!--                            <field name="carrier_id"/>-->
 <!--                            <field name="ups_bill_my_account" invisible="1"/>-->
