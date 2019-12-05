@@ -49,6 +49,10 @@
             <field name="inherit_id" ref="sale.view_order_form"/>
             <field name="arch" type="xml">
 
+	      <xpath expr="//field[@name='partner_shipping_id']" position="attributes">
+		<attribute name="context">{'default_type': 'delivery', 'default_customer': False}</attribute>
+	      </xpath>
+
                 <xpath expr="//form[1]/sheet[1]/notebook[1]/page[@name='order_lines']/field[@name='order_line']/form[1]" position="inside">
                     <div attrs="{'invisible':['|', ('display_type', '=', 'line_section'), ('display_type', '=', 'line_note')]}">
                         <div class="mt8">
