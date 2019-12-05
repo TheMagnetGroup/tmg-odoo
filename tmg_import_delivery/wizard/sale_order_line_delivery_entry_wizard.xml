@@ -13,12 +13,12 @@
 
 
                         <group>
-                            <field name="name"  required="true"/>
-                            <field name="street" required="true"/>
+                            <field name="name"  required="1"/>
+                            <field name="street" required="1"/>
                             <field name="street2"/>
-                            <field name="city" required="true"/>
-                            <field name="state_id" required="true"/>
-                            <field name="Zip" required="true"/>
+                            <field name="city" required="1"/>
+                            <field name="state_id" required="1"/>
+                            <field name="Zip" required="1"/>
                             <field name="country_id"/>
                             <field name="phone"/>
                             <field name="email"/>
