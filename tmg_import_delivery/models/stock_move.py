@@ -35,7 +35,7 @@ class StockMove(models.Model):
             if self.env.context.get('scheduled_date'):
                 vals['scheduled_date'] = self.env.context.get('scheduled_date')
             else:
-                vals['scheduled_date'] = ord.scheduled_date
+                vals['scheduled_date'] = ord.commitment_date
             if not self.carrier_id:
 
                 vals['carrier_id'] = self.env.context.get('carrier_id_int')

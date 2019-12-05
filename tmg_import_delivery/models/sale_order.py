@@ -7,3 +7,4 @@ class SaleOrder(models.Model):
 
     fedex_carrier_account = fields.Char(string='FedEx Carrier Account', copy=False)
     fedex_bill_my_account = fields.Boolean(related='carrier_id.fedex_bill_my_account', readonly=True)
+
