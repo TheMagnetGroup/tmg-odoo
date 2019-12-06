@@ -177,7 +177,7 @@
                             <t t-set="has_product_available" t-value="any(mfg.move_raw_ids.filtered(lambda x: x.move_line_ids.filtered(lambda x: x.qty_done)))"/>
                         </t>
                         <thead>
-                            <tr t-if="has_product_available">
+                            <tr>
                                 <th>Product</th>
                                 <th>Quantity</th>
                                 <th><span t-if="has_location">From</span></th>
