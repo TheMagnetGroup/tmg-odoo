@@ -14,10 +14,10 @@ class tmg_attachment_types(models.Model):
 class tmg_attachment(models.Model):
     _inherit = 'ir.attachment'
 
-    attachment_category = fields.Many2many('attachment.type', help="Attachment Category Tags", required=False)
+    attachment_category = fields.Many2many('attachment.type', help="Attachment Category")
 
 
 class tmg_so_attachment(models.Model):
     _inherit = 'sale.order'
 
-    attachments = fields.Many2many('ir.attachment', help="Attachments", required=False)
+    attachments = fields.Many2many('ir.attachment', help="Attachments")
