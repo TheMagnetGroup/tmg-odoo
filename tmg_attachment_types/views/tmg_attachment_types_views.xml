@@ -8,7 +8,7 @@
                 <xpath expr="//form[1]/sheet[1]/notebook[1]" position="inside">
                     <page name="attachment_tab" string="Attachments">
                         <field name="attachments" attrs="{}">
-                            <tree class="o_documents_list_view">
+                            <tree class="o_documents_list_view" create="false" edit="false">
                                 <field name="type" invisible="1"/>
                                 <field name="thumbnail" options="{'size':[90,90]}" widget="image"/>
                                 <field name="datas" widget="binary" filename="datas_fname"
