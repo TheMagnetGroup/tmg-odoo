@@ -12,7 +12,7 @@
                     <div class="row">
                         <div class="col-7">
                             <h2>Job ID:<span t-field="o.id"/></h2>
-                            <h2><span t-field="o.name"/></h2>
+
                         </div>
 
                         <div class="col-7">
@@ -116,7 +116,7 @@
 
                             <div class="col-5">
                                 <span class="text-right">
-                                     <img t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', mfg.name, 450, 100)" style="height:55px" alt="Barcode"/>
+                                     <img t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', mfg.name, 550, 100)" style="height:55px" alt="Barcode"/>
                                 </span>
                             </div>
                         </div>
@@ -158,26 +158,6 @@
                         </table>
                     </div>
 
-                    <h3>Shipments</h3>
-                    <table  class="table table-sm">
-                            <tr>
-                                <th><strong>Address</strong></th>
-                                <th><strong>Ship Date</strong></th>
-                                <th><strong>Quantity</strong></th>
-                                <th></th>
-                            </tr>
-                            <tr t-foreach="mfg.move_dest_ids" t-as="ship1">
-
-                                <td><span t-field="ship1.partner_id"
-                t-options='{"widget": "contact", "fields": ["address", "name", "phone"], "no_marker": True, "phone_icons": True}'/>
-                        </td>
-                                <td><span t-field="ship1.date_expected"/></td>
-                                <td>
-                                    <span t-field="ship1.product_uom_qty"/>
-                                </td>
-                                <td><img t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', ship1.name, 600, 100)" style="height:55px" alt="Barcode"/></td>
-                            </tr>
-                        </table>
 
                     <h3 t-if="mfg.move_raw_ids">
                         <t t-if="mfg.state == 'done'">
@@ -249,6 +229,28 @@
                         All components could not be reserved. Click on the "Check Availability button" to try to reserve components.
                     </p>
                     <div class="oe_structure"/>
+
+                    <h3>Shipments</h3>
+                    <table  class="table table-sm">
+                            <tr>
+                                <th><strong>Address</strong></th>
+                                <th><strong>Ship Date</strong></th>
+                                <th><strong>Quantity</strong></th>
+                                <th></th>
+                            </tr>
+                            <tr t-foreach="mfg.move_dest_ids" t-as="ship1">
+
+                                <td><span t-field="ship1.partner_id"
+                t-options='{"widget": "contact", "fields": ["address", "name", "phone"], "no_marker": True, "phone_icons": True}'/>
+                        </td>
+                                <td><span t-field="ship1.date_expected"/></td>
+                                <td>
+                                    <span t-field="ship1.product_uom_qty"/>
+                                </td>
+                                <td><img t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', ship1.name, 750, 100)" style="height:55px" alt="Barcode"/></td>
+                            </tr>
+                        </table>
+
                 </div>
 
 
