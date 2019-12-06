@@ -11,13 +11,13 @@
 
                     <div class="row">
                         <div class="col-7">
-                            <h2><span t-field="o.id"/></h2>
-
+                            <h2>Job ID:<span t-field="o.id"/></h2>
+                            <h2><span t-field="o.name"/></h2>
                         </div>
 
                         <div class="col-7">
 
-                            <h2><span t-field="o.name"/></h2>
+
                         </div>
 
                         <div class="col-5">
@@ -116,7 +116,7 @@
 
                             <div class="col-5">
                                 <span class="text-right">
-                                     <img t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', mfg.name, 450, 100)" style="height:35px" alt="Barcode"/>
+                                     <img t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', mfg.name, 450, 100)" style="height:55px" alt="Barcode"/>
                                 </span>
                             </div>
                         </div>
@@ -175,7 +175,7 @@
                                 <td>
                                     <span t-field="ship1.product_uom_qty"/>
                                 </td>
-                                <td><img t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', ship1.name, 600, 100)" style="height:35px" alt="Barcode"/></td>
+                                <td><img t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', ship1.name, 600, 100)" style="height:55px" alt="Barcode"/></td>
                             </tr>
                         </table>
 
@@ -206,7 +206,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <t t-if="has_product_available and mfg.move_raw_ids" >
+<!--                            <t t-if="has_product_available and mfg.move_raw_ids" >-->
                                 <t t-set="lines" t-value="mfg.move_raw_ids"/>
                                 <t t-foreach="lines" t-as="line">
                                     <t t-set="move_lines" t-value="line.move_line_ids.filtered(lambda x: x.state != 'done' and x.product_qty)"/>
@@ -241,7 +241,7 @@
                                         </tr>
                                     </t>
                                 </t>
-                            </t>
+<!--                            </t>-->
                         </tbody>
                     </table>
                     <t t-set="has_product_reserved" t-value="mfg.move_raw_ids.filtered(lambda x: x.product_uom_qty != x.reserved_availability)"/>
