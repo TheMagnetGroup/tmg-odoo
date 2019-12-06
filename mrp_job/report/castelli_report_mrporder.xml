@@ -116,7 +116,7 @@
 
                             <div class="col-5">
                                 <span class="text-right">
-                                     <img t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', mfg.name, 550, 100)" style="height:55px" alt="Barcode"/>
+                                     <img t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', mfg.name, 500, 100)" style="height:50px" alt="Barcode"/>
                                 </span>
                             </div>
                         </div>
@@ -247,7 +247,7 @@
                                 <td>
                                     <span t-field="ship1.product_uom_qty"/>
                                 </td>
-                                <td><img t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', ship1.name, 750, 100)" style="height:55px" alt="Barcode"/></td>
+                                <td><img t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', ship1.name, 600, 100)" style="height:50px" alt="Barcode"/></td>
                             </tr>
                         </table>
 
