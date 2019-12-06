@@ -189,7 +189,7 @@
 <!--                            <t t-if="has_product_available and mfg.move_raw_ids" >-->
                                 <t t-set="lines" t-value="mfg.move_raw_ids"/>
                                 <t t-foreach="lines" t-as="line">
-                                    <t t-set="move_lines" t-value="line.move_line_ids.filtered(lambda x: x.state != 'done' and x.product_qty)"/>
+                                    <t t-set="move_lines" t-value="line.move_line_ids.filtered(lambda x: x.state != 'done')"/>
                                     <t t-if="mfg.state == 'done'">
                                         <t t-set="move_lines" t-value="line.move_line_ids.filtered(lambda x: x.state == 'done' and x.qty_done)"/>
                                     </t>
@@ -199,8 +199,9 @@
                                                 <span t-field="line.product_id"/>
                                             </td>
                                             <td>
-                                                <span t-esc="ml.product_uom_qty" t-if="ml.state !='done'"/>
-                                                <span t-esc="ml.qty_done"  t-if="ml.state =='done'"/>
+<!--                                                <span t-esc="ml.product_uom_qty" t-if="ml.state !='done'"/>-->
+<!--                                                <span t-esc="ml.qty_done"  t-if="ml.state =='done'"/>-->
+                                                <span t-field="line.product_qty" />
                                                 <span t-field="ml.product_uom_id" groups="uom.group_uom"/>
                                             </td>
                                             <td>
