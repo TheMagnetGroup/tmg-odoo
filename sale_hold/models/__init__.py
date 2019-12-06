@@ -8,3 +8,4 @@ from . import account_payment_term
 from . import hold_mrp
 from . import job_hold
 from . import workorder_hold
+from . import res_partner
