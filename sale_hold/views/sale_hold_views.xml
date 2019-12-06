@@ -46,6 +46,30 @@
 
 
 
+      <record id="sale_form_view_hold_acct" model="ir.ui.view">
+      <field name="name">sale.order.form.inherit.acct</field>
+      <field name="model">sale.order</field>
+      <field name="inherit_id" ref="sale.view_order_form" />
+      <field name="groups_id" eval="[(6, 0, [ref('base.group_user') ])]" />
+      <field name="arch" type="xml">
+        <xpath expr="//field[@name='payment_term_id']" position="replace">
+            <field name="payment_term_id" readonly="1" options="{'no_create': True}"/>
+         </xpath>
+      </field>
+   </record>
+<record id="sale_form_view_hold_user" model="ir.ui.view">
+      <field name="name">sale.order.form.inherit.user</field>
+      <field name="model">sale.order</field>
+      <field name="inherit_id" ref="sale.view_order_form" />
+       <field name="groups_id" eval="[(6, 0, [ref('account.group_account_invoice') ])]" />
+      <field name="arch" type="xml">
+        <xpath expr="//field[@name='payment_term_id']" position="replace">
+             <field name="payment_term_id" readonly="0" options="{'no_create': True}"/>
+         </xpath>
+      </field>
+   </record>
+
+
    <record id="sale_hold_action" model="ir.actions.act_window">
       <field name="name">Sale Hold</field>
       <field name="res_model">sale.hold</field>
@@ -64,9 +88,23 @@
       <field name="arch" type="xml">
          <xpath expr="//field[@name='name']" position="after">
             <field name="auto_credit_check" string="Automatic Credit Check" groups="account.group_account_invoice" />
+            <field name="default_credit_terms"  groups="account.group_account_invoice" />
+            <field name="default_credit_limit" attrs="{'invisible': [('default_credit_terms', '!=', True)], 'required':[('default_credit_terms', '!=', False)]}"/>
          </xpath>
       </field>
    </record>
+   <record id="account_terms_view_credit_tree_inherit" model="ir.ui.view">
+      <field name="name">account.payment.term.tree.credit.inherit</field>
+      <field name="model">account.payment.term</field>
+      <field name="inherit_id" ref="account.view_payment_term_tree" />
+      <field name="arch" type="xml">
+         <xpath expr="//field[@name='name']" position="after">
+            <field name="auto_credit_check" string="Automatic Credit Check" groups="account.group_account_invoice" />
+            <field name="default_credit_terms" string="Default" groups="account.group_account_invoice" />
+         </xpath>
+      </field>
+   </record>
+
    <record id="stock_picking_tree_hold_inherit" model="ir.ui.view">
       <field name="name">stock.picking.tree.hold.inherit</field>
       <field name="model">stock.picking</field>
@@ -112,6 +150,7 @@
 
       </field>
    </record>
+
    <record id="view_partner_form_credit_inherit" model="ir.ui.view">
       <field name="name">res.partner.form.credit.inherit</field>
       <field name="model">res.partner</field>
@@ -122,6 +161,38 @@
          </xpath>
       </field>
    </record>
+
+   <record id="view_partner_form_credit_inherit_user" model="ir.ui.view">
+      <field name="name">res.partner.form.credit.inherit.user</field>
+      <field name="model">res.partner</field>
+      <field name="inherit_id" ref="base.view_partner_form" />
+      <field name="groups_id" eval="[(6, 0, [ref('base.group_user') ])]" />
+      <field name="arch" type="xml">
+         <xpath expr="//field[@name='credit_limit']" position="attributes">
+            <attribute  name="readonly">1</attribute>
+         </xpath>
+         <xpath expr="//field[@name='property_payment_term_id']" position="attributes">
+            <attribute  name="readonly">1</attribute>
+         </xpath>
+      </field>
+   </record>
+
+   <record id="view_partner_form_credit_inherit_acct" model="ir.ui.view">
+      <field name="name">res.partner.form.credit.inherit.acct</field>
+      <field name="model">res.partner</field>
+      <field name="inherit_id" ref="base.view_partner_form" />
+      <field name="groups_id" eval="[(6, 0, [ref('account.group_account_invoice') ])]" />
+      <field name="arch" type="xml">
+         <xpath expr="//field[@name='credit_limit']" position="attributes">
+            <attribute  name="readonly">0</attribute>
+         </xpath>
+         <xpath expr="//field[@name='property_payment_term_id']" position="attributes">
+            <attribute  name="readonly">0</attribute>
+         </xpath>
+      </field>
+   </record>
+
+
    <record id="sale_order_hold_view_tree" model="ir.ui.view">
       <field name="name">sale.order.hold.view.tree</field>
       <field name="model">sale.hold</field>
