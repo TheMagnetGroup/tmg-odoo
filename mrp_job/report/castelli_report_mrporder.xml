@@ -270,7 +270,7 @@
                                 <td>
                                     <span t-field="ship1.product_uom_qty"/>
                                 </td>
-                                <td><img t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', ship1.name, 600, 100)" style="height:50px" alt="Barcode"/></td>
+                                <td><img t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', ship1.name, 675, 100)" style="height:50px" alt="Barcode"/></td>
                             </tr>
                         </table>
 
