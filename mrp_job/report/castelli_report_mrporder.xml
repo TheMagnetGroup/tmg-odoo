@@ -105,9 +105,9 @@
 
                 </div>
             </div>
-
+                <div>
                      <table  class="table table-sm">
-                         <t t-set="has_related" t-value="any(o.sale_order_id.order_line.filtered(lambda x: x.job_id.id != o.id))" />
+<!--                         <t t-set="has_related" t-value="any(o.sale_order_id.order_line.filtered(lambda x: x.job_id.id != o.id))" />-->
                              <t t-if="has_related">
                                  <tr>
                                      <th>Job Name</th>
@@ -120,8 +120,9 @@
                                          <tr><span t-field="oline.job_id.date_planned_start"/></tr>
                                      </t>
                                  </t>
-                             </t>
+<!--                             </t>-->
                      </table>
+                </div>
                     <div t-foreach="o.mfg_order_ids" t-as="mfg" style="border:1px solid black;">
 
                          <div class="row">
@@ -211,7 +212,7 @@
                                     <t t-if="mfg.state == 'done'">
                                         <t t-set="move_lines" t-value="line.move_line_ids.filtered(lambda x: x.state == 'done' and x.qty_done)"/>
                                     </t>
-                                    <t t-foreach="move_lines" t-as="ml">
+                                    <t t-foreach="lines" t-as="ml">
                                         <tr>
                                             <td>
                                                 <span t-field="line.product_id"/>
@@ -222,16 +223,16 @@
                                                 <span t-field="line.product_qty" />
                                                 <span t-field="ml.product_uom_id" groups="uom.group_uom"/>
                                             </td>
-                                            <td>
-                                                <span t-if="has_location">
-                                                    <span t-field="ml.location_id"/>
-                                                </span>
-                                            </td>
-                                            <td t-if="has_serial_number" width="15%">
-                                                <t t-if="has_serial_number and (ml.lot_id or ml.lot_name)">
-                                                    <img t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', ml.lot_id.name, 600, 100)" style="width:100%;height:35px" alt="Barcode"/>
-                                                </t>
-                                            </td>
+<!--                                            <td>-->
+<!--                                                <span t-if="has_location">-->
+<!--                                                    <span t-field="ml.location_id"/>-->
+<!--                                                </span>-->
+<!--                                            </td>-->
+<!--                                            <td t-if="has_serial_number" width="15%">-->
+<!--                                                <t t-if="has_serial_number and (ml.lot_id or ml.lot_name)">-->
+<!--                                                    <img t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', ml.lot_id.name, 600, 100)" style="width:100%;height:35px" alt="Barcode"/>-->
+<!--                                                </t>-->
+<!--                                            </td>-->
                                             <td t-if="has_product_barcode" width="15%" class="text-center">
                                                 <t t-if="line.product_id.barcode">
                                                     <img t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', line.product_id.barcode, 600, 100)" style="width:100%;height:35px" alt="Barcode"/>
