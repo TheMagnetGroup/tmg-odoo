@@ -39,7 +39,7 @@
 
                         <div class="col-3">
                             <strong>Scheduled Date:</strong><br/>
-                            <span t-field="o.sale_order_id.commitment_date"/>
+                            <span t-field="o.date_planned_start"/>
 
                         </div>
                         <div class="col-3">
@@ -253,7 +253,16 @@
 
                 </div>
 
+                    <div t-foreach="o.sales_order_id.attachment_ids" t-as="atts">
 
+                        <t t-foreach="atts.attachment_category" t-as="cats">
+
+                            <t t-if="cats.name == 'Production Art'">
+
+                                <span t-field="atts.datas" t-field-options='{"widget": "image"}'/>
+                            </t>
+                        </t>
+                    </div>
 
                     <div class="oe_structure"/>
                 </div>
