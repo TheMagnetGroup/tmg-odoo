@@ -10,7 +10,7 @@ Manufacturing JOB: Muliple MO processing
     'website': "https://www.odoo.com",
     'category': 'Manufacturing',
     'version': '0.1',
-    'depends': ['mrp', 'sale', 'mrp_bom_extended', 'tmg_attachment_types'],
+    'depends': ['mrp', 'sale', 'mrp_bom_extended'],
     'data': [
         'security/ir.model.access.csv',
         'data/server_action.xml',

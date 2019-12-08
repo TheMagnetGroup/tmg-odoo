@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record model="ir.ui.view" id="wizard_import_entered_deliveries">
+            <field name="name">Import Additonal Deliveries</field>
+            <field name="model">sale.order.line.delivery.entry.wizard</field>
+            <field name="priority">16</field>
+            <field name="type">form</field>
+            <field name="arch" type="xml">
+                <form string="Import Additonal Deliveries" create="true">
+                    <sheet>
+
+
+                        <group>
+                            <field name="name"  required="1"/>
+                            <field name="street" required="1"/>
+                            <field name="street2"/>
+                            <field name="city" required="1"/>
+                            <field name="state_id" required="1"/>
+                            <field name="Zip" required="1"/>
+                            <field name="country_id"/>
+                            <field name="phone"/>
+                            <field name="email"/>
+                            <field name="quantity"/>
+                            <field name="carrier_id"/>
+                            <field name="ups_bill_my_account" invisible="1"/>
+                            <field name="fedex_bill_my_account" invisible="1"/>
+                            <field name="fedex_carrier_account" invisible="1" attrs="{'invisible': [('fedex_bill_my_account', '!=', True)], 'required':[('fedex_bill_my_account', '!=', False)]}"/>
+                            <field name="ups_carrier_account" invisible="1" attrs="{'invisible': [('ups_bill_my_account', '!=', True)], 'required':[('ups_bill_my_account', '!=', False)]}"/>
+                            <field name="ups_service_type" invisible="1" attrs="{'invisible': [('ups_bill_my_account', '!=', True)]}"/>
+
+                        </group>
+                    </sheet>
+                    <footer>
+                        <button string="Upload" type="object" name="action_import_deliveries" class="oe_highlight"/>
+                        <button string="Cancel" special="cancel" class="oe_link"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+    </data>
+</odoo>

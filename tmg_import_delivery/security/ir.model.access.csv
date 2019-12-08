@@ -1,0 +1,2 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_tmg_import_delivery_tmg_import_delivery,tmg_import_delivery.tmg_import_delivery,model_tmg_import_delivery_tmg_import_delivery,,1,0,0,0

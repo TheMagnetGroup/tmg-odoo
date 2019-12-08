@@ -162,7 +162,6 @@
     Technical Note:
     Could we just update the external identifier?
     3. Users should only be able to import sale order order line delivery addresses for the sale order line they initiate the import from.
-    [2060046]
     """,
     'license': 'OEEL-1',
     'author': 'Odoo Inc',
@@ -171,8 +170,6 @@
     'data': [
         'security/ir.model.access.csv',
         'wizard/sale_order_line_delivery_wizard.xml',
-        'wizard/delivery_package_wizard.xml',
         'views/sale_order_views.xml',
-        'views/stock_picking_views.xml',
     ],
 }
