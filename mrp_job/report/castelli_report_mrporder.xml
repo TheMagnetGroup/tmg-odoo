@@ -13,11 +13,14 @@
                         <div class="col-7">
                             <h2>Job ID:<span t-field="o.id"/></h2>
                             <h2><span t-field="o.name"/></h2>
+                             <span class="text-left">
+                            <img t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', o.name, 675, 100)" style="height:50px" alt="Barcode"/>
+                            </span>
                         </div>
 
-                        <div class="col-7">
-                            <img t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', o.name, 575, 100)" style="height:50px" alt="Barcode"/>
-                        </div>
+<!--                        <div class="col-6">-->
+
+<!--                        </div>-->
 
                         <div class="col-5">
                             <span class="text-right">
@@ -253,7 +256,7 @@
 
                 </div>
 
-                    <div t-foreach="o.sales_order_id.attachment_ids" t-as="atts">
+                    <div t-foreach="o.sale_order_id.attachment_ids" t-as="atts">
 
                         <t t-foreach="atts.attachment_category" t-as="cats">
 
