@@ -106,7 +106,7 @@
                 </div>
             </div>
                 <div>
-                     <table  class="table table-sm">
+                     <table class="table table-sm">
 <!--                         <t t-set="has_related" t-value="any(o.sale_order_id.order_line.filtered(lambda x: x.job_id.id != o.id))" />-->
 <!--                             <t t-if="has_related">-->
                                  <tr>
@@ -116,8 +116,11 @@
 
                                  <t t-foreach="o.sale_order_id.order_line" t-as="oline">
                                      <t t-if="oline.job_id.id != o.id">
-                                         <tr><span t-field="oline.job_id.name" /></tr>
-                                         <tr><span t-field="oline.job_id.date_planned_start"/></tr>
+                                         <tr>
+                                             <td><span t-field="oline.job_id.name" /></td>
+                                             <td><span t-field="oline.job_id.date_planned_start"/></td>
+                                         </tr>
+
                                      </t>
                                  </t>
 <!--                             </t>-->
