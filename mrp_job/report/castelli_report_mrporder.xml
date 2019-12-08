@@ -261,8 +261,11 @@
                         <t t-foreach="atts.attachment_category" t-as="cats">
 
                             <t t-if="cats.name == 'Production Art'">
+                                <img
+                                    t-attf-src="data:image/*;base64,{{atts.datas}}"
 
-                                <span t-field="atts.datas" t-field-options='{"widget": "image"}'/>
+                                    />
+<!--                                <span t-field="atts.datas" t-field-options='{"widget": "image"}'/>-->
                             </t>
                         </t>
                     </div>
