@@ -14,7 +14,7 @@
                             <h2>Job ID:<span t-field="o.id"/></h2>
                             <h2><span t-field="o.name"/></h2>
                              <span class="text-left">
-                            <img t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', o.name, 675, 100)" style="height:50px" alt="Barcode"/>
+                            <img t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', o.name, 600, 100)" style="width:300px;height:50px" alt="Barcode"/>
                             </span>
                         </div>
 
@@ -24,7 +24,7 @@
 
                         <div class="col-5">
                             <span class="text-right">
-                                <img t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', o.id, 425, 100)" style="height:60px"/>
+                                <img t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', o.id, 600, 100)" style="width:300px;height:50px" alt="Barcode"/>
                             </span>
                         </div>
                     </div>
@@ -138,7 +138,7 @@
 
                             <div class="col-5">
                                 <span class="text-right">
-                                     <img t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', mfg.name, 575, 100)" style="height:50px" alt="Barcode"/>
+                                     <img t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', mfg.name, 600, 100)" style="width:300px;height:50px"  alt="Barcode"/>
                                 </span>
                             </div>
                         </div>
@@ -238,7 +238,7 @@
 <!--                                            </td>-->
                                             <td t-if="has_product_barcode" width="15%" class="text-center">
                                                 <t t-if="line.product_id.barcode">
-                                                    <img t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', line.product_id.barcode, 600, 100)" style="width:100%;height:35px" alt="Barcode"/>
+                                                    <img t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', line.product_id.barcode, 600, 100)" style="width:300px;height:50px"  alt="Barcode"/>
                                                 </t>
                                             </td>
                                         </tr>
@@ -270,7 +270,7 @@
                                 <td>
                                     <span t-field="ship1.product_uom_qty"/>
                                 </td>
-                                <td><img t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', ship1.name, 675, 100)" style="height:50px" alt="Barcode"/></td>
+                                <td><img t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', ship1.name, 605, 100)" style="width:300px;height:50px"  alt="Barcode"/></td>
                             </tr>
                         </table>
 
