@@ -46,7 +46,7 @@ class Delivery_Fedex(models.Model):
     fedex_bill_my_account = fields.Boolean(string='Bill My Account',
                                          help="If checked, ecommerce users will be prompted their FedEx account number\n"
                                               "and delivery fees will be charged on it.")
-
+    fedex_service_type = fields.Selection(get_fedex_service_types, string="UPS Service Type", default='03')
     def _convert_curr_iso_fdx(code):
         return FEDEX_CURR_MATCH.get(code, code)
 
@@ -73,9 +73,9 @@ class Delivery_Fedex(models.Model):
             srm.client_detail(superself.fedex_account_number, superself.fedex_meter_number)
 
             srm.transaction_detail(picking.id)
-
+            new_fedex_service_type = picking.fedex_service_type or self.fedex_service_type
             package_type = picking.package_ids and picking.package_ids[0].packaging_id.shipper_package_code or self.fedex_default_packaging_id.shipper_package_code
-            srm.shipment_request(self.fedex_droppoff_type, self.fedex_service_type, package_type, self.fedex_weight_unit, self.fedex_saturday_delivery)
+            srm.shipment_request(self.fedex_droppoff_type, new_fedex_service_type, package_type, self.fedex_weight_unit, self.fedex_saturday_delivery)
             srm.set_currency(self._convert_curr_iso_fdx(picking.company_id.currency_id.name))
             srm.set_shipper(picking.company_id.partner_id, picking.picking_type_id.warehouse_id.partner_id)
             srm.set_recipient(picking.partner_id)
