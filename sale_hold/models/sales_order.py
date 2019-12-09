@@ -36,6 +36,9 @@ class SaleOrder(models.Model):
     def create(self, values):
         vals = values['order_holds']
         note_list = []
+        pterms = values('payment_term_id')
+        if not pterms:
+            values.update({'payment_term_id': self.partner_id.property_payment_term_id.id})
         if vals:
             for t in vals[0][2]:
                 hold_obj = self.env['sale.hold']
