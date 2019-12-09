@@ -36,9 +36,9 @@ class SaleOrder(models.Model):
     def create(self, values):
         vals = values['order_holds']
         note_list = []
-        pvals = values['payment_term_id']
-        pvals = False
-        if not pvals:
+        if 'payment_term_id' not in values:
+
+
             cust_obj = self.env['res.partner']
             custNmbr = values['partner_id']
             cust = cust_obj.search([('id', '=', custNmbr)])
