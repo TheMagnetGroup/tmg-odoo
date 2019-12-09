@@ -31,3 +31,15 @@ class Partner(models.Model):
                 payment = payments.search([('default_credit_terms', '=', True)])
                 self.property_payment_term_id = payment
                 self.credit_limit = payment.default_credit_limit
+
+    @api.model
+    def create(self, values):
+        if values['customer']:
+            if 'property_payment_term_id' not in values:
+                payments = self.env['account.payment.term']
+                payment = payments.search([('default_credit_terms', '=', True)])
+                values.update({'property_payment_term_id': payment.id})
+                values.update({'credit_limit': payment.default_credit_limit})
+
+        result = super(Partner, self).create(values)
+        return result
