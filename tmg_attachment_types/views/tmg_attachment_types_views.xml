@@ -6,14 +6,23 @@
             <field name="inherit_id" ref="sale.view_order_form"/>
             <field name="arch" type="xml">
                 <xpath expr="//form[1]/sheet[1]/notebook[1]" position="inside">
-                    <page name="attachment_tab" string="Attachments">
-                        <group name="attachment_group">
-                            <field name="attachments" string="Attachments"
-                                   widget="many2many_tags"/>
-                        </group>
+                    <page name="Attachments" string="Attachments">
+                        <field name="attachment_ids" attrs="{}">
+                            <tree class="o_documents_list_view" create="false" editable="top">
+                                <field name="type" invisible="1"/>
+                                <field name="thumbnail" options="{'size':[90,90]}" widget="image"/>
+                                <field name="datas" readonly="True" widget="binary" filename="datas_fname" attrs="{'invisible':[('type','=','url')]}"/>
+                                <field name="datas_fname" readonly="True" invisible="1" attrs="{'invisible':[('type','=','url')]}" class="oe_inline oe_right"/>
+                                <field name="url" widget="binary" readonly="True" filename="datas_fname" attrs="{'invisible':[('type','=','binary')]}"/>
+                                <field name="write_uid"/>
+                                <field name="create_date"/>
+                                <field name="attachment_category" string="Category" widget="many2many_tags"/>
+                            </tree>
+                        </field>
                     </page>
                 </xpath>
             </field>
         </record>
     </data>
 </odoo>
+

@@ -9,11 +9,13 @@ class SaleOrder(models.Model):
     _inherit = 'sale.order'
     order_holds = fields.Many2many('sale.hold' ,string='Order Holds')
 
-
     on_hold = fields.Boolean(string='On Hold')
     approved_credit = fields.Boolean(string='Approved Credit', default=False)
     had_credit_hold = fields.Boolean(string="Had Credit Hold", default=False)
     is_automated_hold = fields.Boolean(string = "Automated Credit Hold", default=False)
+
+
+
     def checkSecurity(self, value):
         hasGroup = False
         for grp in value.group_ids:
@@ -34,6 +36,13 @@ class SaleOrder(models.Model):
     def create(self, values):
         vals = values['order_holds']
         note_list = []
+        if 'payment_term_id' not in values:
+
+
+            cust_obj = self.env['res.partner']
+            custNmbr = values['partner_id']
+            cust = cust_obj.search([('id', '=', custNmbr)])
+            values.update({'payment_term_id' : cust.property_payment_term_id.id})
         if vals:
             for t in vals[0][2]:
                 hold_obj = self.env['sale.hold']
