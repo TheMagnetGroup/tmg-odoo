@@ -27,6 +27,7 @@ class MrpJob(models.Model):
     status = fields.Selection(selection=[
         ('draft', 'Draft'),
         ('confirm', 'Confirmed'),
+        ('job_printed', 'Job Printed')
         ('planned', 'Planned'),
         ('in_progress', 'In Progress'),
         ('done', 'Done'),
