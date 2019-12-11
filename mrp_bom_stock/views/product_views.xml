@@ -40,21 +40,28 @@
         <field name="name">product.form.inherit.mrp_bom_stock</field>
         <field name="model">product.product</field>
         <field name="inherit_id" ref="product.product_normal_form_view"/>
+        <field name="priority">20</field>
         <field name="arch" type="xml">
             <label for="sale_delay" position="before">
                 <field name="bom_id" attrs="{'required': [('bom_count', '>', 0)]}"/>
             </label>
-            <button name="%(stock.product_open_quants)d" position="replace">
-                <button class="oe_stat_button" name="%(stock.product_open_quants)d" icon="fa-building-o" type="action" attrs="{'invisible':['|', ('type', '!=', 'product'), ('bom_id', '!=', False)]}">
-                       <div class="o_field_widget o_stat_info">
-                            <span class="o_stat_value">
-                                <field name="qty_available" widget="statinfo" nolabel="1" class="mr4"/>
-                                <field name="uom_name"/>
-                            </span>
-                            <span class="o_stat_text">On Hand</span>
-                       </div>
-                </button>
-                <button class="oe_stat_button" name="action_open_components_quants" icon="fa-building-o" type="object" attrs="{'invisible':['|', ('type', '!=', 'product'), ('bom_id', '=', False)]}">
+            <button name="action_open_quants" position="replace">
+                <button class="oe_stat_button"
+                    name="action_open_quants"
+                    icon="fa-building-o"
+                    type="object" attrs="{'invisible':['|', ('type', '!=', 'product'), ('bom_id', '!=', False)]}">
+                    <div class="o_field_widget o_stat_info">
+                        <span class="o_stat_value">
+                            <field name="qty_available" widget="statinfo" nolabel="1" class="mr4"/>
+                            <field name="uom_name"/>
+                        </span>
+                        <span class="o_stat_text">On Hand</span>
+                    </div>
+                 </button>
+                <button class="oe_stat_button" 
+                    name="action_open_components_quants"
+                    icon="fa-building-o" 
+                    type="object" attrs="{'invisible':['|', ('type', '!=', 'product'), ('bom_id', '=', False)]}">
                        <div class="o_field_widget o_stat_info">
                             <span class="o_stat_value">
                                 <field name="qty_available" widget="statinfo" nolabel="1" class="mr4"/>
