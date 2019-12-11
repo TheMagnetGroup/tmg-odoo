@@ -111,3 +111,8 @@ class MrpJob(models.Model):
         self.ensure_one()
         for mo in self.mfg_order_ids.filtered(lambda m: m.routing_id):
             mo.button_plan()
+
+    @api.multi
+    def action_move_to_printed(self):
+        self.ensure_one()
+        self.status = 'job_printed'
