@@ -8,8 +8,8 @@ class StockPicking(models.Model):
 
     def _get_ups_service_types(self):
         return self.env['delivery.carrier']._get_ups_service_types()
-    
-    carrier_id = fields.Many2one(related='sale_id.carrier_id', string="Carrier", readonly=False)
+
+    carrier_id = fields.Many2one('delivery.carrier', string="Carrier", readonly=False)
     fedex_bill_my_account = fields.Boolean(related='carrier_id.fedex_bill_my_account', readonly=True)
     fedex_carrier_account = fields.Char(string='Fedex Carrier Account', readonly=False)
     ups_carrier_account = fields.Char(string='UPS Carrier Account', readonly=False)
