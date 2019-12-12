@@ -38,7 +38,7 @@
                 <xpath expr="//field[@name='payment_term_id']" position="after">
                     <field name="fedex_bill_my_account" invisible="1"/>
                     <field name="fedex_carrier_account" attrs="{'invisible': [('fedex_bill_my_account', '!=', True)], 'required':[('fedex_bill_my_account', '!=', False)]}"/>
-
+                     <field name="fedex_service_type" attrs="{'invisible': [('fedex_bill_my_account', '!=', True)], 'required':[('fedex_bill_my_account', '!=', False)]}"/>
                 </xpath>
                 <xpath expr="//field[@name='partner_shipping_id']" position="after">
                     <field name="carrier_id" invisible="1"/>
