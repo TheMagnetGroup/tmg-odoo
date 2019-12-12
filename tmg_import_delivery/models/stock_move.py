@@ -103,7 +103,7 @@ class StockMove(models.Model):
             self.is_split_move = True
         else:
             new_mid = self.with_context({
-                'is_split_move_flag': True,
+                'is_split_move_flag': False,
 
                 'carrier_id': self.sale_line_id.order_id.carrier_id.id,
                 'ups_service_type': self.sale_line_id.order_id.ups_service_type,
@@ -122,7 +122,7 @@ class StockMove(models.Model):
     def _get_new_picking_values(self):
 
         vals = super(StockMove, self)._get_new_picking_values()
-        vals['carrier_id'] = self.carrier_id.id
+        # vals['carrier_id'] = self.carrier_id.id
         vals['ups_service_type'] = self.ups_service_type
         vals['ups_carrier_account'] = self.ups_carrier_account
         vals['fedex_carrier_account'] = self.fedex_carrier_account
@@ -133,7 +133,7 @@ class StockMove(models.Model):
     @api.model
     def _prepare_merge_moves_distinct_fields(self):
         distinct_fields = super(StockMove, self)._prepare_merge_moves_distinct_fields()
-        distinct_fields.append('carrier_id')
+        # distinct_fields.append('carrier_id')
         distinct_fields.append('ups_service_type')
         distinct_fields.append('ups_carrier_account')
         distinct_fields.append('fedex_carrier_account')
