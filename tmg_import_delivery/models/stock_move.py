@@ -101,7 +101,7 @@ class StockMove(models.Model):
                     # we force the partner_id to change
                     if new_mid == self.id:
                         self.partner_id = partner_id
-                        self.carrier_id = delivery.carrier_id.id
+                        self.carrier_id = delivery.carrier_id
                         self.ups_service_type = delivery.ups_service_type
                         self.ups_carrier_account = delivery.ups_carrier_account
                         self.fedex_carrier_account = delivery.fedex_carrier_account
@@ -113,7 +113,7 @@ class StockMove(models.Model):
             new_mid = self.with_context({
                 'is_split_move_flag': True,
 
-                'carrier_id_int': self.sale_line_id.order_id.carrier_id.id,
+                'carrier_id': self.sale_line_id.order_id.carrier_id.id,
                 'ups_service_type': self.sale_line_id.order_id.ups_service_type,
                 'ups_carrier_account': self.sale_line_id.order_id.ups_carrier_account,
                 'fedex_carrier_account': self.sale_line_id.order_id.fedex_carrier_account,
