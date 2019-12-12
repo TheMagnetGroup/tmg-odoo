@@ -37,43 +37,36 @@ class StockMove(models.Model):
     def _prepare_move_split_vals(self, qty):
         vals = super(StockMove, self)._prepare_move_split_vals(qty)
         # the good ole context trick
-        if self.env.context.get('is_split_move_flag'):
-            ord = self.sale_line_id.order_id
-            vals['is_split_move'] = True
-            if self.env.context.get('scheduled_date'):
-                vals['scheduled_date'] = self.env.context.get('scheduled_date')
-            else:
-                vals['scheduled_date'] = ord.commitment_date
-            if not self.carrier_id:
+        ord = self.sale_line_id.order_id
 
-                vals['carrier_id'] = self.env.context.get('carrier_id_int')
-                # res.update({'carrier_id': ord.carrier_id})
+        vals['carrier_id'] = self.env.context.get('carrier_id_int')
+        # res.update({'carrier_id': ord.carrier_id})
 
-                if ord.ups_service_type:
-                    carrier = self.env['delivery.carrier'].browse(self.env.context.get('carrier_id'))
-                    if carrier.delivery_type == 'ups' :
-                        if self.env.context.get('ups_service_type'):
+        if ord.ups_service_type:
+            carrier = self.env['delivery.carrier'].browse(self.env.context.get('carrier_id'))
+            if carrier.delivery_type == 'ups' :
+                if self.env.context.get('ups_service_type'):
 
-                            vals['ups_service_type'] = self.env.context.get('ups_service_type')
-                        # res.update({'ups_service_type': ord.ups_service_type})
-                        if ord.ups_carrier_account:
-                            vals['ups_carrier_account'] = self.env.context.get('ups_carrier_account')
-                    # if carrier.delivery_type =='fedex':
-                    #     if ord.fedex_carrier_account:
-                    #         vals['fedex_carrier_account'] = self.env.context.get('fedex_carrier_account')
-                        # res.update({'ups_carrier_account': ord.ups_carrier_account})
-                if ord.fedex_service_type:
-                    carrier = self.env['delivery.carrier'].browse(self.env.context.get('carrier_id'))
-                    if carrier.delivery_type == 'fedex':
-                        if self.env.context.get('fedex_service_type'):
-                            vals['fedex_service_type'] = self.env.context.get('fedex_service_type')
-                        # res.update({'ups_service_type': ord.ups_service_type})
-                        if ord.fedex_carrier_account:
-                            vals['fedex_carrier_account'] = self.env.context.get('fedex_carrier_account')
+                    vals['ups_service_type'] = self.env.context.get('ups_service_type')
+                # res.update({'ups_service_type': ord.ups_service_type})
+                if ord.ups_carrier_account:
+                    vals['ups_carrier_account'] = self.env.context.get('ups_carrier_account')
+            # if carrier.delivery_type =='fedex':
+            #     if ord.fedex_carrier_account:
+            #         vals['fedex_carrier_account'] = self.env.context.get('fedex_carrier_account')
+                # res.update({'ups_carrier_account': ord.ups_carrier_account})
+        if ord.fedex_service_type:
+            carrier = self.env['delivery.carrier'].browse(self.env.context.get('carrier_id'))
+            if carrier.delivery_type == 'fedex':
+                if self.env.context.get('fedex_service_type'):
+                    vals['fedex_service_type'] = self.env.context.get('fedex_service_type')
+                # res.update({'ups_service_type': ord.ups_service_type})
+                if ord.fedex_carrier_account:
+                    vals['fedex_carrier_account'] = self.env.context.get('fedex_carrier_account')
 
-                        if ord.fedex_carrier_account:
-                            vals['fedex_carrier_account'] = self.env.context.get('fedex_carrier_account')
-                        # res.update({'ups_carrier_account': ord.ups_carrier_account})
+                if ord.fedex_carrier_account:
+                    vals['fedex_carrier_account'] = self.env.context.get('fedex_carrier_account')
+                # res.update({'ups_carrier_account': ord.ups_carrier_account})
         return vals
 
 
@@ -94,8 +87,7 @@ class StockMove(models.Model):
                         'ups_service_type' : delivery.ups_service_type,
                         'ups_carrier_account' : delivery.ups_carrier_account,
                         'fedex_carrier_account' : delivery.fedex_carrier_account,
-                        'fedex_service_type' : delivery.fedex_service_type,
-                        'scheduled_date' : delivery.scheduled_date
+                        'fedex_service_type' : delivery.fedex_service_type
                     })._split(delivery.qty)
                     # if _split() didn't register due to complete split
                     # we force the partner_id to change
