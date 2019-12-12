@@ -109,6 +109,23 @@ class StockMove(models.Model):
             # after all splitting, our move is also a split move, yay
             # this is necessary so that recursion don't punish us later
             self.is_split_move = True
+        else:
+            new_mid = self.with_context({
+                'is_split_move_flag': True,
+
+                'carrier_id_int': self.sale_line_id.order_id.carrier_id.id,
+                'ups_service_type': self.sale_line_id.order_id.ups_service_type,
+                'ups_carrier_account': self.sale_line_id.order_id.ups_carrier_account,
+                'fedex_carrier_account': self.sale_line_id.order_id.fedex_carrier_account,
+                'fedex_service_type': self.sale_line_id.order_id.fedex_service_type})
+            if new_mid == self.id:
+                self.carrier_id = self.sale_line_id.order_id.carrier_id.id
+                self.ups_service_type = self.sale_line_id.order_id.ups_service_type
+                self.ups_carrier_account = self.sale_line_id.order_id.ups_carrier_account
+                self.fedex_carrier_account = self.sale_line_id.order_id.fedex_carrier_account
+                self.fedex_service_type = self.sale_line_id.order_id.fedex_service_type
+            self.is_split_move = False
+
 
     def _get_new_picking_values(self):
 
