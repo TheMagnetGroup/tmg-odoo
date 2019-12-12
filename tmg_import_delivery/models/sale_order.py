@@ -15,6 +15,5 @@ class SaleOrder(models.Model):
                                            ('FEDEX_3_DAY_FREIGHT', 'FEDEX_3_DAY_FREIGHT'),
                                            ('FIRST_OVERNIGHT', 'FIRST_OVERNIGHT'),
                                            ('PRIORITY_OVERNIGHT', 'PRIORITY_OVERNIGHT'),
-                                           ('STANDARD_OVERNIGHT', 'STANDARD_OVERNIGHT')],
-                                          default='INTERNATIONAL_PRIORITY', string="Fedex Service Type")
+                                           ('STANDARD_OVERNIGHT', 'STANDARD_OVERNIGHT')], string="Fedex Service Type")
 
