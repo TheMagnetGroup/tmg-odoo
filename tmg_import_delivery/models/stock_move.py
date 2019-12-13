@@ -133,7 +133,7 @@ class StockMove(models.Model):
     @api.model
     def _prepare_merge_moves_distinct_fields(self):
         distinct_fields = super(StockMove, self)._prepare_merge_moves_distinct_fields()
-        distinct_fields.append('carrier_id')
+        # distinct_fields.append('carrier_id')
         distinct_fields.append('ups_service_type')
         distinct_fields.append('ups_carrier_account')
         distinct_fields.append('fedex_carrier_account')
