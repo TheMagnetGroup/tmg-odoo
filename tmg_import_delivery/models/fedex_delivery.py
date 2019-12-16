@@ -47,10 +47,10 @@ class Delivery_Fedex(models.Model):
                                          help="If checked, ecommerce users will be prompted their FedEx account number\n"
                                               "and delivery fees will be charged on it.")
     fedex_service_type = fields.Selection(get_fedex_service_types, string="UPS Service Type", default='03')
-    def _convert_curr_iso_fdx(code):
+    def _convert_curr_iso_fdx(self, code):
         return FEDEX_CURR_MATCH.get(code, code)
 
-    def _convert_curr_fdx_iso(code):
+    def _convert_curr_fdx_iso(self,code):
         curr_match = {v: k for k, v in FEDEX_CURR_MATCH.items()}
         return curr_match.get(code, code)
 

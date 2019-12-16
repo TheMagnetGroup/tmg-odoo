@@ -144,8 +144,8 @@ class SaleOrderLineDeliveryEntryWizard(models.TransientModel):
                 'ups_carrier_account': self.ups_carrier_account,
                 'ups_service_type': service_type,
                 'qty': self.quantity,
-                'fedex_carrier_account': self.fedex_carrier_account,
-                'scheduled_date': self.scheduled_date
+                'fedex_carrier_account': self.fedex_carrier_account
+                # 'scheduled_date': self.scheduled_date
 
             })
             # result_lst = self.do_import('sale.order.line.delivery', decoded_file, options)
