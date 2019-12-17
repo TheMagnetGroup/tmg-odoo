@@ -1,0 +1,14 @@
+<odoo>
+  <data>
+      <record id="tmg_purchase_view_search" model="ir.ui.view">
+          <field name="name">tmg.purchasing.po.search</field>
+          <field name="model">purchase.order</field>
+          <field name="inherit_id" ref="purchase.view_purchase_order_filter"/>
+          <field name="arch" type="xml">
+              <xpath expr="//search/field[@name='name']" position="replace">
+                  <field name="name" string="Reference" filter_domain="['|',('name', 'ilike', self), ('partner_ref', 'ilike', self)]"/>
+              </xpath>
+          </field>
+      </record>
+  </data>
+</odoo>
