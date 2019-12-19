@@ -57,7 +57,7 @@ class StockMove(models.Model):
                 # res.update({'ups_carrier_account': ord.ups_carrier_account})
 
         carrier = self.env['delivery.carrier'].browse(self.env.context.get('carrier_id'))
-        if carrier.delivery_type == 'fedex':
+        if carrier.delivery_type == 'fedex' :
             if self.env.context.get('fedex_service_type'):
                 vals['fedex_service_type'] = self.env.context.get('fedex_service_type')
             # res.update({'ups_service_type': ord.ups_service_type})
@@ -116,7 +116,7 @@ class StockMove(models.Model):
                 'ups_service_type': self.sale_line_id.order_id.ups_service_type,
                 'ups_carrier_account': self.sale_line_id.order_id.ups_carrier_account
                 })
-            if new_mid == self.id:
+            if new_mid.id == self.id:
                 self.carrier_id = self.sale_line_id.order_id.carrier_id.id
                 self.fedex_service_type = self.sale_line_id.order_id.fedex_service_type
                 self.fedex_carrier_account = self.sale_line_id.order_id.fedex_carrier_account

@@ -26,20 +26,20 @@ class StockPicking(models.Model):
     ups_bill_my_account = fields.Boolean(related='carrier_id.ups_bill_my_account', readonly=False)
 
 
-    @api.multi
-    @api.onchange('carrier_id')
-    def _clear_shipping(self):
-        if self.carrier_id.fedex_bill_my_account:
-            self.ups_service_type = False
-            self.ups_carrier_account = False
-        else:
-            self.fedex_carrier_account = False
-            self.fedex_service_type = False
-
-        if self.carrier_id.ups_bill_my_account:
-            self.fedex_carrier_account = False
-            self.fedex_service_type = False
-        else:
-            self.ups_service_type = False
-            self.ups_carrier_account = False
+    # @api.multi
+    # @api.onchange('carrier_id')
+    # def _clear_shipping(self):
+    #     if self.carrier_id.fedex_bill_my_account:
+    #         self.ups_service_type = False
+    #         self.ups_carrier_account = False
+    #     else:
+    #         self.fedex_carrier_account = False
+    #         self.fedex_service_type = False
+    #
+    #     if self.carrier_id.ups_bill_my_account:
+    #         self.fedex_carrier_account = False
+    #         self.fedex_service_type = False
+    #     else:
+    #         self.ups_service_type = False
+    #         self.ups_carrier_account = False
 
