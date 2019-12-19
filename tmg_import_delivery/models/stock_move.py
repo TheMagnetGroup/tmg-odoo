@@ -55,18 +55,18 @@ class StockMove(models.Model):
             #     if ord.fedex_carrier_account:
             #         vals['fedex_carrier_account'] = self.env.context.get('fedex_carrier_account')
                 # res.update({'ups_carrier_account': ord.ups_carrier_account})
-        if ord.fedex_service_type:
-            carrier = self.env['delivery.carrier'].browse(self.env.context.get('carrier_id'))
-            if carrier.delivery_type == 'fedex':
-                if self.env.context.get('fedex_service_type'):
-                    vals['fedex_service_type'] = self.env.context.get('fedex_service_type')
-                # res.update({'ups_service_type': ord.ups_service_type})
-                if ord.fedex_carrier_account:
-                    vals['fedex_carrier_account'] = self.env.context.get('fedex_carrier_account')
 
-                if ord.fedex_carrier_account:
-                    vals['fedex_carrier_account'] = self.env.context.get('fedex_carrier_account')
-                # res.update({'ups_carrier_account': ord.ups_carrier_account})
+        carrier = self.env['delivery.carrier'].browse(self.env.context.get('carrier_id'))
+        if carrier.delivery_type == 'fedex':
+            if self.env.context.get('fedex_service_type'):
+                vals['fedex_service_type'] = self.env.context.get('fedex_service_type')
+            # res.update({'ups_service_type': ord.ups_service_type})
+            if ord.fedex_carrier_account:
+                vals['fedex_carrier_account'] = self.env.context.get('fedex_carrier_account')
+
+            if ord.fedex_carrier_account:
+                vals['fedex_carrier_account'] = self.env.context.get('fedex_carrier_account')
+            # res.update({'ups_carrier_account': ord.ups_carrier_account})
         return vals
 
 
@@ -118,10 +118,11 @@ class StockMove(models.Model):
                 })
             if new_mid == self.id:
                 self.carrier_id = self.sale_line_id.order_id.carrier_id.id
-                self.ups_service_type = self.sale_line_id.order_id.ups_service_type
-                self.ups_carrier_account = self.sale_line_id.order_id.ups_carrier_account
                 self.fedex_service_type = self.sale_line_id.order_id.fedex_service_type
                 self.fedex_carrier_account = self.sale_line_id.order_id.fedex_carrier_account
+                self.ups_service_type = self.sale_line_id.order_id.ups_service_type
+                self.ups_carrier_account = self.sale_line_id.order_id.ups_carrier_account
+
 
             self.is_split_move = False
 
