@@ -86,8 +86,9 @@ class StockMove(models.Model):
                         'carrier_id_int' : delivery.carrier_id.id,
                         'ups_service_type' : delivery.ups_service_type,
                         'ups_carrier_account' : delivery.ups_carrier_account,
-                        'fedex_carrier_account' : delivery.fedex_carrier_account,
-                        'fedex_service_type' : delivery.fedex_service_type
+                        'fedex_service_type': delivery.fedex_service_type,
+                        'fedex_carrier_account' : delivery.fedex_carrier_account
+
                     })._split(delivery.qty)
                     # if _split() didn't register due to complete split
                     # we force the partner_id to change
@@ -96,8 +97,9 @@ class StockMove(models.Model):
                         self.carrier_id = delivery.carrier_id
                         self.ups_service_type = delivery.ups_service_type
                         self.ups_carrier_account = delivery.ups_carrier_account
-                        self.fedex_carrier_account = delivery.fedex_carrier_account
                         self.fedex_service_type = delivery.fedex_service_type
+                        self.fedex_carrier_account = delivery.fedex_carrier_account
+
             # after all splitting, our move is also a split move, yay
             # this is necessary so that recursion don't punish us later
             self.is_split_move = True
@@ -108,14 +110,16 @@ class StockMove(models.Model):
                 'carrier_id': self.sale_line_id.order_id.carrier_id.id,
                 'ups_service_type': self.sale_line_id.order_id.ups_service_type,
                 'ups_carrier_account': self.sale_line_id.order_id.ups_carrier_account,
-                'fedex_carrier_account': self.sale_line_id.order_id.fedex_carrier_account,
-                'fedex_service_type': self.sale_line_id.order_id.fedex_service_type})
+                'fedex_service_type': self.sale_line_id.order_id.fedex_service_type,
+                'fedex_carrier_account': self.sale_line_id.order_id.fedex_carrier_account
+                })
             if new_mid == self.id:
                 self.carrier_id = self.sale_line_id.order_id.carrier_id.id
                 self.ups_service_type = self.sale_line_id.order_id.ups_service_type
                 self.ups_carrier_account = self.sale_line_id.order_id.ups_carrier_account
-                self.fedex_carrier_account = self.sale_line_id.order_id.fedex_carrier_account
                 self.fedex_service_type = self.sale_line_id.order_id.fedex_service_type
+                self.fedex_carrier_account = self.sale_line_id.order_id.fedex_carrier_account
+
             self.is_split_move = False
 
 
