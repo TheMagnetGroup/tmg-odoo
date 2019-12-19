@@ -69,6 +69,7 @@ class Delivery_Fedex(models.Model):
 
             srm = FedexRequest(self.log_xml, request_type="shipping", prod_environment=self.prod_environment)
             superself = self.sudo()
+            fedex_number = picking.fedex_carrier_account or superself.fedex_service_type
             srm.web_authentication_detail(superself.fedex_developer_key, superself.fedex_developer_password)
             srm.client_detail(superself.fedex_account_number, superself.fedex_meter_number)
 
@@ -79,9 +80,14 @@ class Delivery_Fedex(models.Model):
             srm.set_currency(self._convert_curr_iso_fdx(picking.company_id.currency_id.name))
             srm.set_shipper(picking.company_id.partner_id, picking.picking_type_id.warehouse_id.partner_id)
             srm.set_recipient(picking.partner_id)
-
+            third_party_billing = picking.fedex_carrier_account
             # Here is where the change matters.
-            srm.shipping_charges_payment(picking.fedex_carrier_account)
+
+            srm.shipping_charges_payment(fedex_number)
+            if third_party_billing:
+                srm.RequestedShipment.ShippingChargesPayment.PaymentType = 'THIRD_PARTY'
+
+
 
             srm.shipment_label('COMMON2D', self.fedex_label_file_type, self.fedex_label_stock_type, 'TOP_EDGE_OF_TEXT_FIRST', 'SHIPPING_LABEL_FIRST')
 
