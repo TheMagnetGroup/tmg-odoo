@@ -69,7 +69,11 @@ class Delivery_Fedex(models.Model):
 
             srm = FedexRequest(self.log_xml, request_type="shipping", prod_environment=self.prod_environment)
             superself = self.sudo()
-            fedex_number = picking.fedex_carrier_account or superself.fedex_service_type
+            # if picking.fedex_carrier_account:
+            #     fedex_number = picking.fedex_carrier_account
+            # else
+            #     fedex_number =superself.fedex_carrier
+            fedex_number = picking.fedex_carrier_account or superself.fedex_account_number
             srm.web_authentication_detail(superself.fedex_developer_key, superself.fedex_developer_password)
             srm.client_detail(superself.fedex_account_number, superself.fedex_meter_number)
 
