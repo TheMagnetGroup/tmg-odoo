@@ -8,7 +8,7 @@ class StockMove(models.Model):
         return self.env['delivery.carrier']._get_ups_service_types()
 
     carrier_id = fields.Many2one('delivery.carrier', string="Delivery Carrier")
-    ups_carrier_account = fields.Char( string='Carrier Account', readonly=False)
+    ups_carrier_account = fields.Char(string='Carrier Account', readonly=False)
     ups_service_type = fields.Selection(_get_ups_service_types, string="UPS Service Type")
     fedex_carrier_account = fields.Char(string='Fedex Carrier Account', readonly=False)
     fedex_service_type = fields.Selection([('INTERNATIONAL_ECONOMY', 'INTERNATIONAL_ECONOMY'),
@@ -123,10 +123,11 @@ class StockMove(models.Model):
 
         vals = super(StockMove, self)._get_new_picking_values()
         # vals['carrier_id'] = self.carrier_id.id
-        vals['ups_service_type'] = self.ups_service_type
-        vals['ups_carrier_account'] = self.ups_carrier_account
         vals['fedex_carrier_account'] = self.fedex_carrier_account
         vals['fedex_service_type'] = self.fedex_service_type
+        vals['ups_service_type'] = self.ups_service_type
+        vals['ups_carrier_account'] = self.ups_carrier_account
+
         # del(vals['carrier_id'])
         return vals
 
@@ -134,10 +135,11 @@ class StockMove(models.Model):
     def _prepare_merge_moves_distinct_fields(self):
         distinct_fields = super(StockMove, self)._prepare_merge_moves_distinct_fields()
         distinct_fields.append('carrier_id')
-        distinct_fields.append('ups_service_type')
-        distinct_fields.append('ups_carrier_account')
         distinct_fields.append('fedex_carrier_account')
         distinct_fields.append('fedex_service_type')
+        distinct_fields.append('ups_service_type')
+        distinct_fields.append('ups_carrier_account')
+
         return distinct_fields
 
     @api.model
