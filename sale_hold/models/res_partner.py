@@ -17,7 +17,7 @@ class Partner(models.Model):
 
     credit_limit = fields.Monetary(string="Credit Limit")
     property_payment_term_id = fields.Many2one('account.payment.term', default=_get_default_payment_term, company_dependent=True,
-                                               string='Customer Payment Terms',  required=True,ondelete='restrict',
+                                               string='Customer Payment Terms',ondelete='restrict',
                                                help="This payment term will be used instead of the default one for sales orders and customer invoices",
                                                )
 
