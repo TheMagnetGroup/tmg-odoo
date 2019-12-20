@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+	<record id="delivery_carrier_form_inherit_delivery_iot" model="ir.ui.view">
+		<field name="name">delivery.carrier.form.inherit.delivery_iot</field>
+		<field name="model">delivery.carrier</field>
+		<field name="inherit_id" ref="delivery.view_delivery_carrier_form"/>
+		<field name="arch" type="xml">
+			<xpath expr="//field[@name='product_id']" position="after">
+				<field name="printer_id" options="{'no_create': True}"/>
+			</xpath>
+		</field>
+	</record>
+</odoo>
