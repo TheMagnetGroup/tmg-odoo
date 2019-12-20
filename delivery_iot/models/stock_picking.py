@@ -13,7 +13,7 @@ class StockPicking(models.Model):
             labels = self.env['ir.attachment']
             for att in attachments:
                 file_name = att.datas_fname
-                if any([ext == file_name.split('.') for ext in ('ZPL', 'ZPLII', 'EPL')]):
+                if any([ext == file_name.split('.')[1] for ext in ('ZPL', 'ZPLII', 'EPL')]):
                     labels |= att
             if labels:
                 return {
