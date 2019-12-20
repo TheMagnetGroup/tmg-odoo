@@ -107,12 +107,13 @@ class SaleOrderLineDeliveryEntryWizard(models.TransientModel):
                 'street': self.street,
                 'street2': self.street2,
                 'city': self.city,
-                'state': self.state_id,
+                'state_id': self.state_id,
                 'zip': self.Zip,
                 'country': self.country_id,
                 'phone': self.phone,
                 'email': self.email,
-                'customer' : False
+                'customer' : False,
+                'type' : 'delivery'
             })
             partner_lst.append(new_partner)
             # go through our partner lst and unlink any duplicated ones
