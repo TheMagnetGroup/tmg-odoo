@@ -123,7 +123,7 @@ class SaleOrderLineDeliveryEntryWizard(models.TransientModel):
                 partner_id = self.env['res.partner'].browse(partner)
                 partner_id.write({
                     'customer': False,
-                    'type': 'delivery' if partner_id.parent_id else 'contact'
+                    'type': 'delivery'
                 })  # todo: maybe other default fields
                 existing_partner_id = self.env['res.partner'].search(self._get_existing_partner_searching_domain(partner_id), limit=1)
                 if existing_partner_id:
@@ -138,13 +138,13 @@ class SaleOrderLineDeliveryEntryWizard(models.TransientModel):
                 service_type = False
 
             outOrd = delOrd.create({
-                'carrier_id' : self.carrier_id.id,
+                # 'carrier_id' : self.carrier_id.id,
                 'shipping_partner_id': corrected_partner_lst[0],
                 'sale_line_id': self.sale_line_id.id,
-                'ups_carrier_account': self.ups_carrier_account,
-                'ups_service_type': service_type,
+                # 'ups_carrier_account': self.ups_carrier_account,
+                # 'ups_service_type': service_type,
                 'qty': self.quantity,
-                'fedex_carrier_account': self.fedex_carrier_account
+                # 'fedex_carrier_account': self.fedex_carrier_account
                 # 'scheduled_date': self.scheduled_date
 
             })
