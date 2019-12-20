@@ -35,7 +35,7 @@ class Partner(models.Model):
 
     @api.model
     def create(self, values):
-        if values['customer']:
+        if 'customer' in values:
             if 'property_payment_term_id' not in values:
                 payments = self.env['account.payment.term']
                 payment = payments.search([('default_credit_terms', '=', True)])
