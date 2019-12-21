@@ -2,14 +2,8 @@
 
 from odoo import models, fields, api
 
-# class tmg_stock_extensions(models.Model):
-#     _name = 'tmg_stock_extensions.tmg_stock_extensions'
+class StockMoveLine(models.Model):
+    _inherit = 'stock.move.line'
 
-#     name = fields.Char()
-#     value = fields.Integer()
-#     value2 = fields.Float(compute="_value_pc", store=True)
-#     description = fields.Text()
-#
-#     @api.depends('value')
-#     def _value_pc(self):
-#         self.value2 = float(self.value) / 100
+    scheduled_date = fields.Datetime(string='Scheduled Date', store=True, related='picking_id.scheduled_date')
+

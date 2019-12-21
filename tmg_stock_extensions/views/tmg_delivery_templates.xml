@@ -156,5 +156,20 @@
 
     </template>
 
+    <!-- Add scheduled date and quantity scheduled to the stock.move.line list -->
+    <record id="tmg_stock_move_view_list" model="ir.ui.view">
+        <field name="name">tmg.stock.move.list</field>
+        <field name="model">stock.move.line</field>
+        <field name="inherit_id" ref="stock.view_move_line_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='date']" position="after">
+                <field name="scheduled_date"/>
+            </xpath>
+            <xpath expr="//field[@name='location_dest_id']" position="after">
+                <field name="product_uom_qty"/>
+            </xpath>
+        </field>
+    </record>
+
   </data>
 </odoo>
