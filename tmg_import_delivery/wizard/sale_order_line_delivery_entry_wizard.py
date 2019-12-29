@@ -109,7 +109,7 @@ class SaleOrderLineDeliveryEntryWizard(models.TransientModel):
                 'city': self.city,
                 'state_id': self.state_id.id,
                 'zip': self.Zip,
-                'country': self.country_id.id,
+                'country_id': self.country_id.id,
                 'phone': self.phone,
                 'email': self.email,
                 'customer' : False,
