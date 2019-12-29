@@ -34,8 +34,6 @@ class SaleOrderLineDeliveryEntryWizard(models.TransientModel):
     ups_service_type = fields.Selection(_get_ups_service_types, string="UPS Service Type")
     fedex_bill_my_account = fields.Boolean(related='carrier_id.fedex_bill_my_account', readonly=True)
     fedex_carrier_account = fields.Char(string='Fedex Carrier Account', readonly=False)
-    # a helper function to set the criteria of what is considered a duplicate
-    # for a customer contact
 
     # @api.constrains('ups_service_type')
     # def _validate_account(self):
@@ -92,8 +90,6 @@ class SaleOrderLineDeliveryEntryWizard(models.TransientModel):
                                                                result.get('messages'))))
         return rids
 
-    # parent company
-    # Delivery Quantity
     def action_import_deliveries(self):
         self.ensure_one()
         if self.sale_line_id:
