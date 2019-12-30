@@ -2,6 +2,7 @@
 
 from odoo import models, fields, api
 
+
 # class tmg_stock_extensions(models.Model):
 #     _name = 'tmg_stock_extensions.tmg_stock_extensions'
 
@@ -13,3 +14,10 @@ from odoo import models, fields, api
 #     @api.depends('value')
 #     def _value_pc(self):
 #         self.value2 = float(self.value) / 100
+
+class Picking(models.Model):
+    _inherit = "stock.picking"
+
+    client_order_ref = fields.Char(string="Customer PO Ref",
+                                   related='sale_id.client_order_ref',
+                                   readonly="true")
