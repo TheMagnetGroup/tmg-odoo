@@ -5,7 +5,7 @@ from odoo import api, models, fields, _, tools
 from odoo.exceptions import UserError
 from odoo.tools import pdf
 
-from odoo.addons.delivery_fedex.models.fedex_request import FedexRequest
+from .fedex_request import Fedex_Request
 _logger = logging.getLogger(__name__)
 
 FEDEX_CURR_MATCH = {
@@ -67,7 +67,7 @@ class Delivery_Fedex(models.Model):
 
         for picking in pickings:
 
-            srm = FedexRequest(self.log_xml, request_type="shipping", prod_environment=self.prod_environment)
+            srm = Fedex_Request(self.log_xml, request_type="shipping", prod_environment=self.prod_environment)
             superself = self.sudo()
             # if picking.fedex_carrier_account:
             #     fedex_number = picking.fedex_carrier_account
@@ -86,7 +86,8 @@ class Delivery_Fedex(models.Model):
             srm.set_recipient(picking.partner_id)
             third_party_billing = picking.fedex_carrier_account
             # Here is where the change matters.
-
+            po_number = picking.shipping_reference_1
+            dept_number = picking.shipping_reference_2
             srm.shipping_charges_payment(fedex_number)
             if third_party_billing:
                 srm.RequestedShipment.ShippingChargesPayment.PaymentType = 'THIRD_PARTY'
@@ -129,7 +130,7 @@ class Delivery_Fedex(models.Model):
             package_count = len(picking.package_ids) or 1
 
             # For india picking courier is not accepted without this details in label.
-            po_number = dept_number = False
+            # po_number = dept_number = False
             if picking.partner_id.country_id.code == 'IN' and picking.picking_type_id.warehouse_id.partner_id.country_id.code == 'IN':
                 po_number = 'B2B' if picking.partner_id.commercial_partner_id.is_company else 'B2C'
                 dept_number = 'BILL D/T: SENDER'

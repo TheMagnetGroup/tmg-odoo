@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 from odoo import api, models, fields, _, tools
-from odoo.addons.delivery_ups.models.ups_request import UPSRequest, Package
+from .ups_request import UPS_Request
+from odoo.addons.delivery_ups.models.ups_request import Package
 from odoo.exceptions import UserError
 from odoo.tools import pdf
 
@@ -31,7 +32,7 @@ class ProviderUPS(models.Model):
     def ups_send_shipping(self, pickings):
         res = []
         superself = self.sudo()
-        srm = UPSRequest(self.log_xml, superself.ups_username, superself.ups_passwd, superself.ups_shipper_number, superself.ups_access_number, self.prod_environment)
+        srm = UPS_Request(self.log_xml, superself.ups_username, superself.ups_passwd, superself.ups_shipper_number, superself.ups_access_number, self.prod_environment)
         ResCurrency = self.env['res.currency']
         for picking in pickings:
             packages = []
@@ -55,6 +56,7 @@ class ProviderUPS(models.Model):
                 'ilt_monetary_value': '%d' % invoice_line_total,
                 'itl_currency_code': self.env.user.company_id.currency_id.name,
                 'phone': picking.partner_id.mobile or picking.partner_id.phone or picking.sale_id.partner_id.mobile or picking.sale_id.partner_id.phone,
+
             }
             if picking.sale_id and picking.sale_id.carrier_id != picking.carrier_id:
                 ups_service_type = picking.carrier_id.ups_default_service_type or picking.ups_service_type or self.ups_default_service_type
@@ -79,7 +81,7 @@ class ProviderUPS(models.Model):
             result = srm.send_shipping(
                 shipment_info=shipment_info, packages=packages, shipper=picking.company_id.partner_id, ship_from=picking.picking_type_id.warehouse_id.partner_id,
                 ship_to=picking.partner_id, packaging_type=package_type, service_type=ups_service_type, label_file_type=self.ups_label_file_type, ups_carrier_account=ups_carrier_account,
-                saturday_delivery=picking.carrier_id.ups_saturday_delivery, cod_info=cod_info)
+                saturday_delivery=picking.carrier_id.ups_saturday_delivery, cod_info=cod_info, shipping_reference_1= picking.shipping_reference_1, shipping_reference_2=picking.shipping_reference_2)
             if result.get('error_message'):
                 raise UserError(result['error_message'])
 
