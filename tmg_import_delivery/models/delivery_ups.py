@@ -78,10 +78,11 @@ class ProviderUPS(models.Model):
                 raise UserError(check_value)
 
             package_type = picking.package_ids and picking.package_ids[0].packaging_id.shipper_package_code or self.ups_default_packaging_id.shipper_package_code
+            pick_one = picking.shipping_reference_1 or picking.sale_id.client_order_ref
             result = srm.send_shipping(
                 shipment_info=shipment_info, packages=packages, shipper=picking.company_id.partner_id, ship_from=picking.picking_type_id.warehouse_id.partner_id,
                 ship_to=picking.partner_id, packaging_type=package_type, service_type=ups_service_type, label_file_type=self.ups_label_file_type, ups_carrier_account=ups_carrier_account,
-                saturday_delivery=picking.carrier_id.ups_saturday_delivery, cod_info=cod_info, shipping_reference_1= picking.shipping_reference_1, shipping_reference_2=picking.shipping_reference_2)
+                saturday_delivery=picking.carrier_id.ups_saturday_delivery, cod_info=cod_info, shipping_reference_1= pick_one, shipping_reference_2=picking.shipping_reference_2)
             if result.get('error_message'):
                 raise UserError(result['error_message'])
 

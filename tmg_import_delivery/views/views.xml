@@ -34,8 +34,8 @@
                 </xpath>
 
                 <xpath expr="//field[@name='effective_date']" position="after">
-                    <field name="shipping_reference_1"/>
-                    <field name="shipping_reference_2"/>
+                    <field name="shipping_reference_1"  invisible="1"/>
+                    <field name="shipping_reference_2"  attrs="{'readonly': [('state', 'in', ('done', 'cancel'))]}"/>
                 </xpath>
 
                 <xpath expr="//field[@name='payment_term_id']" position="after">

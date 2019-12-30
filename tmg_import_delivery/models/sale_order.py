@@ -4,8 +4,9 @@ from odoo.exceptions import ValidationError
 
 class SaleOrder(models.Model):
     _inherit = 'sale.order'
+    # Some type of default for this field for the SO Number
     shipping_reference_1 = fields.Char(string="Shipping Reference 1", copy=False)
-    shipping_reference_2 = fields.Char(string="Shipping Reference 2", copy=False)
+    shipping_reference_2 = fields.Char(string="Shipping Reference", copy=False)
     fedex_bill_my_account = fields.Boolean(related='carrier_id.fedex_bill_my_account', readonly=True)
     fedex_service_type = fields.Selection([('INTERNATIONAL_ECONOMY', 'INTERNATIONAL_ECONOMY'),
                                            ('INTERNATIONAL_PRIORITY', 'INTERNATIONAL_PRIORITY'),
