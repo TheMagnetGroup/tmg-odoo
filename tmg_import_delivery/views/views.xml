@@ -33,6 +33,11 @@
                     <button name="%(action_open_sale_line_delivery_entry_wizard)d" type="action" string="Add Address" class="btn-sm btn-primary" />
                 </xpath>
 
+                <xpath expr="//field[@name='effective_date']" position="after">
+                    <field name="shipping_reference_1"/>
+                    <field name="shipping_reference_2"/>
+                </xpath>
+
                 <xpath expr="//field[@name='payment_term_id']" position="after">
                     <field name="fedex_bill_my_account" invisible="1"/>
                     <field name="fedex_carrier_account" attrs="{'invisible': [('fedex_bill_my_account', '!=', True)], 'required':[('fedex_bill_my_account', '!=', False)]}"/>

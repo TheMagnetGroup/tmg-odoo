@@ -7,6 +7,8 @@ class StockMove(models.Model):
     def _get_ups_service_types(self):
         return self.env['delivery.carrier']._get_ups_service_types()
 
+    shipping_reference_1 = fields.Char(string="Shipping Reference 1")
+    shipping_reference_2 = fields.Char(string="Shipping Reference 2")
     carrier_id = fields.Many2one('delivery.carrier', string="Delivery Carrier")
     ups_carrier_account = fields.Char(string='Carrier Account', readonly=False)
     ups_service_type = fields.Selection(_get_ups_service_types, string="UPS Service Type")
@@ -40,6 +42,8 @@ class StockMove(models.Model):
         ord = self.sale_line_id.order_id
 
         vals['carrier_id'] = self.env.context.get('carrier_id_int')
+        vals['shipping_reference_1'] = self.env.context.get('shipping_reference_1')
+        vals['shipping_reference_2'] = self.env.context.get('shipping_reference_2')
         # res.update({'carrier_id': ord.carrier_id})
 
         if ord.ups_service_type:
@@ -83,12 +87,11 @@ class StockMove(models.Model):
                     new_mid = self.with_context({
                         'is_split_move_flag': True,
                         'partner_id_int': partner_id.id,
-                        'carrier_id_int' : delivery.carrier_id.id,
+                        'carrier_id_int': delivery.carrier_id.id,
                         'fedex_service_type': delivery.fedex_service_type,
                         'fedex_carrier_account': delivery.fedex_carrier_account,
-                        'ups_service_type' : delivery.ups_service_type,
-                        'ups_carrier_account' : delivery.ups_carrier_account
-
+                        'ups_service_type': delivery.ups_service_type,
+                        'ups_carrier_account': delivery.ups_carrier_account
 
                     })._split(delivery.qty)
                     # if _split() didn't register due to complete split
@@ -100,7 +103,6 @@ class StockMove(models.Model):
                         self.fedex_carrier_account = delivery.fedex_carrier_account
                         self.ups_service_type = delivery.ups_service_type
                         self.ups_carrier_account = delivery.ups_carrier_account
-
 
             # after all splitting, our move is also a split move, yay
             # this is necessary so that recursion don't punish us later
@@ -114,7 +116,9 @@ class StockMove(models.Model):
                 'fedex_service_type': self.sale_line_id.order_id.fedex_service_type,
                 'fedex_carrier_account': self.sale_line_id.order_id.fedex_carrier_account,
                 'ups_service_type': self.sale_line_id.order_id.ups_service_type,
-                'ups_carrier_account': self.sale_line_id.order_id.ups_carrier_account
+                'ups_carrier_account': self.sale_line_id.order_id.ups_carrier_account,
+                'shipping_reference_1': self.sale_line_id.order_id.shipping_reference_1,
+                'shipping_reference_2': self.sale_line_id.order_id.shipping_reference_2
                 })
             if new_mid.id == self.id:
                 self.carrier_id = self.sale_line_id.order_id.carrier_id.id
@@ -122,8 +126,8 @@ class StockMove(models.Model):
                 self.fedex_carrier_account = self.sale_line_id.order_id.fedex_carrier_account
                 self.ups_service_type = self.sale_line_id.order_id.ups_service_type
                 self.ups_carrier_account = self.sale_line_id.order_id.ups_carrier_account
-
-
+                self.shipping_reference_1 = self.sale_line_id.order_id.shipping_reference_1
+                self.shipping_reference_2 = self.sale_line_id.order_id.shipping_reference_2
             self.is_split_move = False
 
 
@@ -135,7 +139,8 @@ class StockMove(models.Model):
         vals['fedex_carrier_account'] = self.fedex_carrier_account
         vals['ups_service_type'] = self.ups_service_type
         vals['ups_carrier_account'] = self.ups_carrier_account
-
+        vals['shipping_reference_1'] = self.shipping_reference_1
+        vals['shipping_reference_2'] = self.shipping_reference_2
         # del(vals['carrier_id'])
         return vals
 
@@ -147,7 +152,8 @@ class StockMove(models.Model):
         distinct_fields.append('fedex_service_type')
         distinct_fields.append('ups_service_type')
         distinct_fields.append('ups_carrier_account')
-
+        distinct_fields.append('shipping_reference_1')
+        distinct_fields.append('shipping_reference_2')
         return distinct_fields
 
     @api.model
