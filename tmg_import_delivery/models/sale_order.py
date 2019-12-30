@@ -19,3 +19,5 @@ class SaleOrder(models.Model):
                                            ('STANDARD_OVERNIGHT', 'STANDARD_OVERNIGHT')], string="Fedex Service Type")
     fedex_carrier_account = fields.Char(string='FedEx Carrier Account', copy=True)
 
+
+
