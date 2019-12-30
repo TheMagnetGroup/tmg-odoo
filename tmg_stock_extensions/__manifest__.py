@@ -20,13 +20,15 @@
     # any module necessary for this one to work correctly
     'depends': [
         'base',
-        'stock'
+        'stock',
+        'sale'
     ],
 
     # always loaded
     'data': [
         # 'security/ir.model.access.csv',
-        'views/tmg_delivery_templates.xml'
+        'views/tmg_delivery_templates.xml',
+        'views/tmg_stock_picking_views.xml'
     ],
     # only loaded in demonstration mode
     'demo': [
