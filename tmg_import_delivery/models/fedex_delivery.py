@@ -87,11 +87,11 @@ class Delivery_Fedex(models.Model):
             third_party_billing = picking.fedex_carrier_account
             # Here is where the change matters.
             if picking.shipping_reference_2:
-                dept_number = picking.shipping_reference_2
+                po_number = picking.shipping_reference_2
             else:
-                dept_number = picking.sale_id.client_order_ref
+                po_number = picking.sale_id.client_order_ref
 
-            po_number = picking.sale_id.name
+            dept_number = picking.sale_id.name
             # dept_number = picking.shipping_reference_2
             srm.shipping_charges_payment(fedex_number)
             if third_party_billing:
