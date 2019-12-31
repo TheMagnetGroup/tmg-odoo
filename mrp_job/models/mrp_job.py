@@ -35,6 +35,8 @@ class MrpJob(models.Model):
     ], compute="_compute_job_state", default="draft", store=True)
     qty = fields.Float(string="Quantity To Produce", digits=dp.get_precision('Product Unit of Measure'), compute="_compute_qty_to_produce", help="Total quantity to produce combining all manufacturing orders.", store=True)
     picking_count = fields.Integer(compute="_compute_picking_count")
+    on_production_hold=fields.Boolean(string="On Production Hold")
+
 
     @api.multi
     @api.depends('mfg_order_ids', 'mfg_order_ids.state')
