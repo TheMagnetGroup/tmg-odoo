@@ -9,7 +9,7 @@
             <field name="inherit_id" ref="mrp_job.mrp_job_view_tree" />
             <field name="arch" type="xml">
                 <xpath expr="//field[@name='date_planned_start']" position="after">
-                    <field name="on_production_hold" string="On Hold" attrs="{'invisible': [('on_production_hold', '=', False)]}" />
+                    <field name="on_production_hold" string="On Production Hold" attrs="{'invisible': [('on_production_hold', '=', False)]}" />
                 </xpath>
             </field>
         </record>
