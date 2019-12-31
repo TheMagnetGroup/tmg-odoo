@@ -23,15 +23,15 @@ class SaleOrder(models.Model):
         MrpProduction = self.env['mrp.production'].sudo()
         mfg_orders = MrpProduction.search([('origin', 'ilike', self.name), ('job_id', '=', False), ('art_ref', '!=', '')])
         if mfg_orders:
-            mfg_tuples = [(m.product_tmpl_id.id, m.art_ref) for m in mfg_orders]
+            mfg_tuples = [(m.product_tmpl_id.id, m.art_ref.lower()) for m in mfg_orders]
             # remove duplicates
             mfg_tuples = list(set(mfg_tuples))
             mfg_order_prod_dict = dict.fromkeys(mfg_tuples, False)
             mfg_order_prod_id_mapping = {order.id: order.product_id.id for order in mfg_orders}
             for mfg_order in mfg_orders:
-                if not mfg_order_prod_dict[(mfg_order.product_tmpl_id.id, mfg_order.art_ref)]:
-                    mfg_order_prod_dict[(mfg_order.product_tmpl_id.id, mfg_order.art_ref)] = []
-                mfg_order_prod_dict[(mfg_order.product_tmpl_id.id, mfg_order.art_ref)].append(mfg_order.id)
+                if not mfg_order_prod_dict[(mfg_order.product_tmpl_id.id, mfg_order.art_ref.lower())]:
+                    mfg_order_prod_dict[(mfg_order.product_tmpl_id.id, mfg_order.art_ref.lower())] = []
+                mfg_order_prod_dict[(mfg_order.product_tmpl_id.id, mfg_order.art_ref.lower())].append(mfg_order.id)
             for prod_art_tpl, mfg_ids in mfg_order_prod_dict.items():
                 mrp_job = MrpJobSudo.create({
                     'product_tmpl_id': prod_art_tpl[0],
