@@ -26,5 +26,19 @@
                 </xpath>
             </field>
         </record>
+        <record id="tmg_available_to_sell_view_form" model="ir.ui.view">
+            <field name="name">tmg.available.to.sell.view</field>
+            <field name="model">product.product</field>
+            <field name="inherit_id" ref="stock.view_stock_product_tree"/>
+            <field name="arch" type="xml">
+                <xpath expr="//tree" position="attributes">
+                    <attribute name="decoration-danger">type == 'product' and virtual_available_qty&lt;0</attribute>
+                    <attribute name="decoration-info">type != 'product' or virtual_available_qty&gt;=0</attribute>
+                </xpath>
+                <xpath expr="//field[@name='virtual_available']" position="replace">
+                    <field name="virtual_available_qty" attrs="{'invisible':[('type', '!=', 'product')]}"/>
+                </xpath>
+            </field>
+        </record>
     </data>
 </odoo>
