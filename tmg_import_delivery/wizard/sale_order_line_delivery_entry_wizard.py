@@ -41,6 +41,11 @@ class SaleOrderLineDeliveryEntryWizard(models.TransientModel):
     #         if not self.ups_carrier_id and self.ups_bill_my_account:
     #             raise ValidationError("You cannot select a third party shipper without supplying an account number")
 
+    @api.onchange('state_id')
+    def _onchange_state(self):
+        if self.state_id:
+            self.country_id = self.state_id.country_id.id
+
     @api.onchange('carrier_id')
     def _onchange_carrier_id(self):
         self.ups_service_type = self.carrier_id.ups_default_service_type
