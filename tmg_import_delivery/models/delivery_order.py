@@ -27,4 +27,4 @@ class DeliveryOrder(models.Model):
     street2 = fields.Char(related="shipping_partner_id.street2")
     city = fields.Char(related="shipping_partner_id.city")
     state_id = fields.Many2one(related="shipping_partner_id.state_id")
-    country_id = fields.Many2one('res.country', string="Country")
+    country_id = fields.Many2one(related="shipping_partner_id.country_id", string="Country")
