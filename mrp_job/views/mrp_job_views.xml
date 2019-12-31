@@ -9,6 +9,7 @@
 					<button name="action_mark_as_done" type="object" string="Mark all as done" attrs="{'invisible': [('status', 'in', ['draft', 'done', 'cancel'])]}"/>
 					<button name="action_reserve_all" type="object" string="Reserve All" attrs="{'invisible': [('status', 'in', ['draft', 'done', 'cancel'])]}"/>
 					<button name="action_plan_all" type="object" string="Plan All" attrs="{'invisible': [('status', 'in', ['done', 'cancel'])]}"/>
+					<button name="action_move_to_printed" type="object" string="Printed" attrs="{'invisible': [('status', 'in', ['done', 'cancel', 'draft', 'planned', 'in_progress', 'job_printed'])]}"/>
 					<field name="status" widget="statusbar"/>
 				</header>
 				<sheet>
@@ -89,7 +90,9 @@
 		<field name="model">mrp.job</field>
 		<field name="arch" type="xml">
 			<search>
+
 				<field name="name" string="Job Reference"/>
+				<field name="id"/>
 				<field name="art_ref"/>
 				<field name="product_tmpl_id"/>
 				<field name="sale_order_id"/>
