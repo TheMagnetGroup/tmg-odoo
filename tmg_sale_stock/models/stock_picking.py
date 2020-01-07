@@ -22,6 +22,7 @@ class StockPicking(models.Model):
             raise ValidationError(_('Please define one or more packages before validating the delivery order.'))
         return super(StockPicking, self).button_validate()
 
+    @api.one
     @api.depends('move_line_ids', 'move_line_ids.result_package_id', 'alt_package_ids')
     def _compute_packages(self):
         self.ensure_one()
@@ -30,6 +31,7 @@ class StockPicking(models.Model):
         else:
             super(StockPicking, self)._compute_packages()
 
+    @api.one
     @api.depends('move_line_ids', 'move_line_ids.result_package_id', 'move_line_ids.product_uom_id', 'move_line_ids.qty_done', 'alt_package_ids')
     def _compute_bulk_weight(self):
         self.ensure_one()
