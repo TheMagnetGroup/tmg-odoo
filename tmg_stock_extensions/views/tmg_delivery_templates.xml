@@ -63,21 +63,15 @@
                         <thead>
                             <tr>
                                 <th t-if="o.origin"><strong>Order</strong></th>
-                                <th name="td_po_h"><strong>PO#</strong></th>
                                 <th name="td_sched_date_h">
                                     <strong>Date</strong>
                                 </th>
-
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
                                 <td t-if="o.origin">
                                     <span t-field="o.origin"/>
-                                </td>
-                                 <td name="td_po">
-                                    <span   t-field="o.client_order_ref"
-                                            t-options='{"invisible":"false"}'/>
                                 </td>
                                 <td name="td_sched_date">
                                    <t t-if="o.state == 'done'">

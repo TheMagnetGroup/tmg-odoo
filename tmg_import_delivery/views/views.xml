@@ -61,5 +61,17 @@
                 </xpath>
             </field>
         </record>
+
+
+      <record id="view_partner_form_ship_from_inherit" model="ir.ui.view">
+          <field name="name">res.partner.form.ship.from.inherit</field>
+          <field name="model">res.partner</field>
+          <field name="inherit_id" ref="base.view_partner_form" />
+          <field name="arch" type="xml">
+             <xpath expr="//field[@name='property_delivery_carrier_id']" position="after">
+                <field name="shipping_name" string="Ship From Name" />
+             </xpath>
+      </field>
+   </record>
   </data>
 </odoo>
