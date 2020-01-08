@@ -84,8 +84,8 @@ class UPS_Request(UPSRequest):
                                                cod_info, shipping_reference_1, shipping_reference_2):
             shipment.Package.append(package)
 
-        shipment.Shipper.AttentionName = shipper.name or ''
-        shipment.Shipper.Name = shipper.parent_id.name or shipper.name or ''
+        shipment.Shipper.AttentionName =  ''
+        shipment.Shipper.Name = shipper.shipping_name or ''
         shipment.Shipper.Address.AddressLine = [l for l in [shipper.street or '', shipper.street2 or ''] if l]
         shipment.Shipper.Address.City = shipper.city or ''
         shipment.Shipper.Address.PostalCode = shipper.zip or ''
