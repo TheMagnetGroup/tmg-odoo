@@ -19,11 +19,11 @@
 	    	<xpath expr="//field[@name='order_line']//tree//field[@name='price_subtotal']" position="after">
     			<button name="%(mrp_job.duplicate_sale_order_line_action)d" type="action" icon="fa-clone" class="oe_edit_only"/>
 	    	</xpath>
-	    	<xpath expr="//div[hasclass('oe_button_box')]" position="inside">
-	    		<button name="action_view_jobs" type="object" class="oe_stat_button" icon="fa-pencil-square-o" attrs="{'invisible': [('jobs_count', '=', 0)]}">
-                    <field name="jobs_count" widget="statinfo" string="Jobs"/>
-                </button>
-	    	</xpath>
+<!--	    	<xpath expr="//div[hasclass('oe_button_box')]" position="inside">-->
+<!--	    		<button name="action_view_jobs" type="object" class="oe_stat_button" icon="fa-pencil-square-o" attrs="{'invisible': [('jobs_count', '=', 0)]}">-->
+<!--                    <field name="jobs_count" widget="statinfo" string="Jobs"/>-->
+<!--                </button>-->
+<!--	    	</xpath>-->
 	    </field>
 	</record>
 </odoo>
