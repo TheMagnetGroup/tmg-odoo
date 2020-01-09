@@ -62,7 +62,7 @@ class UPS_Request(UPSRequest):
         return Packages
 
     def send_shipping(self, shipment_info, packages, shipper, ship_from, ship_to, packaging_type, service_type,
-                      saturday_delivery, cod_info=None, label_file_type='GIF', ups_carrier_account=False, shipping_reference_1='', shipping_reference_2=''):
+                      saturday_delivery, cod_info=None, label_file_type='GIF', ups_carrier_account=False, shipping_reference_1='', shipping_reference_2='', company = None):
         client = self._set_client(self.ship_wsdl, 'Ship', 'ShipmentRequest')
 
         request = client.factory.create('ns0:RequestType')
@@ -85,7 +85,7 @@ class UPS_Request(UPSRequest):
             shipment.Package.append(package)
 
         shipment.Shipper.AttentionName =  ''
-        shipment.Shipper.Name = shipper.shipping_name or ''
+        shipment.Shipper.Name = company.shipping_name or ''
         shipment.Shipper.Address.AddressLine = [l for l in [shipper.street or '', shipper.street2 or ''] if l]
         shipment.Shipper.Address.City = shipper.city or ''
         shipment.Shipper.Address.PostalCode = shipper.zip or ''
