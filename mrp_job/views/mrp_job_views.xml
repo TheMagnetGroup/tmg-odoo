@@ -104,14 +104,14 @@
 			</search>
 		</field>
 	</record>
-	<record id="action_open_all_jobs" model="ir.actions.act_window">
-		<field name="name">Jobs</field>
-		<field name="res_model">mrp.job</field>
-		<field name="view_type">form</field>
-		<field name="view_mode">tree,form,pivot</field>
-		<field name="search_view_id" ref="mrp_job_view_search"/>
-		<field name="context">{'search_default_todo_jobs': 1}</field>
-		<field name="domain">[]</field>
-	</record>
-	<menuitem id="menu_mrp_jobs_root" parent="mrp.menu_mrp_manufacturing" action="action_open_all_jobs" name="Jobs" sequence="20"/>
+<!--	<record id="action_open_all_jobs" model="ir.actions.act_window">-->
+<!--		<field name="name">Jobs</field>-->
+<!--		<field name="res_model">mrp.job</field>-->
+<!--		<field name="view_type">form</field>-->
+<!--		<field name="view_mode">tree,form,pivot</field>-->
+<!--		<field name="search_view_id" ref="mrp_job_view_search"/>-->
+<!--		<field name="context">{'search_default_todo_jobs': 1}</field>-->
+<!--		<field name="domain">[]</field>-->
+<!--	</record>-->
+<!--	<menuitem id="menu_mrp_jobs_root" parent="mrp.menu_mrp_manufacturing" action="action_open_all_jobs" name="Jobs" sequence="20"/>-->
 </odoo>
