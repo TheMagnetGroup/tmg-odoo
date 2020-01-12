@@ -1,12 +1,15 @@
 # -*- coding: utf-8 -*-
 {
-    'name': "tmg_sale",
+    'name': "TMG Sale",
 
     'summary': """
         Main module used to modify basic functions of the sale module.""",
 
     'description': """
-        We will use this to encompass modifications to SALE that are mainly focused on the SALE branch without the need to create new tmg modules
+        * ??? - ??? - Adds pre-set search filter for Customer Reference (PO Number)
+        * Jonas Temple - 2020/01/10 -   Adds In Hands Date and Ship Date (commitment_date) to the sale.report model. 
+                                        Add Decoration Method to sale.order.line to record primary decoration method.
+                                        Add Decoration Method to the sale.report model
     """,
 
     'author': "The Magnet Group",
@@ -19,7 +22,7 @@
     'version': '0.1',
 
     # any module necessary for this one to work correctly
-    'depends': ['sale'],
+    'depends': ['base', 'sale'],
 
     # always loaded
     'data': [
