@@ -82,7 +82,7 @@ class Delivery_Fedex(models.Model):
             package_type = picking.package_ids and picking.package_ids[0].packaging_id.shipper_package_code or self.fedex_default_packaging_id.shipper_package_code
             srm.shipment_request(self.fedex_droppoff_type, new_fedex_service_type, package_type, self.fedex_weight_unit, self.fedex_saturday_delivery)
             srm.set_currency(self._convert_curr_iso_fdx(picking.company_id.currency_id.name))
-            srm.set_shipper(picking.company_id, picking.picking_type_id.warehouse_id.partner_id)
+            srm.set_shipper(picking.company_id.partner_id, picking.picking_type_id.warehouse_id.partner_id)
             srm.set_recipient(picking.partner_id)
             third_party_billing = picking.fedex_carrier_account
             # Here is where the change matters.
