@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 {
-    'name': "tmg_available_to_sell",
+    'name': "TMG Add Available Quantity",
 
     'summary': """
         Adds a new field labeled "Available Quantity" that calculates (Quantity On Hand - Outgoing)
         """,
 
     'description': """
-        Adds computed field labeled "Available Quantity" (technical name virtual_available_qty) 
-        with the formula Quantity On Hand - Outgoing.
-        Replaces the "Forecasted" stat button on the product detail form
+        * Bridgette Cowden - 1/1/2020 - Adds computed field labeled "Available Quantity" 
+            (technical name virtual_available_qty) with the formula Quantity On Hand - Outgoing. 
+            Replaces the "Forecasted" stat button on the product detail form.
     """,
 
     'author': "The Magnet Group",
