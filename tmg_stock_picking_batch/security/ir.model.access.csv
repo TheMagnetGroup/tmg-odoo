@@ -1,0 +1,2 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_tmg_stock_picking_batch_tmg_stock_picking_batch,tmg_stock_picking_batch.tmg_stock_picking_batch,model_tmg_stock_picking_batch_tmg_stock_picking_batch,,1,0,0,0

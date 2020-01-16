@@ -1,0 +1,48 @@
+<odoo>
+  <data>
+    <record id="mrp_to_so_act" model="ir.actions.act_window">
+      <field name="name">Production Orders</field>
+      <field name="res_model">mrp.production</field>
+      <field name="view_type">form</field>
+      <field name="view_mode">tree,form,graph</field>
+      <field name="search_view_id" ref="mrp.view_mrp_production_filter"/>
+      <field name="domain">[('sale_line_order_id', '=' ,active_id)]</field>
+      <field name="context">{'default_sale_line_order_id': active_id}</field>
+    </record>
+
+    <record id="tmg_order_form_inherits_sales_order" model="ir.ui.view">
+
+    <field name="arch" type="xml">
+        <xpath expr="//form[1]/sheet[1]/notebook[1]" position="inside">
+          <page name="order_notes_page" string="Order Notes">
+              <field name="order_notes" widget="html"/>
+          </page>
+        </xpath>
+
+     <xpath expr="//button[@name='action_view_invoice']" position="before">
+          <field name="order_line" invisible="1"/>
+        <button type="action"
+                 name="%(mrp_to_so_act)d"
+                class="oe_stat_button"
+                attrs="{'invisible': [('production_count', '=', 0)]}"
+                icon="fa-tasks">
+            <field string="Production" name="production_count" widget="statinfo"/>
+        </button>
+      </xpath>
+    </field>
+
+    <field name="inherit_id" ref="sale.view_order_form"/>
+    <field name="model">sale.order</field>
+    <field name="name">tmg.sales.order.form</field>
+    <field name="priority">30</field>
+    </record>
+
+
+
+
+
+
+
+
+  </data>
+</odoo>

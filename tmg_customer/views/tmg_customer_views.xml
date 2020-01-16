@@ -1,0 +1,38 @@
+<odoo>
+  <data>
+    <record id="tmg_customer_rebate_view" model="ir.ui.view">
+      <field name="name">tmg.customer.rebate.view</field>
+      <field name="model">res.partner</field>
+      <field name="inherit_id" ref="base.view_partner_form"/>
+      <field name="arch" type="xml">
+        <xpath expr="//page[@name='sales_purchases']/group[@name='container_row_2']/group[@name='sale']/field[@name='customer']" position="after">
+          <field name="Rebate" string="Rebate" attrs="{'invisible': [('customer','=',False)]}"/>
+        </xpath>
+      </field>
+    </record>
+
+    <record id="tmg_customer_view" model="ir.ui.view">
+      <field name="name">tmg.customer.view</field>
+      <field name="model">res.partner</field>
+      <field name="inherit_id" ref="base.view_partner_form"/>
+      <field name="arch" type="xml">
+        <field name="type" position="after">
+          <label for="id" string="Customer Number" attrs="{'invisible': [('customer','=',False)]}"/>
+          <field name="id" nolabel="1" attrs="{'invisible': [('customer','=',False)]}"/>
+        </field>
+      </field>
+    </record>
+
+    <record id="tmg_customer_search_default" model="ir.ui.view">
+      <field name="name">tmg.customer.search.default</field>
+      <field name="model">res.partner</field>
+      <field name="inherit_id" ref="base.view_res_partner_filter"/>
+      <field name="arch" type="xml">
+        <xpath expr="//search/filter[@name='customer']" position="replace">
+          <filter string="Customers" name="customer" domain="[('customer','=',1)]"/>
+        </xpath>
+      </field>
+    </record>
+
+  </data>
+</odoo>
