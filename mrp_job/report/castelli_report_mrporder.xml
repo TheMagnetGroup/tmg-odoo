@@ -88,19 +88,19 @@
                      <!--                                </t>-->
                      <!--                            </div>-->
                      <!--                    </div>-->
-                     <div class="row mt32 mb32">
-                        <div class="col-3">
+<!--                     <div class="row mt32 mb32">-->
+                        <div>
                            <strong>Order Notes</strong>
                            <br />
                            <span t-field="o.order_notes" />
                         </div>
-                     </div>
+<!--                     </div>-->
                      <div>
                         <table class="table table-sm">
                            <!--                         <t t-set="has_related" t-value="any(o.sale_order_id.order_line.filtered(lambda x: x.job_id.id != o.id))" />-->
                            <!--                             <t t-if="has_related">-->
                            <tr>
-                              <th>Finished Product</th>
+                              <th>Product</th>
                               <th>Art Ref</th>
                               <th>Quantity To Produce</th>
                            </tr>
@@ -278,38 +278,90 @@
                         <!--                            </tr>-->
                         <!--                        </table>-->
                      </div>
-                     <div>
+<!--                     <div>-->
+<!--                        <h3>Shipments</h3>-->
+<!--                        <table class="table table-sm">-->
+<!--                           <tr>-->
+<!--                              <th>-->
+<!--                                 <strong>Address</strong>-->
+<!--                              </th>-->
+<!--                              <th>-->
+<!--                                 <strong>Ship Date</strong>-->
+<!--                              </th>-->
+<!--                              <th>-->
+<!--                                 <strong>Quantity</strong>-->
+<!--                              </th>-->
+<!--                              <th />-->
+<!--                           </tr>-->
+<!--                           <t t-foreach="o.production_ids" t-as="mfg">-->
+<!--                              <tr t-foreach="mfg.move_dest_ids" t-as="ship1">-->
+<!--                                 <td>-->
+<!--                                    <span t-field="ship1.partner_id" t-options="{&quot;widget&quot;: &quot;contact&quot;, &quot;fields&quot;: [&quot;address&quot;, &quot;name&quot;], &quot;no_marker&quot;: True}" />-->
+<!--                                 </td>-->
+<!--                                 <td>-->
+<!--                                    <span t-field="ship1.date_expected" />-->
+<!--                                 </td>-->
+<!--                                 <td>-->
+<!--                                    <span t-field="ship1.product_uom_qty" />-->
+<!--                                 </td>-->
+<!--                                 <td>-->
+<!--                                    <img t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s&amp;humanreadable=1' %  ('Code128', ship1.reference, 605, 100)" style="width:300px;height:50px" alt="Barcode" />-->
+<!--                                 </td>-->
+<!--                              </tr>-->
+<!--                           </t>-->
+<!--                        </table>-->
+<!--                     </div>-->
+
+                     <div style="border:thin">
                         <h3>Shipments</h3>
-                        <table class="table table-sm">
-                           <tr>
-                              <th>
-                                 <strong>Address</strong>
-                              </th>
-                              <th>
-                                 <strong>Ship Date</strong>
-                              </th>
-                              <th>
-                                 <strong>Quantity</strong>
-                              </th>
-                              <th />
-                           </tr>
-                           <t t-foreach="o.production_ids" t-as="mfg">
-                              <tr t-foreach="mfg.move_dest_ids" t-as="ship1">
-                                 <td>
-                                    <span t-field="ship1.partner_id" t-options="{&quot;widget&quot;: &quot;contact&quot;, &quot;fields&quot;: [&quot;address&quot;, &quot;name&quot;, &quot;phone&quot;], &quot;no_marker&quot;: True, &quot;phone_icons&quot;: True}" />
-                                 </td>
-                                 <td>
-                                    <span t-field="ship1.date_expected" />
-                                 </td>
-                                 <td>
-                                    <span t-field="ship1.product_uom_qty" />
-                                 </td>
-                                 <td>
-                                    <img t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s&amp;humanreadable=1' %  ('Code128', ship1.reference, 605, 100)" style="width:300px;height:50px" alt="Barcode" />
-                                 </td>
-                              </tr>
-                           </t>
-                        </table>
+
+                        <t t-foreach="o.picking_ids" t-as="ship1">
+                           <div  style="border:1px solid black; page-break-inside: avoid">
+<!--                              <t t-foreach="mfg.move_dest_ids" t-as="ship1">-->
+                                 <div  class="row mt32 mb32">
+                                    <div class="col-3">
+                                       <strong>Address:</strong>
+                                       <br />
+                                       <span t-field="ship1.partner_id" t-options="{&quot;widget&quot;: &quot;contact&quot;, &quot;fields&quot;: [&quot;address&quot;, &quot;name&quot;], &quot;no_marker&quot;: True}" />
+                                    </div>
+                                    <div class="col-3">
+                                       <strong>Ship Date:</strong>
+                                       <br />
+                                        <span t-field="ship1.scheduled_date" />
+                                    </div>
+                                    <div class="col-3">
+                                       <strong>Ship Method:</strong>
+                                       <br />
+                                       <span t-field="ship1.carrier_id.name" />
+                                    </div>
+<!--                                    <div class="col-3">-->
+<!--                                       <strong>Barcode:</strong>-->
+<!--                                       <br />-->
+<!--                                       <span> <img t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s&amp;humanreadable=1' %  ('Code128', ship1.name, 605, 100)" style="width:300px;height:50px" alt="Barcode" /> </span>-->
+<!--                                    </div>-->
+                                 </div>
+                              <div class="row mt32 mb32">
+                                 <div class="col-3">
+                                 <table style="align:center;">
+                                    <tr>
+                                       <th>Product</th>
+                                       <th>Quantity</th>
+                                    </tr>
+                                    <t t-foreach="ship1.move_ids_without_package" t-as="prod">
+                                       <tr>
+                                          <td><span t-field="prod.product_id.name" /></td>
+                                          <td><span t-field="prod.product_uom_qty" /></td>
+                                       </tr>
+                                    </t>
+                                 </table>
+                                 </div>
+                                 <div class="col-3">
+                                    <span> <img t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s&amp;humanreadable=1' %  ('Code128', ship1.name, 605, 100)" style="width:300px;height:50px" alt="Barcode" /> </span>
+                                 </div>
+                                 </div>
+                           </div>
+                              </t>
+<!--                        </t>-->
                      </div>
                      <div t-foreach="o.attachment_ids" t-as="atts">
                         <t t-foreach="atts.attachment_category" t-as="cats">
