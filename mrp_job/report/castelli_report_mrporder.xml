@@ -349,7 +349,7 @@
                                     </tr>
                                     <t t-foreach="ship1.move_ids_without_package" t-as="prod">
                                        <tr>
-                                          <td><span t-field="prod.product_id.name" /></td>
+                                          <td><span t-field="prod.product_id.display_name" /></td>
                                           <td><span t-field="prod.product_uom_qty" /></td>
                                        </tr>
                                     </t>
