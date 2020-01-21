@@ -48,7 +48,11 @@
             <field name="model">sale.order</field>
             <field name="inherit_id" ref="sale.view_order_form"/>
             <field name="arch" type="xml">
-
+	      <xpath expr="//button[@name='action_confirm']" position="after">
+		<field name="delivery_update_ok" invisible="1"/>
+		 <button name="action_update_delivery" string="UPDATE DELIVERIES" type="object" attrs="{'invisible': [('delivery_update_ok', '=', False)]}"/>
+	      </xpath>
+	      
 	      <xpath expr="//field[@name='partner_shipping_id']" position="attributes">
 		<attribute name="context">{'default_type': 'delivery', 'default_customer': False}</attribute>
 	      </xpath>
