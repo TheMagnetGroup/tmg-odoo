@@ -316,9 +316,9 @@
                         <h3>Shipments</h3>
 
                         <t t-foreach="o.picking_ids" t-as="ship1">
-                           <div  style="border:1px solid black; page-break-inside: avoid">
+                           <div  style="border:1px solid black">
 <!--                              <t t-foreach="mfg.move_dest_ids" t-as="ship1">-->
-                                 <div  class="row mt32 mb32">
+                                 <div  class="row mt32 mb32" style="page-break-inside:avoid">
                                     <div class="col-3">
                                        <strong>Address:</strong>
                                        <br />
@@ -333,6 +333,9 @@
                                        <strong>Ship Method:</strong>
                                        <br />
                                        <span t-field="ship1.carrier_id.name" />
+                                          <br/>
+                                       <span><img t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s&amp;humanreadable=1' %  ('Code128', ship1.name, 605, 100)" style="width:300px;height:50px" alt="Barcode" /> </span>
+
                                     </div>
 <!--                                    <div class="col-3">-->
 <!--                                       <strong>Barcode:</strong>-->
@@ -340,11 +343,13 @@
 <!--                                       <span> <img t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s&amp;humanreadable=1' %  ('Code128', ship1.name, 605, 100)" style="width:300px;height:50px" alt="Barcode" /> </span>-->
 <!--                                    </div>-->
                                  </div>
-                              <div class="row mt32 mb32">
-                                 <div class="col-3">
-                                 <table style="align:center;">
+<!--                              <div class="row mt32 mb32" >-->
+
+                              <div class="row" style="margin-left:15px;max-width:100%">
+                                 <div style="max-width:100%;align:center;left-margin:16px">
+                                 <table style="align:center;width:700px">
                                     <tr>
-                                       <th>Product</th>
+                                       <th style="width=90px">Product</th>
                                        <th>Quantity</th>
                                     </tr>
                                     <t t-foreach="ship1.move_ids_without_package" t-as="prod">
@@ -355,9 +360,10 @@
                                     </t>
                                  </table>
                                  </div>
-                                 <div class="col-3">
-                                    <span> <img t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s&amp;humanreadable=1' %  ('Code128', ship1.name, 605, 100)" style="width:300px;height:50px" alt="Barcode" /> </span>
+                                 <div style="max-width:30%; align:right">
+
                                  </div>
+<!--                                 </div>-->
                                  </div>
                            </div>
                               </t>
