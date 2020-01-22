@@ -29,19 +29,24 @@ class SaleOrder(models.Model):
     @api.one
     @api.depends('order_line','order_line.product_uom_qty','order_line.price_unit', 'order_line.discount', 'order_line.purchase_price')
     def _get_average_margin_percentage(self):
-        sale_price = discount = cost = margin_amount = 0.0
-        line_cost = line_margin_amount = margin_percentage = 0.0
+        # sale_price = discount = cost = margin_amount = 0.0
+        # line_cost = line_margin_amount = margin_percentage = 0.0
         for record in self:
+            sale_price = discount = cost = margin_amount = 0.0
+            line_sale_price = line_cost = line_margin_amount = margin_percentage = 0.0
             if record.order_line:
                 for line in record.order_line:
                     sale_price = line.price_unit * line.product_uom_qty
+                    line_sale_price += sale_price
                     discount = (sale_price * line.discount)/100
                     cost = line.purchase_price * line.product_uom_qty
                     line_cost += cost
                     margin_amount = (sale_price - discount) - cost
                     line_margin_amount += margin_amount
-                if line_cost:
-                    margin_percentage = (line_margin_amount / line_cost) * 100
+                # if line_cost:
+                if line_sale_price:
+                    # margin_percentage = (line_margin_amount / line_cost) * 100
+                    margin_percentage = (line_margin_amount * 100) / line_sale_price
                 else:
                     margin_percentage = 100
                 record.margin_percentage = str(round(margin_percentage,2)) + ' %'
@@ -61,8 +66,10 @@ class SaleOrderLine(models.Model):
                 discount = (sale_price*record.discount)/100
                 cost = record.purchase_price * record.product_uom_qty
                 margin_amount = (sale_price - discount) - cost
-                if cost:
-                    margin_percentage = (margin_amount / cost) * 100 
+                # if cost:
+                if sale_price:
+                    # margin_percentage = (margin_amount / cost) * 100
+                    margin_percentage = (margin_amount * 100) / sale_price
                 else:
                     margin_percentage = 100 
                 record.margin_percentage = str(round(margin_percentage,2)) + ' %'
