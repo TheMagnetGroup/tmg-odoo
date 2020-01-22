@@ -123,6 +123,7 @@
                         </table>
                      </div>
                      <div t-foreach="o.production_ids" t-as="mfg" style="border:1px solid black;">
+                        <t t-if="mfg.state != 'cancel'">
                         <div class="row">
                            <div class="col-7">
                               <h3>
@@ -146,6 +147,9 @@
                               <th>
                                  <strong>Quantity</strong>
                               </th>
+                              <th>
+                                 <strong>Quantity Produced</strong>
+                              </th>
                            </tr>
                            <tr>
                               <td>
@@ -156,6 +160,9 @@
                               </td>
                               <td>
                                  <span t-field="mfg.product_qty" />
+                              </td>
+                              <td>
+                                 <span t-field="mfg.qty_produced"/>
                               </td>
                            </tr>
                         </table>
@@ -277,6 +284,8 @@
                         <!--                                <td><img t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s&amp;humanreadable=1' %  ('Code128', ship1.reference, 605, 100)" style="width:300px;height:50px"  alt="Barcode"/></td>-->
                         <!--                            </tr>-->
                         <!--                        </table>-->
+                        </t>
+<!--                        End If-->
                      </div>
 <!--                     <div>-->
 <!--                        <h3>Shipments</h3>-->
@@ -316,6 +325,7 @@
                         <h3>Shipments</h3>
 
                         <t t-foreach="o.picking_ids" t-as="ship1">
+                           <t t-if="ship1.state != 'cancel'">
                            <div  style="border:1px solid black">
 <!--                              <t t-foreach="mfg.move_dest_ids" t-as="ship1">-->
                                  <div  class="row mt32 mb32" style="page-break-inside:avoid">
@@ -351,11 +361,13 @@
                                     <tr>
                                        <th style="width=90px">Product</th>
                                        <th>Quantity</th>
+                                       <th>Quantity Done</th>
                                     </tr>
                                     <t t-foreach="ship1.move_ids_without_package" t-as="prod">
                                        <tr>
                                           <td><span t-field="prod.product_id.display_name" /></td>
                                           <td><span t-field="prod.product_uom_qty" /></td>
+                                          <td><span t-field="prod.quantity_done"/></td>
                                        </tr>
                                     </t>
                                  </table>
@@ -366,6 +378,9 @@
 <!--                                 </div>-->
                                  </div>
                            </div>
+
+<!--                           End if-->
+                              </t>
                               </t>
 <!--                        </t>-->
                      </div>
