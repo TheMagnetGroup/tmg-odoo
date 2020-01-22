@@ -48,7 +48,8 @@ class SaleOrder(models.Model):
                     # margin_percentage = (line_margin_amount / line_cost) * 100
                     margin_percentage = (line_margin_amount * 100) / line_sale_price
                 else:
-                    margin_percentage = 100
+                    # margin_percentage = 100
+                    margin_percentage = 0
                 record.margin_percentage = str(round(margin_percentage,2)) + ' %'
 
 class SaleOrderLine(models.Model):
@@ -71,5 +72,6 @@ class SaleOrderLine(models.Model):
                     # margin_percentage = (margin_amount / cost) * 100
                     margin_percentage = (margin_amount * 100) / sale_price
                 else:
-                    margin_percentage = 100 
+                    # margin_percentage = 100
+                    margin_percentage = 0
                 record.margin_percentage = str(round(margin_percentage,2)) + ' %'
