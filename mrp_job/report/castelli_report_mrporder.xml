@@ -130,12 +130,22 @@
                                  <span t-field="mfg.name" />
                               </h3>
                            </div>
+
                            <div class="col-5">
                               <span class="text-right">
                                  <img t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', mfg.name, 600, 100)" style="width:300px;height:50px" alt="Barcode" />
                               </span>
                            </div>
                         </div>
+                           <div class="row">
+                              <div class="col-5">
+                              <h3>Deadline Start</h3>
+                              
+                              <h5>
+                                 <span t-field="mfg.date_planned_start" />
+                              </h5>
+                           </div>
+                           </div>
                         <table class="table table-sm">
                            <tr>
                               <th>
@@ -249,7 +259,7 @@
                                        <!--                                                    <img t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', ml.lot_id.name, 600, 100)" style="width:100%;height:35px" alt="Barcode"/>-->
                                        <!--                                                </t>-->
                                        <!--                                            </td>-->
-                                       <td t-if="has_product_barcode" width="15%" class="text-center">
+                                       <td t-if="has_product_barcode" width="15%" class="text-right">
                                           <t t-if="line.product_id.barcode">
                                              <img t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', line.product_id.barcode, 600, 100)" style="width:300px;height:50px" alt="Barcode" />
                                           </t>
