@@ -17,6 +17,9 @@
 				<field name="art_ref" />
 	    		<field name="job_id" invisible="1"/>
 	    	</xpath>
+			<xpath expr="//field[@name='effective_date']" position="after">
+				<field name="printed_date"/>
+	    	</xpath>
 	    	<xpath expr="//field[@name='order_line']//form//field[@name='name']" position="after">
 				<group attrs="{'invisible':['|', ('display_type', '=', 'line_section'), ('display_type', '=', 'line_note')]}">
 					<label for="art_ref"/>
