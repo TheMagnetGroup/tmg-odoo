@@ -4,12 +4,13 @@
 from odoo import api, fields, models
 from odoo.exceptions import AccessError, UserError, RedirectWarning, \
     ValidationError, Warning
+from datetime import datetime
 
 class SaleOrder(models.Model):
     _inherit = "sale.order"
 
     jobs_count = fields.Integer(compute="_compute_jobs_count", sting="Jobs")
-
+    printed_date = fields.Datetime(string='Printed Date')
     @api.multi
     @api.depends('order_line', 'order_line.job_id')
     def _compute_jobs_count(self):
@@ -19,6 +20,7 @@ class SaleOrder(models.Model):
     @api.multi
     def action_move_to_printed(self):
         for record in self:
+            self.printed_date = datetime.today()
             self.message_post(body='Production Order Printed')
 
     @api.multi
