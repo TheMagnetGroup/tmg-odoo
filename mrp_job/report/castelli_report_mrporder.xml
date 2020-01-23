@@ -94,19 +94,52 @@
                            <br />
                            <span t-field="o.order_notes" />
                         </div>
+                     <div>
+                        <strong>
+                           Pickings
+                        </strong>
+                     </div>
+                     <table class="table table-sm">
+                        <tr>
+                           <th>MO</th>
+                           <th>Item</th>
+                           <th>Qty</th>
+                           <th>Qty Done</th>
+                           <th>Barcode</th>
+                        </tr>
+                        <t t-foreach="o.production_ids" t-as="prodids">
+                           <t t-foreach="prodids.picking_ids" t-as="pickings">
+                              <t t-if="pickings.state != 'cancel'">
+                                 <t t-foreach="pickings.move_ids_without_package" t-as="pick">
+                                    <tr>
+                                       <td><span t-field="prodids.name"/> </td>
+                                       <td><span t-field="pick.product_id.display_name"/> </td>
+                                       <td><span t-field="pick.product_uom_qty"/> </td>
+                                       <td><span t-field="pick.quantity_done"/> </td>
+                                       <td><img t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', pickings.name, 600, 100)" style="width:300px;height:50px" alt="Barcode" /></td>
+                                    </tr>
+                                 </t>
+                              </t>
+                           </t>
+                        </t>
+                     </table>
+                     <t t-if="o.production_ids">
+
+                     </t>
+
 <!--                     </div>-->
                      <div>
                         <table class="table table-sm">
                            <!--                         <t t-set="has_related" t-value="any(o.sale_order_id.order_line.filtered(lambda x: x.job_id.id != o.id))" />-->
                            <!--                             <t t-if="has_related">-->
-                           <tr>
+                           <tr style="page-break-inside:avoid">
                               <th>Product</th>
                               <th>Art Ref</th>
                               <th>Quantity To Produce</th>
                            </tr>
                            <t t-foreach="o.order_line" t-as="oline">
                               <!--                                     <t t-if="oline.job_id.id != o.id">-->
-                              <tr>
+                              <tr style="page-break-inside:avoid">
                                  <td>
                                     <span t-field="oline.product_id" />
                                  </td>
@@ -140,13 +173,13 @@
                            <div class="row">
                               <div class="col-5">
                               <h3>Deadline Start</h3>
-                              
+
                               <h5>
                                  <span t-field="mfg.date_planned_start" />
                               </h5>
                            </div>
                            </div>
-                        <table class="table table-sm">
+                        <table class="table table-sm" style="page-break-inside:avoid">
                            <tr>
                               <th>
                                  <strong>Item</strong>
@@ -161,7 +194,7 @@
                                  <strong>Quantity Produced</strong>
                               </th>
                            </tr>
-                           <tr>
+                           <tr style="page-break-inside:avoid">
                               <td>
                                  <span t-field="mfg.product_id" />
                               </td>
@@ -211,7 +244,7 @@
                            <t t-if="mfg.state == 'done'">Consumed Products</t>
                            <t t-else="">Products to Consume</t>
                         </h3>
-                        <table class="table table-sm" t-if="mfg.move_raw_ids">
+                        <table class="table table-sm" t-if="mfg.move_raw_ids" style="page-break-inside:avoid">
                            <t t-set="has_location" t-value="any(mfg.move_raw_ids.filtered(lambda x: x.move_line_ids.filtered(lambda x: x.location_id.id)))" groups="stock.group_stock_multi_locations" />
                            <t t-set="has_serial_number" t-value="any(mfg.move_raw_ids.filtered(lambda x: x.move_line_ids.filtered(lambda x: x.lot_id or x.lot_name)))" groups="stock.group_production_lot" />
                            <t t-set="has_product_barcode" t-value="any(mfg.move_raw_ids.filtered(lambda x: x.product_id.barcode))" />
