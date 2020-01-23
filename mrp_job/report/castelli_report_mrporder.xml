@@ -94,35 +94,7 @@
                            <br />
                            <span t-field="o.order_notes" />
                         </div>
-                     <div>
-                        <strong>
-                           Pickings
-                        </strong>
-                     </div>
-                     <table class="table table-sm">
-                        <tr>
-                           <th>MO</th>
-                           <th>Item</th>
-                           <th>Qty</th>
-                           <th>Qty Done</th>
-                           <th>Barcode</th>
-                        </tr>
-                        <t t-foreach="o.production_ids" t-as="prodids">
-                           <t t-foreach="prodids.picking_ids" t-as="pickings">
-                              <t t-if="pickings.state != 'cancel'">
-                                 <t t-foreach="pickings.move_ids_without_package" t-as="pick">
-                                    <tr>
-                                       <td><span t-field="prodids.name"/> </td>
-                                       <td><span t-field="pick.product_id.display_name"/> </td>
-                                       <td><span t-field="pick.product_uom_qty"/> </td>
-                                       <td><span t-field="pick.quantity_done"/> </td>
-                                       <td><img t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', pickings.name, 600, 100)" style="width:300px;height:50px" alt="Barcode" /></td>
-                                    </tr>
-                                 </t>
-                              </t>
-                           </t>
-                        </t>
-                     </table>
+
                      <t t-if="o.production_ids">
 
                      </t>
@@ -155,6 +127,36 @@
                            <!--                             </t>-->
                         </table>
                      </div>
+
+                     <div>
+                        <strong>
+                           Pickings
+                        </strong>
+                     </div>
+                     <table class="table table-sm">
+                        <tr>
+                           <th>MO</th>
+                           <th>Item</th>
+                           <th>Qty</th>
+                           <th>Qty Done</th>
+                           <th>Barcode</th>
+                        </tr>
+                        <t t-foreach="o.production_ids" t-as="prodids">
+                           <t t-foreach="prodids.picking_ids" t-as="pickings">
+                              <t t-if="pickings.state != 'cancel'">
+                                 <t t-foreach="pickings.move_ids_without_package" t-as="pick">
+                                    <tr>
+                                       <td><span t-field="prodids.name"/> </td>
+                                       <td><span t-field="pick.product_id.display_name"/> </td>
+                                       <td><span t-field="pick.product_uom_qty"/> </td>
+                                       <td><span t-field="pick.quantity_done"/> </td>
+                                       <td><img t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', pickings.name, 600, 100)" style="width:300px;height:50px" alt="Barcode" /></td>
+                                    </tr>
+                                 </t>
+                              </t>
+                           </t>
+                        </t>
+                     </table>
                      <div t-foreach="o.production_ids" t-as="mfg" style="border:1px solid black;">
                         <t t-if="mfg.state != 'cancel'">
                         <div class="row">
