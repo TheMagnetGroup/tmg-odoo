@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="ship_date_assign_wizard" model="ir.ui.view">
+            <field name="name">ship_date_assign_wizard</field>
+            <field name="model">portal.ship.assign</field>
+            <field name="arch" type="xml">
+                <form string="Update Ship Date">
+                    <!--<p class="alert alert-warning"><field name="access_warning"/></p> -->
+                    <group>
+                        <field name="scheduled_date"/>
+                    </group>
+                    <footer>
+                        <button string="Update" name="action_assign_date"  type="object" class="btn-primary"/>
+                        <button string="Cancel" class="btn-default" special="cancel" />
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <act_window id="ship_date_assign_action"
+                     key2="client_action_multi" 
+                     name="Update Ship Date"
+                     res_model="portal.ship.assign"
+                     src_model="sale.order"
+                     multi="False"
+                     context="{}"
+                     view_mode="form" target="new" view_type="form" view_id="ship_date_assign_wizard" />
+           
+
+    </data>
+</odoo>
