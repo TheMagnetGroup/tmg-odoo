@@ -27,8 +27,9 @@
     # always loaded
     'data': [
         # 'security/ir.model.access.csv',
-        'views/sale_views.xml',
         'wizard/ship_date_assign_wizard_view.xml'
+        'views/sale_views.xml',
+
 
     ],
     # only loaded in demonstration mode

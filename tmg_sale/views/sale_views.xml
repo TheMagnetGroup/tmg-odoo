@@ -20,7 +20,7 @@
                      multi="False"
                      context="{}"
                      view_mode="form" target="new" view_type="form" view_id="ship_date_assign_wizard" />
-           
+
       <record id="sale_form_view_main_inherit" model="ir.ui.view">
       <field name="name">sale.order.form.main.inherit</field>
       <field name="model">sale.order</field>
