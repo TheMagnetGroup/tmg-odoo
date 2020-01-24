@@ -3,10 +3,14 @@
     'name': "TMG Sales Order In Hands",
 
     'summary': """
-        Adds In-Hands date to the Sales Order""",
+        TMG enhancements to the Sales module. Note that we have multiple modules that modify the Sales app, need
+        to consider consolidating to one module.
+        """,
 
     'description': """
         Adds an informational field, In-Hands Date to the Sales order and as a related field in the job and delivery order.
+        * Jonas Temple - 2020/01/23 - Changes the base functionality of Odoo to allow editing of the commitment 
+          date (ship date) when the order is in the confirmed state. 
     """,
 
     'author': "The Magnet Group",

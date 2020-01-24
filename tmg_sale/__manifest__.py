@@ -10,6 +10,7 @@
         * Jonas Temple - 2020/01/10 -   Adds In Hands Date and Ship Date (commitment_date) to the sale.report model. 
                                         Add Decoration Method to sale.order.line to record primary decoration method.
                                         Add Decoration Method to the sale.report model
+        * Jonas Temple - 2020/01/23 -   Add On Hold and On Production Hold to the sale.report model.
     """,
 
     'author': "The Magnet Group",
