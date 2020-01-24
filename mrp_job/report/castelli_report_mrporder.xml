@@ -61,6 +61,18 @@
                         <!--                            <span t-field="o.sale_order_id.name"/>-->
                         <!--                        </div>-->
                      </div>
+                     <div class="row">
+                        <div class="col-3">
+                           <strong>Deliver To</strong>
+                           <br />
+                           <span t-field="o.shipping_partner_id.name" />
+                        </div>
+                        <div class="col-3">
+                           <strong>SO Delivery Method</strong>
+                           <br />
+                           <span t-field="o.carrier_id.name" />
+                        </div>
+                     </div>
                      <!--                    <div class="row mt32 mb32">-->
                      <!--                        <div class="col-3">-->
                      <!--                            <strong>Finished Product:</strong><br/>-->
