@@ -8,7 +8,20 @@
                 <xpath expr="//field[@name='team_id']" position="after">
                     <field name="client_order_ref" string="Customer Reference"/>
                 </xpath>
+
+
             </field>
         </record>
+
+      <record id="sale_form_view_main_inherit" model="ir.ui.view">
+      <field name="name">sale.order.form.main.inherit</field>
+      <field name="model">sale.order</field>
+      <field name="inherit_id" ref="sale.view_order_form" />
+      <field name="arch" type="xml">
+        <xpath expr="//button[@name='action_done']" position="after">
+                    <button name="%(ship_date_assign_action)d" type="action" string="Update Ship Date"  attrs="{'invisible': [('state', 'not in', ['sale'])]}"/> />
+                </xpath>
+      </field>
+   </record>
   </data>
 </odoo>
