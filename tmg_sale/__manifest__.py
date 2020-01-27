@@ -27,7 +27,7 @@
     # always loaded
     'data': [
         # 'security/ir.model.access.csv',
-        'wizard/ship_date_assign_wizard_view.xml'
+        'wizard/ship_date_assign_wizard_view.xml',
         'views/sale_views.xml',
 
 
