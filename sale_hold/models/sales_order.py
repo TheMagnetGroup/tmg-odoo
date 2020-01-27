@@ -4,6 +4,18 @@ from odoo.exceptions import AccessError, UserError, RedirectWarning, \
 from odoo.tools import DEFAULT_SERVER_DATE_FORMAT as DF
 from datetime import datetime
 
+
+class SaleOrderLine(models.Model):
+    _inherit = "sale.order.line"
+
+    @api.multi
+    def _action_launch_stock_rule(self):
+        res = super(SaleOrderLine, self)._action_launch_stock_rule()
+        orders = list(set(x.order_id for x in self))
+        for order in orders:
+            order.CheckHolds()
+        return res
+
 class SaleOrder(models.Model):
 
     _inherit = 'sale.order'
@@ -65,6 +77,9 @@ class SaleOrder(models.Model):
         if message_text != '':
             self.message_post(body=message_text)
         return result
+
+
+
 
     @api.multi
     def write(self, values):
