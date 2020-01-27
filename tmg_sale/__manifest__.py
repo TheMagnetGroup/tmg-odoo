@@ -10,6 +10,7 @@
         * Jonas Temple - 2020/01/10 -   Adds In Hands Date and Ship Date (commitment_date) to the sale.report model. 
                                         Add Decoration Method to sale.order.line to record primary decoration method.
                                         Add Decoration Method to the sale.report model
+        * Christian Dunn - 2020/01/27 -   Adds wizard to allow user to change ship date on MO, SO, and DO
     """,
 
     'author': "The Magnet Group",
