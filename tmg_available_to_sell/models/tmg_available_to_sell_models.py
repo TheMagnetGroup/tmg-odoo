@@ -29,4 +29,4 @@ class _compute_quantities(models.Model):
     def _compute_quantities(self):
         super(_compute_quantities, self)._compute_quantities()
         for product in self:
-            product.virtual_available = product.qty_available - product.outgoing_qty
+            product.virtual_available_qty = product.qty_available - product.outgoing_qty
