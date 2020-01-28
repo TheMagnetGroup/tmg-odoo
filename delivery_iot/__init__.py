@@ -1,3 +1,2 @@
 # -*- coding: utf-8 -*-
-
-from . import tmg_sale
+from . import models

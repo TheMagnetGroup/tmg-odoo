@@ -45,7 +45,8 @@ class StockMove(models.Model):
         vals['shipping_reference_1'] = self.env.context.get('shipping_reference_1')
         vals['shipping_reference_2'] = self.env.context.get('shipping_reference_2')
         # res.update({'carrier_id': ord.carrier_id})
-
+        if self.env.context.get('is_split_move_flag'):
+            vals['is_split_move'] = True
         if ord.ups_service_type:
             carrier = self.env['delivery.carrier'].browse(self.env.context.get('carrier_id'))
             if carrier.delivery_type == 'ups' :
@@ -107,28 +108,28 @@ class StockMove(models.Model):
             # after all splitting, our move is also a split move, yay
             # this is necessary so that recursion don't punish us later
             self.is_split_move = True
-        else:
-            new_mid = self.with_context({
-                'is_split_move_flag': False,
-
-                'carrier_id': self.sale_line_id.order_id.carrier_id.id,
-
-                'fedex_service_type': self.sale_line_id.order_id.fedex_service_type,
-                'fedex_carrier_account': self.sale_line_id.order_id.fedex_carrier_account,
-                'ups_service_type': self.sale_line_id.order_id.ups_service_type,
-                'ups_carrier_account': self.sale_line_id.order_id.ups_carrier_account,
-                'shipping_reference_1': self.sale_line_id.order_id.shipping_reference_1,
-                'shipping_reference_2': self.sale_line_id.order_id.shipping_reference_2
-                })
-            if new_mid.id == self.id:
-                self.carrier_id = self.sale_line_id.order_id.carrier_id.id
-                self.fedex_service_type = self.sale_line_id.order_id.fedex_service_type
-                self.fedex_carrier_account = self.sale_line_id.order_id.fedex_carrier_account
-                self.ups_service_type = self.sale_line_id.order_id.ups_service_type
-                self.ups_carrier_account = self.sale_line_id.order_id.ups_carrier_account
-                self.shipping_reference_1 = self.sale_line_id.order_id.shipping_reference_1
-                self.shipping_reference_2 = self.sale_line_id.order_id.shipping_reference_2
-            self.is_split_move = False
+        # else:
+        #     new_mid = self.with_context({
+        #         'is_split_move_flag': False,
+        #
+        #         'carrier_id': self.sale_line_id.order_id.carrier_id.id,
+        #
+        #         'fedex_service_type': self.sale_line_id.order_id.fedex_service_type,
+        #         'fedex_carrier_account': self.sale_line_id.order_id.fedex_carrier_account,
+        #         'ups_service_type': self.sale_line_id.order_id.ups_service_type,
+        #         'ups_carrier_account': self.sale_line_id.order_id.ups_carrier_account,
+        #         'shipping_reference_1': self.sale_line_id.order_id.shipping_reference_1,
+        #         'shipping_reference_2': self.sale_line_id.order_id.shipping_reference_2
+        #         })
+        #     if new_mid.id == self.id:
+        #         self.carrier_id = self.sale_line_id.order_id.carrier_id.id
+        #         self.fedex_service_type = self.sale_line_id.order_id.fedex_service_type
+        #         self.fedex_carrier_account = self.sale_line_id.order_id.fedex_carrier_account
+        #         self.ups_service_type = self.sale_line_id.order_id.ups_service_type
+        #         self.ups_carrier_account = self.sale_line_id.order_id.ups_carrier_account
+        #         self.shipping_reference_1 = self.sale_line_id.order_id.shipping_reference_1
+        #         self.shipping_reference_2 = self.sale_line_id.order_id.shipping_reference_2
+        #     self.is_split_move = False
 
 
     def _get_new_picking_values(self):

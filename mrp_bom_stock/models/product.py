@@ -127,7 +127,7 @@ class Product(models.Model):
 class ProductTemplate(models.Model):
     _inherit = "product.template"
 
-    bom_id = fields.Many2one('mrp.bom', string='Bill of matirial', help="Bill of matirial to compute manufacturable quantities.")
+    bom_id = fields.Many2one('mrp.bom', string='Bill of Material', help="Bill of Material to compute manufacturable quantities.")
 
     def action_view_stock_move_lines(self):
         self.ensure_one()

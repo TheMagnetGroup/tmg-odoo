@@ -4,6 +4,18 @@ from odoo.exceptions import AccessError, UserError, RedirectWarning, \
 from odoo.tools import DEFAULT_SERVER_DATE_FORMAT as DF
 from datetime import datetime
 
+
+class SaleOrderLine(models.Model):
+    _inherit = "sale.order.line"
+
+    @api.multi
+    def _action_launch_stock_rule(self):
+        res = super(SaleOrderLine, self)._action_launch_stock_rule()
+        orders = list(set(x.order_id for x in self))
+        for order in orders:
+            order.CheckHolds()
+        return res
+
 class SaleOrder(models.Model):
 
     _inherit = 'sale.order'
@@ -13,7 +25,7 @@ class SaleOrder(models.Model):
     approved_credit = fields.Boolean(string='Approved Credit', default=False)
     had_credit_hold = fields.Boolean(string="Had Credit Hold", default=False)
     is_automated_hold = fields.Boolean(string = "Automated Credit Hold", default=False)
-
+    on_production_hold = fields.Boolean(string="On Production Hold", default=False)
 
 
     def checkSecurity(self, value):
@@ -65,6 +77,9 @@ class SaleOrder(models.Model):
         if message_text != '':
             self.message_post(body=message_text)
         return result
+
+
+
 
     @api.multi
     def write(self, values):
@@ -205,6 +220,13 @@ class SaleOrder(models.Model):
                 #         #     mo.on_hold = False
                 #     order.on_production_hold = False
             self.set_holds(hasShippingBlock, hasProductionBlock)
+            if hasProductionBlock and hasShippingBlock:
+                order.on_production_hold = True
+
+            else:
+                order.on_production_hold = False
+
+
             if len(order.order_holds) == 0:
                 order.on_hold = False
                 for pi in self.picking_ids:
@@ -231,6 +253,8 @@ class SaleOrder(models.Model):
                 self.picking_ids.write({'on_hold': True})
                 self.picking_ids.write({'on_hold_text': 'On Hold'})
             self.on_hold = True
+            for li in self.order_line:
+                li.job_id.write({'on_hold': True})
         else:
             for pi in self.picking_ids:
                 self.picking_ids.write({'on_hold': False})
@@ -238,11 +262,13 @@ class SaleOrder(models.Model):
         if prod:
             for li in self.order_line:
                 li.job_id.write({'on_hold': True})
-                for mo in li.job_id.mfg_order_ids:
+                li.job_id.write({'on_production_hold': True})
+                for mo in li.production_order:
                     mo.write({'on_hold': True})
                     mo.write({'on_hold_text': "On Hold"})
                     for wo in mo.workorder_ids:
                         wo.write({'on_hold': True})
+
 
             for pi in self.picking_ids:
                 self.picking_ids.write({'on_hold': True})
@@ -252,13 +278,15 @@ class SaleOrder(models.Model):
             self.on_hold= True
         else:
             for li in self.order_line:
-                li.job_id.write({'on_hold': False})
-                for mo in li.job_id.mfg_order_ids:
+                li.job_id.write({'on_production_hold': False})
+                for mo in li.production_order:
                     mo.write({'on_hold': False})
                     mo.write({'on_hold_text': ""})
                     for wo in mo.workorder_ids:
                         wo.write({'on_hold': True})
             if not ship:
+                for li in self.order_line:
+                    li.job_id.write({'on_hold': False})
                 for pi in self.picking_ids:
                     self.picking_ids.write({'on_hold': False})
                     self.picking_ids.write({'on_hold_text': ''})
