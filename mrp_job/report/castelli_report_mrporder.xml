@@ -20,6 +20,14 @@
                            <!--                            <img t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', o.sale_order_id.name, 600, 100)" style="width:300px;height:50px" alt="Barcode"/>-->
                            <!--                            </span>-->
                         </div>
+
+                        <div>
+                           <span class="text-center">
+                              <t t-if="o.printed_date">
+                                 <h2><b>Re-Printed</b></h2>
+                              </t>
+                           </span>
+                        </div>
                         <!--                        <div class="col-6">-->
                         <!--                        </div>-->
                         <div class="col-5">
@@ -67,11 +75,7 @@
                            <br />
                            <span t-field="o.partner_shipping_id.name" />
                         </div>
-                        <div class="col-3">
-                           <strong>SO Delivery Method</strong>
-                           <br />
-                           <span t-field="o.carrier_id.name" />
-                        </div>
+
                      </div>
                      <!--                    <div class="row mt32 mb32">-->
                      <!--                        <div class="col-3">-->
