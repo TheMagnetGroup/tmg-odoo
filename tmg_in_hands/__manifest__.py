@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 {
-    'name': "tmg in hands date",
+    'name': "tmg SO in hands date",
 
     'summary': """
         Replace the "Expected Date" with the "In Hands Date" on the sale order list""",
