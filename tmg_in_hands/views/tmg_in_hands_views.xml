@@ -1,0 +1,14 @@
+<odoo>
+    <data>
+        <record model="ir.ui.view" id="tmg_in_hands.list">
+            <field name="name">tmg_in_hands list</field>
+            <field name="model">sale.order</field>
+            <field name="inherit_id" ref="sale.view_order_tree"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='expected_date']" position="replace">
+                    <field name="in_hands"/>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>
