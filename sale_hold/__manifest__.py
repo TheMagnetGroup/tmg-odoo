@@ -3,7 +3,10 @@
         "name": "TMG Sales Order Hold",
     'summary': "Creates a new sale.hold module for the sale order.",
     'description': """
+    
 Add sales holds to orders that can block production or delivery. Also implements a credit check on the sales order to place orders on credit hold under certain conditions
+
+    * Christian Dunn – 1/15/2020 – Changed what shipping labels used to get ship from company name 
 """,
     "author": "The Magnet Group",
     'website': "http://www.themagnetgroup.com",

@@ -1,14 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
+
+
+
 	<record id="sale_order_form_inherit_mrp_job" model="ir.ui.view">
 	    <field name="name">sale.order.form.inherit.mrp.job</field>
 	    <field name="model">sale.order</field>
 	    <field name="inherit_id" ref="sale.view_order_form"/>
 	    <field name="arch" type="xml">
+			<xpath expr="//button[@name='action_done']" position="after">
+				<button name="action_move_to_printed" type="object" string="Printed" attrs="{'invisible': [('state', '!=', 'sale')]}"/>
+			</xpath>
+
 	    	<xpath expr="//field[@name='order_line']//tree//field[@name='name']" position="after">
 				<!-- art_ref is validated to be required in model mrp_job.sale_order.py -->
 				<field name="art_ref" />
 	    		<field name="job_id" invisible="1"/>
+	    	</xpath>
+			<xpath expr="//field[@name='effective_date']" position="after">
+				<field name="printed_date"/>
 	    	</xpath>
 	    	<xpath expr="//field[@name='order_line']//form//field[@name='name']" position="after">
 				<group attrs="{'invisible':['|', ('display_type', '=', 'line_section'), ('display_type', '=', 'line_note')]}">
@@ -19,11 +29,11 @@
 	    	<xpath expr="//field[@name='order_line']//tree//field[@name='price_subtotal']" position="after">
     			<button name="%(mrp_job.duplicate_sale_order_line_action)d" type="action" icon="fa-clone" class="oe_edit_only"/>
 	    	</xpath>
-	    	<xpath expr="//div[hasclass('oe_button_box')]" position="inside">
-	    		<button name="action_view_jobs" type="object" class="oe_stat_button" icon="fa-pencil-square-o" attrs="{'invisible': [('jobs_count', '=', 0)]}">
-                    <field name="jobs_count" widget="statinfo" string="Jobs"/>
-                </button>
-	    	</xpath>
+<!--	    	<xpath expr="//div[hasclass('oe_button_box')]" position="inside">-->
+<!--	    		<button name="action_view_jobs" type="object" class="oe_stat_button" icon="fa-pencil-square-o" attrs="{'invisible': [('jobs_count', '=', 0)]}">-->
+<!--                    <field name="jobs_count" widget="statinfo" string="Jobs"/>-->
+<!--                </button>-->
+<!--	    	</xpath>-->
 	    </field>
 	</record>
 </odoo>

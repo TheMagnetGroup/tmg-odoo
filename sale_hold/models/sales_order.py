@@ -4,6 +4,18 @@ from odoo.exceptions import AccessError, UserError, RedirectWarning, \
 from odoo.tools import DEFAULT_SERVER_DATE_FORMAT as DF
 from datetime import datetime
 
+
+class SaleOrderLine(models.Model):
+    _inherit = "sale.order.line"
+
+    @api.multi
+    def _action_launch_stock_rule(self):
+        res = super(SaleOrderLine, self)._action_launch_stock_rule()
+        orders = list(set(x.order_id for x in self))
+        for order in orders:
+            order.CheckHolds()
+        return res
+
 class SaleOrder(models.Model):
 
     _inherit = 'sale.order'
@@ -65,6 +77,9 @@ class SaleOrder(models.Model):
         if message_text != '':
             self.message_post(body=message_text)
         return result
+
+
+
 
     @api.multi
     def write(self, values):
@@ -248,11 +263,12 @@ class SaleOrder(models.Model):
             for li in self.order_line:
                 li.job_id.write({'on_hold': True})
                 li.job_id.write({'on_production_hold': True})
-                for mo in li.job_id.mfg_order_ids:
+                for mo in li.production_order:
                     mo.write({'on_hold': True})
                     mo.write({'on_hold_text': "On Hold"})
                     for wo in mo.workorder_ids:
                         wo.write({'on_hold': True})
+
 
             for pi in self.picking_ids:
                 self.picking_ids.write({'on_hold': True})
@@ -263,7 +279,7 @@ class SaleOrder(models.Model):
         else:
             for li in self.order_line:
                 li.job_id.write({'on_production_hold': False})
-                for mo in li.job_id.mfg_order_ids:
+                for mo in li.production_order:
                     mo.write({'on_hold': False})
                     mo.write({'on_hold_text': ""})
                     for wo in mo.workorder_ids:

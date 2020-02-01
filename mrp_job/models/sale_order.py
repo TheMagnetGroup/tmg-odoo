@@ -4,17 +4,24 @@
 from odoo import api, fields, models
 from odoo.exceptions import AccessError, UserError, RedirectWarning, \
     ValidationError, Warning
+from datetime import datetime
 
 class SaleOrder(models.Model):
     _inherit = "sale.order"
 
     jobs_count = fields.Integer(compute="_compute_jobs_count", sting="Jobs")
-
+    printed_date = fields.Datetime(string='Printed Date')
     @api.multi
     @api.depends('order_line', 'order_line.job_id')
     def _compute_jobs_count(self):
         for order in self:
             order.jobs_count = order.order_line and len(order.order_line.mapped('job_id')) or 0
+
+    @api.multi
+    def action_move_to_printed(self):
+        for record in self:
+            self.printed_date = datetime.today()
+            self.message_post(body='Production Order Printed')
 
     @api.multi
     def _action_confirm(self):
@@ -69,6 +76,7 @@ class SaleOrderLine(models.Model):
         values['art_ref'] = self.art_ref or ''
         return values
 
+
     # @api.model_create_multi
     # def create(self, vals_list):
     #     for values in vals_list:
@@ -85,3 +93,18 @@ class SaleOrderLine(models.Model):
     #             raise ValidationError('Art Reference is required')
     #     result = super(SaleOrderLine, self).write(values)
     #     return result
+
+    def print_orders(self, cr, uid, ids, context=None):
+        '''
+        This function print the report for all picking_ids associated to the picking wave
+        '''
+        # context = dict(context or {})
+        # picking_ids = []
+        # for wave in self.browse(cr, uid, ids, context=context):
+        #     picking_ids += [picking.id for picking in wave.picking_ids]
+        #
+        # context['active_ids'] = picking_ids
+        # context['active_model'] = 'stock.picking'
+        return self.env.ref('mrp_job.action_report_castelli_production_order').report_action(self)
+        # return self.pool.get("report").get_action(cr, uid, [], 'mrp_job.report_picking', context=context)
+
