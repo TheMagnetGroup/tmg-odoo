@@ -10,6 +10,7 @@
         * Jonas Temple - 2020/01/10 -   Adds In Hands Date and Ship Date (commitment_date) to the sale.report model. 
                                         Add Decoration Method to sale.order.line to record primary decoration method.
                                         Add Decoration Method to the sale.report model
+        * Christian Dunn - 2020/01/27 -   Adds wizard to allow user to change ship date on MO, SO, and
         * Jonas Temple - 2020/01/23 -   Add On Hold and On Production Hold to the sale.report model.
     """,
 
@@ -23,12 +24,14 @@
     'version': '0.1',
 
     # any module necessary for this one to work correctly
-    'depends': ['base', 'sale'],
+    'depends': ['base', 'sale', 'tmg_mrp'],
 
     # always loaded
     'data': [
         # 'security/ir.model.access.csv',
+        'wizard/ship_date_assign_wizard_view.xml',
         'views/sale_views.xml',
+
 
     ],
     # only loaded in demonstration mode
