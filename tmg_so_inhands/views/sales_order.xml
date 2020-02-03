@@ -1,15 +1,14 @@
 <odoo>
     <data>
-        <record id="tmg_order_form_inherits_in_hands" model="ir.ui.view">
+        <record model="ir.ui.view" id="tmg_so_inhands_replace">
+            <field name="name">tmg.so.inhands.replace</field>
+            <field name="model">sale.order</field>
+            <field name="inherit_id" ref="sale.view_order_tree"/>
             <field name="arch" type="xml">
-                <xpath expr="//field[@name='expected_date']" position="after">
-                    <field name="in_hands"></field>
+                <xpath expr="//field[@name='expected_date']" position="replace">
+                    <field name="in_hands"/>
                 </xpath>
             </field>
-            <field name="inherit_id" ref="sale.view_order_form"/>
-            <field name="model">sale.order</field>
-            <field name="name">tmg.sales.order.form</field>
-            <field name="priority">31</field>
         </record>
     </data>
 </odoo>

@@ -11,6 +11,8 @@
         Adds an informational field, In-Hands Date to the Sales order and as a related field in the job and delivery order.
         * Jonas Temple - 2020/01/23 - Changes the base functionality of Odoo to allow editing of the commitment 
           date (ship date) when the order is in the confirmed state. 
+        * Bridgette Cowden - 2020/1/31 - Replaced the "Expected Date" (expected_date on sale.order) with the 
+            "In Hands Date" (in_hands on sale.order) on the sale order list.
     """,
 
     'author': "The Magnet Group",
