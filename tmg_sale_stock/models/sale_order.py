@@ -105,6 +105,20 @@ class SaleOrder(models.Model):
         for order in self:
             if not order.delivery_update_ok:
                 raise ValidationError(_('Cannot update delivery when there is at least one confirmed delivery.'))
+            old_move_orig_ids = order.picking_ids.filtered(lambda pick: pick.picking_type_code == 'outgoing').mapped('move_ids_without_package.move_orig_ids.id')
+            old_production_ids = self.env['mrp.production'].search([('sale_line_id', 'in', order.order_line.ids)])
+            
             order.picking_ids.action_cancel()
             order.picking_ids.unlink()
             order.order_line._action_launch_stock_rule()
+            
+            if old_move_orig_ids and old_production_ids:
+                new_move_ids = order.picking_ids.filtered(lambda pick: pick.picking_type_code == 'outgoing').mapped('move_ids_without_package.move_orig_ids')
+                order.picking_ids.filtered(lambda pick: pick.picking_type_code == 'outgoing').mapped('move_ids_without_package').write({'move_orig_ids': [(6, 0, old_move_orig_ids)]})
+
+                new_production_ids = new_move_ids.mapped('production_id')
+                # new_move_ids.unlink()
+                new_production_ids.action_cancel()
+                new_production_ids.unlink()
+                
+            
