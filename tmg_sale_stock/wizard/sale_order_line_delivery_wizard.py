@@ -25,6 +25,7 @@ class SaleOrderLineDeliveryWizard(models.TransientModel):
                     ('active', '=', True),
                     # ('parent_id', '=', partner_id.parent_id.id),
                     ('name', '=', partner_id.name),
+                    ('attention_to' '=', partner_id.attention_to)
                     ('street', '=', partner_id.street),
                     ('street2', '=', partner_id.street2),
                     ('city', '=', partner_id.city),

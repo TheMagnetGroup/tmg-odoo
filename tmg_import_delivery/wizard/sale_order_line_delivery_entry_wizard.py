@@ -17,6 +17,7 @@ class SaleOrderLineDeliveryEntryWizard(models.TransientModel):
 
     sale_line_id = fields.Many2one('sale.order.line', string='Active SOLs', ondelete='cascade', required=True, default=_default_sol)
     scheduled_date = fields.Date(string='Scheduled Date')
+    attention_to = fields.Char(string='Attention To')
     name = fields.Char(string='Name')
     street = fields.Char(string="Address1")
     street2 = fields.Char(string="Address2")
