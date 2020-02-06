@@ -6,12 +6,15 @@
     'description': """
     Adds the ability to add a third party shipper number for fedex deliveries and adds to tmg_sale_stock's ability to enter bulk shipments by adding the ability to enter individual shipments in wizard
     This also adds the ability to add 3rf party fedex  numbers. The bill my account setting and the dropdowns in picking and sales screens
+    
+    * Christian Dunn – 1/13/2020 – Changed what shipping labels used to get ship from company name 
+    
     """,
 
     "author": "The Magnet Group",
     'website': "http://www.themagnetgroup.com",
     'category': 'Sale',
-    'version': '0.1',
+    'version': '0.2',
     # Categories can be used to filter modules in modules listing
     # Check https://github.com/odoo/odoo/blob/12.0/odoo/addons/base/data/ir_module_category_data.xml
     # for the full list
