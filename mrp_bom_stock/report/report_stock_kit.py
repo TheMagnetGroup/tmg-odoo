@@ -44,7 +44,7 @@ class ReportStockForecat(models.Model):
                         LEFT JOIN
                             mrp_bom_line mbl ON mbl.bom_id = mb.id AND mbl.to_exclude = False
                         LEFT JOIN
-                            mrp_bom_line_product_attribute_value_rel bml_att_rel ON bml_att_rel.mrp_bom_line_id = mbl.id OR  bml_att_rel.mrp_bom_line_id NOT IN (SELECT id from mrp_bom_line bl where bl.bom_id = mb.id)
+                            mrp_bom_line_product_attribute_value_rel bml_att_rel ON bml_att_rel.mrp_bom_line_id = mbl.id
                         LEFT JOIN
                             product_attribute_value_product_product_rel pa_rel on pa_rel.product_attribute_value_id = bml_att_rel.product_attribute_value_id
                         LEFT JOIN
