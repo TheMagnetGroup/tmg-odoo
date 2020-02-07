@@ -5,11 +5,13 @@
     'summary': "Web",
     'description': """
 Manufacturing JOB: Muliple MO processing
+
+    * Christian Dunn - 2020/02/07 -   Added picking location to sale report.
 """,
     "author": "Odoo Inc",
     'website': "https://www.odoo.com",
     'category': 'Manufacturing',
-    'version': '0.1',
+    'version': '0.2',
     'depends': ['mrp', 'sale', 'mrp_bom_extended'],
     'data': [
         'security/ir.model.access.csv',
