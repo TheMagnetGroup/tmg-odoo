@@ -69,8 +69,8 @@ class StockMove(models.Model):
             if ord.fedex_carrier_account:
                 vals['fedex_carrier_account'] = self.env.context.get('fedex_carrier_account')
 
-            if ord.fedex_carrier_account:
-                vals['fedex_carrier_account'] = self.env.context.get('fedex_carrier_account')
+            # if ord.fedex_carrier_account:
+            #     vals['fedex_carrier_account'] = self.env.context.get('fedex_carrier_account')
             # res.update({'ups_carrier_account': ord.ups_carrier_account})
         return vals
 
@@ -136,12 +136,12 @@ class StockMove(models.Model):
 
         vals = super(StockMove, self)._get_new_picking_values()
         # vals['carrier_id'] = self.carrier_id.id
-        vals['fedex_service_type'] = self.fedex_service_type
-        vals['fedex_carrier_account'] = self.fedex_carrier_account
-        vals['ups_service_type'] = self.ups_service_type
-        vals['ups_carrier_account'] = self.ups_carrier_account
-        vals['shipping_reference_1'] = self.shipping_reference_1
-        vals['shipping_reference_2'] = self.shipping_reference_2
+        vals['fedex_service_type'] = self.sale_line_id.order_id.fedex_service_type
+        vals['fedex_carrier_account'] = self.sale_line_id.order_id.fedex_carrier_account
+        vals['ups_service_type'] = self.sale_line_id.order_id.ups_service_type
+        vals['ups_carrier_account'] = self.sale_line_id.order_id.ups_carrier_account
+        vals['shipping_reference_1'] = self.sale_line_id.order_id.shipping_reference_1
+        vals['shipping_reference_2'] = self.sale_line_id.order_id.shipping_reference_2
         # del(vals['carrier_id'])
         return vals
 
@@ -149,8 +149,8 @@ class StockMove(models.Model):
     def _prepare_merge_moves_distinct_fields(self):
         distinct_fields = super(StockMove, self)._prepare_merge_moves_distinct_fields()
         distinct_fields.append('carrier_id')
-        distinct_fields.append('fedex_carrier_account')
         distinct_fields.append('fedex_service_type')
+        distinct_fields.append('fedex_carrier_account')
         distinct_fields.append('ups_service_type')
         distinct_fields.append('ups_carrier_account')
         distinct_fields.append('shipping_reference_1')
