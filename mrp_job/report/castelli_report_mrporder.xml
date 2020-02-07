@@ -168,6 +168,22 @@
                                        <td><span t-field="pick.quantity_done"/> </td>
                                        <td><img t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', pickings.name, 600, 100)" style="width:300px;height:50px" alt="Barcode" /></td>
                                     </tr>
+                                    <table class="table table-sm">
+                                      <tr>
+                                        <td>Source</td>
+                                        <td>Dest</td>
+                                        <td>Qty</td>
+                                        <td>Qty Done</td>
+                                      </tr>
+                                      <t t-foreach="pick.move_line_ids" t-as="pickline">
+                                        <tr>
+                                          <td><span t-field="pickline.location_id.display_name"/></td>
+                                          <td><span t-field="pickline.location_dest_id.display_name"/></td>
+                                          <td><span t-field="pickline.product_uom_qty"/></td>
+                                          <td><span t-field="pickline.qty_done"/></td>
+                                        </tr>
+                                      </t>
+                                    </table>
                                  </t>
                               </t>
                            </t>
