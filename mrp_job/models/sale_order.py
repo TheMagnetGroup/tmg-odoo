@@ -10,7 +10,7 @@ class SaleOrder(models.Model):
     _inherit = "sale.order"
 
     jobs_count = fields.Integer(compute="_compute_jobs_count", sting="Jobs")
-    printed_date = fields.Datetime(string='Printed Date')
+    printed_date = fields.Datetime(string='Printed Date', copy=False)
     @api.multi
     @api.depends('order_line', 'order_line.job_id')
     def _compute_jobs_count(self):
