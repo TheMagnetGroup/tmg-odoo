@@ -84,7 +84,7 @@ class UPS_Request(UPSRequest):
                                                cod_info, shipping_reference_1, shipping_reference_2):
             shipment.Package.append(package)
 
-        shipment.Shipper.AttentionName = shipper.attention_to or ''
+        shipment.Shipper.AttentionName = shipper.name or ''
         shipment.Shipper.Name = shipper.parent_id.name or shipper.name or ''
         shipment.Shipper.Address.AddressLine = [l for l in [shipper.street or '', shipper.street2 or ''] if l]
         shipment.Shipper.Address.City = shipper.city or ''
@@ -105,7 +105,7 @@ class UPS_Request(UPSRequest):
             shipment.ShipFrom.Address.StateProvinceCode = ship_from.state_id.code or ''
         shipment.ShipFrom.Phone.Number = self._clean_phone_number(ship_from.phone)
 
-        shipment.ShipTo.AttentionName = ship_to.name or ''
+        shipment.ShipTo.AttentionName = shipper.attention_to or ''
         shipment.ShipTo.Name = ship_to.parent_id.name or ship_to.name or ''
         shipment.ShipTo.Address.AddressLine = [l for l in [ship_to.street or '', ship_to.street2 or ''] if l]
         shipment.ShipTo.Address.City = ship_to.city or ''
