@@ -5,6 +5,19 @@
          <t t-call="web.html_container">
             <t t-foreach="docs" t-as="o">
                <t t-call="web.internal_layout">
+                <div class="footer">
+                    <div class="row">
+                        <div class="col-3">
+                            <span/>
+                        </div>
+                        <div class="col-2 offset-2 text-center">
+                            <span t-esc="o.name"/>
+                        </div>
+                        <div class="col-2 offset-3 text-right">
+
+                        </div>
+                    </div>
+                </div>
                   <div class="page">
                      <div class="oe_structure"/>
                      <div class="row">
@@ -144,7 +157,7 @@
                            <!--                             </t>-->
                         </table>
                      </div>
-
+                <div style = 'page-break-before:always'>
                      <div>
                         <strong>
                            Pickings
@@ -170,7 +183,7 @@
                                        <td><img t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', pickings.name, 600, 100)" style="width:300px;height:50px" alt="Barcode"/></td>
                                     </tr>
                                     <tr>
-                                      <td>
+                                      <td colspan="3">
                                         <table class="table table-sm">
                                           <tr>
                                             <td>Source</td>
@@ -194,6 +207,8 @@
                            </t>
                         </t>
                      </table>
+                      </div>
+                      <div style = 'page-break-before:always'>
                      <div t-foreach="o.production_ids" t-as="mfg" style="border:1px solid black;">
                         <t t-if="mfg.state != 'cancel'">
                         <div class="row">
@@ -369,6 +384,7 @@
                         </t>
 <!--                        End If-->
                      </div>
+                      </div>
 <!--                     <div>-->
 <!--                        <h3>Shipments</h3>-->
 <!--                        <table class="table table-sm">-->
@@ -403,7 +419,7 @@
 <!--                        </table>-->
 <!--                     </div>-->
 
-                     <div style="border:thin">
+                     <div style="border:thin;page-break-before:always">
                         <h3>Shipments</h3>
 
                         <t t-foreach="o.picking_ids" t-as="ship1">
