@@ -157,7 +157,18 @@
                            <!--                             </t>-->
                         </table>
                      </div>
-                <div style = 'page-break-before:always'>
+                     <div class="row" style="page-break-before:always">
+                         <div class="col-3">
+                           <h2 t-field="o.name"/>
+                        </div>
+                        <div class="col-3">
+                           <h6>Ship Date:</h6>
+                           <h6 t-field="o.commitment_date"/>
+                        </div>
+
+                     </div>
+
+                <div>
                      <div>
                         <strong>
                            Pickings
@@ -183,7 +194,8 @@
                                        <td><img t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', pickings.name, 600, 100)" style="width:300px;height:50px" alt="Barcode"/></td>
                                     </tr>
                                     <tr>
-                                      <td colspan="3">
+                                       <td></td>
+                                      <td colspan="2">
                                         <table class="table table-sm">
                                           <tr>
                                             <td>Source</td>
@@ -208,7 +220,8 @@
                         </t>
                      </table>
                       </div>
-                      <div style = 'page-break-before:always'>
+                     <h2 t-field="o.name" style="page-break-before:always"/>
+                      <div >
                      <div t-foreach="o.production_ids" t-as="mfg" style="border:1px solid black;">
                         <t t-if="mfg.state != 'cancel'">
                         <div class="row">
@@ -418,8 +431,8 @@
 <!--                           </t>-->
 <!--                        </table>-->
 <!--                     </div>-->
-
-                     <div style="border:thin;page-break-before:always">
+                     <h2 t-field="o.name" style="page-break-before:always"/>
+                     <div style="border:thin">
                         <h3>Shipments</h3>
 
                         <t t-foreach="o.picking_ids" t-as="ship1">
