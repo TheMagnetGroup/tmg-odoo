@@ -62,7 +62,7 @@ class UPS_Request(UPSRequest):
         return Packages
 
     def send_shipping(self, shipment_info, packages, shipper, ship_from, ship_to, packaging_type, service_type,
-                      saturday_delivery, cod_info=None, label_file_type='GIF', ups_carrier_account=False, shipping_reference_1='', shipping_reference_2=''):
+                      saturday_delivery, cod_info=None, label_file_type='GIF', ups_carrier_account=False, shipping_reference_1='', shipping_reference_2='', company = None):
         client = self._set_client(self.ship_wsdl, 'Ship', 'ShipmentRequest')
 
         request = client.factory.create('ns0:RequestType')
@@ -85,7 +85,7 @@ class UPS_Request(UPSRequest):
             shipment.Package.append(package)
 
         shipment.Shipper.AttentionName = shipper.name or ''
-        shipment.Shipper.Name = shipper.parent_id.name or shipper.name or ''
+        shipment.Shipper.Name = company.shipping_name or ''
         shipment.Shipper.Address.AddressLine = [l for l in [shipper.street or '', shipper.street2 or ''] if l]
         shipment.Shipper.Address.City = shipper.city or ''
         shipment.Shipper.Address.PostalCode = shipper.zip or ''
@@ -96,7 +96,7 @@ class UPS_Request(UPSRequest):
         shipment.Shipper.Phone.Number = self._clean_phone_number(shipper.phone)
 
         shipment.ShipFrom.AttentionName = ship_from.name or ''
-        shipment.ShipFrom.Name = ship_from.parent_id.name or ship_from.name or ''
+        shipment.ShipFrom.Name = company.shipping_name or ''
         shipment.ShipFrom.Address.AddressLine = [l for l in [ship_from.street or '', ship_from.street2 or ''] if l]
         shipment.ShipFrom.Address.City = ship_from.city or ''
         shipment.ShipFrom.Address.PostalCode = ship_from.zip or ''
