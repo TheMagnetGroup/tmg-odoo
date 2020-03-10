@@ -45,7 +45,7 @@ class Fedex_Request(FedexRequest):
         Contact = self.client.factory.create('Contact')
         Contact.PersonName = ''
         Contact.CompanyName = company_partner.shipping_name
-        Contact.PhoneNumber = warehouse_partner.phone or ''
+        Contact.PhoneNumber =  ''
         # TODO fedex documentation asks for TIN number, but it seems to work without
 
         Address = self.client.factory.create('Address')
