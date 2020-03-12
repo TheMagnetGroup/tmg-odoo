@@ -93,7 +93,7 @@ class UPS_Request(UPSRequest):
         if shipper.country_id.code in ('US', 'CA', 'IE'):
             shipment.Shipper.Address.StateProvinceCode = shipper.state_id.code or ''
         shipment.Shipper.ShipperNumber = self.shipper_number or ''
-        shipment.Shipper.Phone.Number = ''
+        shipment.Shipper.Phone.Number = '2025550195'
 
         shipment.ShipFrom.AttentionName =  ''
         shipment.ShipFrom.Name = company.shipping_name or ''
@@ -103,7 +103,7 @@ class UPS_Request(UPSRequest):
         shipment.ShipFrom.Address.CountryCode = ship_from.country_id.code or ''
         if ship_from.country_id.code in ('US', 'CA', 'IE'):
             shipment.ShipFrom.Address.StateProvinceCode = ship_from.state_id.code or ''
-        shipment.ShipFrom.Phone.Number =  self._clean_phone_number(shipper.phone)
+        shipment.ShipFrom.Phone.Number = '2025550195'
 
         shipment.ShipTo.AttentionName = ship_to.name or ''
         shipment.ShipTo.Name = ship_to.parent_id.name or ship_to.name or ''
