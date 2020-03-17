@@ -105,8 +105,8 @@ class UPS_Request(UPSRequest):
             shipment.ShipFrom.Address.StateProvinceCode = ship_from.state_id.code or ''
         shipment.ShipFrom.Phone.Number = self._clean_phone_number(ship_from.phone)
 
- 
-        shipment.ShipTo.AttentionName = shipper.attention_to or ''
+
+        shipment.ShipTo.AttentionName = ship_to.attention_to or ''
         shipment.ShipTo.Name = ship_to.parent_id.name or ship_to.name or ''
         shipment.ShipTo.Address.AddressLine = [l for l in [ship_to.street or '', ship_to.street2 or ''] if l]
         shipment.ShipTo.Address.City = ship_to.city or ''
