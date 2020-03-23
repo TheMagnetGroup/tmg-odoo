@@ -97,9 +97,9 @@ class UPS_Request(UPSRequest):
         shipment.Shipper.ShipperNumber = self.shipper_number or ''
         shipment.Shipper.Phone.Number = '2025550195'
 
-
         shipment.ShipFrom.AttentionName =  ''
         shipment.ShipFrom.Name = company.shipping_name or ''
+
 
         shipment.ShipFrom.Address.AddressLine = [l for l in [ship_from.street or '', ship_from.street2 or ''] if l]
         shipment.ShipFrom.Address.City = ship_from.city or ''

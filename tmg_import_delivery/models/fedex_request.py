@@ -43,9 +43,11 @@ class Fedex_Request(FedexRequest):
 
     def set_shipper(self, company_partner, warehouse_partner):
         Contact = self.client.factory.create('Contact')
+
         Contact.PersonName = company_partner.attention_to or ''
         Contact.CompanyName = company_partner.shipping_name
         Contact.PhoneNumber = '2025550195'
+
 
         # TODO fedex documentation asks for TIN number, but it seems to work without
 
