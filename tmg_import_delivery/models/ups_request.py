@@ -84,8 +84,10 @@ class UPS_Request(UPSRequest):
                                                cod_info, shipping_reference_1, shipping_reference_2):
             shipment.Package.append(package)
 
-        shipment.Shipper.AttentionName = ''
+
+        shipment.Shipper.AttentionName = shipper.attention_to or ''
         shipment.Shipper.Name = company.shipping_name or ''
+
         shipment.Shipper.Address.AddressLine = [l for l in [shipper.street or '', shipper.street2 or ''] if l]
         shipment.Shipper.Address.City = shipper.city or ''
         shipment.Shipper.Address.PostalCode = shipper.zip or ''
@@ -97,6 +99,8 @@ class UPS_Request(UPSRequest):
 
         shipment.ShipFrom.AttentionName =  ''
         shipment.ShipFrom.Name = company.shipping_name or ''
+
+
         shipment.ShipFrom.Address.AddressLine = [l for l in [ship_from.street or '', ship_from.street2 or ''] if l]
         shipment.ShipFrom.Address.City = ship_from.city or ''
         shipment.ShipFrom.Address.PostalCode = ship_from.zip or ''
@@ -105,7 +109,8 @@ class UPS_Request(UPSRequest):
             shipment.ShipFrom.Address.StateProvinceCode = ship_from.state_id.code or ''
         shipment.ShipFrom.Phone.Number = '2025550195'
 
-        shipment.ShipTo.AttentionName = ship_to.name or ''
+
+        shipment.ShipTo.AttentionName = ship_to.attention_to or ''
         shipment.ShipTo.Name = ship_to.parent_id.name or ship_to.name or ''
         shipment.ShipTo.Address.AddressLine = [l for l in [ship_to.street or '', ship_to.street2 or ''] if l]
         shipment.ShipTo.Address.City = ship_to.city or ''

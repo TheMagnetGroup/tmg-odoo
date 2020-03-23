@@ -6,6 +6,10 @@
     'description': """
     Adds the ability to add a third party shipper number for fedex deliveries and adds to tmg_sale_stock's ability to enter bulk shipments by adding the ability to enter individual shipments in wizard
     This also adds the ability to add 3rf party fedex  numbers. The bill my account setting and the dropdowns in picking and sales screens
+    
+          
+        * Christian Dunn - 2020/02/07 -   Added attention to flag to the delivery order.
+        * Christian Dunn - 2020/02/07 -   Fixed bug with fedex information not pulling over.
     """,
 
     "author": "The Magnet Group",

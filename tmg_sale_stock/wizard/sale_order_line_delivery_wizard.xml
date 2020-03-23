@@ -17,10 +17,10 @@
                               <p>Delivery quantity of 0.0 will be ignored for this sale order line, but contact will be imported. Use it when you want to create a parent company with multiple shipping addresses.</p>
                               <hr/>
                               <!--<p class="mb-0">Whenever you need to, be sure to use margin utilities to keep things nice and tidy.</p>-->
-                                <p class="mb-0"><strong>name,street,street2,city,state,zip,country,phone,email,parent company,delivery quantity</strong></p>
-                                <p class="mb-0">"Company Name","Street Name",,"SF","CA","999999","US","892742450","companyemail@exampleemail.com",,0.0</p>
-                                <p class="mb-0">"Company Shipping Contact A","Street A",,"SF","CA","12345","US","1234567890","companyshippingemaila@exampleemail.com","Company Name",20.0</p>
-                                <p class="mb-0">"Company Shipping Contact B","Street B",,"SF","CA","54321","US","0987654321","companyshippingemailb@exampleemail.com","Company Name",30.0</p>
+                                <p class="mb-0"><strong>name,attention_to,street,street2,city,state,zip,country,phone,email,parent company,delivery quantity</strong></p>
+                                <p class="mb-0">"Company Name","Contact Name","Street Name",,"SF","CA","999999","US","892742450","companyemail@exampleemail.com",,0.0</p>
+                                <p class="mb-0">"Company Shipping Contact A","Contact Name 2","Street A",,"SF","CA","12345","US","1234567890","companyshippingemaila@exampleemail.com","Company Name",20.0</p>
+                                <p class="mb-0">"Company Shipping Contact B","Contact Name 3","Street B",,"SF","CA","54321","US","0987654321","companyshippingemailb@exampleemail.com","Company Name",30.0</p>
                             </div>
                             <!--<p class="text-info"><strong>Upload CSV or XLSL file here. Delivery quantity of 0.0 will be ignored for this sale order line, but contact will be imported.</strong></p>-->
                             <!--<p><strong>name,street,street2,city,state,zip,country,phone,email,parent company,delivery quantity</strong></p>-->

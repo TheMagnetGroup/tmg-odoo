@@ -28,3 +28,4 @@ class DeliveryOrder(models.Model):
     city = fields.Char(related="shipping_partner_id.city")
     state_id = fields.Many2one(related="shipping_partner_id.state_id")
     country_id = fields.Many2one(related="shipping_partner_id.country_id", string="Country")
+    attention_to = fields.Char(related='shipping_partner_id.attention_to', string='Attention To')
