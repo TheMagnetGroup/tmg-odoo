@@ -106,6 +106,7 @@ class SaleOrderLineDeliveryEntryWizard(models.TransientModel):
             new_partner = partner_obj.create({
                 'active': True,
                 'name': self.name,
+                'attention_to': self.attention_to,
                 'street': self.street,
                 'street2': self.street2,
                 'city': self.city,
