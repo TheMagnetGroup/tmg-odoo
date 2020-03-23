@@ -13,20 +13,10 @@ class SaleOrderLineDelivery(models.Model):
     shipping_partner_id = fields.Many2one('res.partner', ondelete='cascade', string='Additional Delivery Address (SOL)', required=False)
     qty = fields.Float('Delivery Quantity', digits=dp.get_precision('Product Unit of Measure'))
 
-    # # todo: not necessary
-    # name = fields.Char(readonly=True, compute='_compute_default_name')
-    #
-    # @api.multi
-    # @api.depends('shipping_partner_id', 'shipping_partner_id.name', 'qty')
-    # def _compute_default_name(self):
-    #     for sold in self:
-    #         sold.name = '{}({})'.format(sold.shipping_partner_id.name, str(sold.qty))
-
 
 class SaleOrderLine(models.Model):
     _inherit = 'sale.order.line'
 
-    # xname = fields.Char('External ID', compute='_compute_sale_line_xname', store=False)
     delivery_ids = fields.One2many('sale.order.line.delivery', 'sale_line_id', string='Additional Deliveries (SOL)', copy=True)
 
     delivery_qty_sum = fields.Float('Delivery Qty Sum', compute='_compute_delivery_qty_sum', store=True,
@@ -39,26 +29,11 @@ class SaleOrderLine(models.Model):
         res.extend(['delivery_ids'])
         return res
 
-    # @api.multi
-    # def _compute_sale_line_xname(self):
-    #     for sol in self:
-    #         xid = self.env['ir.model.data'].sudo().search([('model', '=', 'sale.order.line'), ('res_id', '=', sol.id)], limit=1)
-    #         if xid:
-    #             sol.xname = xid.complete_name
-
     @api.multi
     @api.depends('delivery_ids', 'delivery_ids.qty')
     def _compute_delivery_qty_sum(self):
         for sol in self:
             sol.delivery_qty_sum = sum(sol.delivery_ids.mapped('qty'))
-
-    # @api.model
-    # def create(self, values):
-    #     sols = super(SaleOrderLine, self).create(values)
-    #     # force create xml ids
-    #     # this crazy syntax is to call the hidden func from base model
-    #     SaleOrderLine._BaseModel__ensure_xml_id(sols)
-    #     return sols
 
     # inherit the private _write here to capture the value change in depends
     @api.multi
@@ -111,3 +86,39 @@ class SaleOrderLine(models.Model):
         self.ensure_one()
         self.delivery_ids.unlink()
 
+
+class SaleOrder(models.Model):
+    _inherit = 'sale.order'
+
+    delivery_update_ok = fields.Boolean('Can Update Delivery', help='technical field to make sure a delivery is updatable - meaning there is no confirmed delivery for this order.', compute="_compute_delivery_update_ok", store=True)
+
+    @api.multi
+    @api.depends('state', 'picking_ids', 'picking_ids.state')
+    def _compute_delivery_update_ok(self):
+        for order in self:
+            if order.state == 'sale' and order.picking_ids and 'done' not in order.picking_ids.mapped('state'):
+                order.delivery_update_ok = True
+            else:
+                order.delivery_update_ok = False
+
+    def action_update_delivery(self):
+        for order in self:
+            if not order.delivery_update_ok:
+                raise ValidationError(_('Cannot update delivery when there is at least one confirmed delivery.'))
+            old_move_orig_ids = order.picking_ids.filtered(lambda pick: pick.picking_type_code == 'outgoing').mapped('move_ids_without_package.move_orig_ids.id')
+            old_production_ids = self.env['mrp.production'].search([('sale_line_id', 'in', order.order_line.ids)])
+            
+            order.picking_ids.action_cancel()
+            order.picking_ids.unlink()
+            order.order_line._action_launch_stock_rule()
+            
+            if old_move_orig_ids and old_production_ids:
+                new_move_ids = order.picking_ids.filtered(lambda pick: pick.picking_type_code == 'outgoing').mapped('move_ids_without_package.move_orig_ids')
+                order.picking_ids.filtered(lambda pick: pick.picking_type_code == 'outgoing').mapped('move_ids_without_package').write({'move_orig_ids': [(6, 0, old_move_orig_ids)]})
+
+                new_production_ids = new_move_ids.mapped('production_id')
+                # new_move_ids.unlink()
+                new_production_ids.action_cancel()
+                new_production_ids.unlink()
+                
+            

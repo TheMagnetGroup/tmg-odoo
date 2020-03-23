@@ -1,6 +1,7 @@
 from odoo.addons.delivery_fedex.models.fedex_request import FedexRequest
 
 STATECODE_REQUIRED_COUNTRIES = ['US', 'CA', 'PR ', 'IN']
+
 class Fedex_Request(FedexRequest):
 
     def _add_package(self, weight_value, package_code=False, package_height=0, package_width=0, package_length=0, sequence_number=False, mode='shipping', po_number=False, dept_number=False):
@@ -39,11 +40,13 @@ class Fedex_Request(FedexRequest):
             self.RequestedShipment.RequestedPackageLineItems.append(package)
         else:
             self.RequestedShipment.RequestedPackageLineItems = package
+
     def set_shipper(self, company_partner, warehouse_partner):
         Contact = self.client.factory.create('Contact')
         Contact.PersonName = company_partner.attention_to or ''
-        Contact.CompanyName = company_partner.name if company_partner.is_company else ''
-        Contact.PhoneNumber = warehouse_partner.phone or ''
+        Contact.CompanyName = company_partner.shipping_name
+        Contact.PhoneNumber = '2025550195'
+
         # TODO fedex documentation asks for TIN number, but it seems to work without
 
         Address = self.client.factory.create('Address')
