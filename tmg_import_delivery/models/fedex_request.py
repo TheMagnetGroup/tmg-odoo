@@ -41,10 +41,34 @@ class Fedex_Request(FedexRequest):
         else:
             self.RequestedShipment.RequestedPackageLineItems = package
 
-    def set_shipper(self, company_partner, warehouse_partner):
+    def set_recipient(self, recipient_partner):
+        Contact = self.client.factory.create('Contact')
+        if recipient_partner.is_company:
+            Contact.PersonName = recipient_partner.attention_to or ''
+            Contact.CompanyName = recipient_partner.name
+        else:
+            Contact.PersonName = recipient_partner.attention_to or ''
+            Contact.CompanyName = recipient_partner.parent_id.name or ''
+        Contact.PhoneNumber = recipient_partner.phone or ''
+
+        Address = self.client.factory.create('Address')
+        Address.StreetLines = [recipient_partner.street or '', recipient_partner.street2 or '']
+        Address.City = recipient_partner.city or ''
+        if recipient_partner.country_id.code in STATECODE_REQUIRED_COUNTRIES:
+            Address.StateOrProvinceCode = recipient_partner.state_id.code or ''
+        else:
+            Address.StateOrProvinceCode = ''
+        Address.PostalCode = recipient_partner.zip or ''
+        Address.CountryCode = recipient_partner.country_id.code or ''
+
+        self.RequestedShipment.Recipient.Contact = Contact
+        self.RequestedShipment.Recipient.Address = Address
+
+
+    def set_shipper(self, company_partner, warehouse_partner, actual_partner):
         Contact = self.client.factory.create('Contact')
 
-        Contact.PersonName = company_partner.attention_to or ''
+        Contact.PersonName =  ''
         Contact.CompanyName = company_partner.shipping_name
         Contact.PhoneNumber = '2025550195'
 
