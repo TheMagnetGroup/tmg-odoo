@@ -48,7 +48,7 @@ class Fedex_Request(FedexRequest):
             Contact.CompanyName = recipient_partner.name
         else:
             Contact.PersonName = recipient_partner.attention_to or ''
-            Contact.CompanyName = recipient_partner.parent_id.name or ''
+            Contact.CompanyName = recipient_partner.name or ''
         Contact.PhoneNumber = recipient_partner.phone or ''
 
         Address = self.client.factory.create('Address')
