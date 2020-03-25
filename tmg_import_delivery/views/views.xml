@@ -52,6 +52,7 @@
                      <field name="delivery_ids" mode="tree" context="{'default_sale_line_id': active_id}">
                             <tree create="false" editable="bottom" options="{'no_create': True}">
                                 <field name="partner_name" />
+                                <field name="attention_to"/>
                                 <field name="street"/>
                                 <field name="city"/>
                                 <field name="state_id"/>
