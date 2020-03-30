@@ -184,7 +184,7 @@ class SaleOrder(models.Model):
             for line in ulist:
                 output = output + ' <li>' + line + '</li>'
             output = output + ' </ul>'
-        return   output
+        return output
 
     @api.multi
     def CheckHolds(self):
@@ -234,6 +234,7 @@ class SaleOrder(models.Model):
                     order.picking_ids.write({'on_hold_text': ''})
                 for li in self.order_line:
                     li.job_id.write({'on_hold': False})
+                self.set_holds(False, False)
             else:
                 order.on_hold = True
             if any(hol.credit_hold == True for hol in order.order_holds):
@@ -269,6 +270,9 @@ class SaleOrder(models.Model):
                     for wo in mo.workorder_ids:
                         wo.write({'on_hold': True})
 
+                    for pi in mo.picking_ids:
+                        pi.on_hold = True
+
 
             for pi in self.picking_ids:
                 self.picking_ids.write({'on_hold': True})
@@ -283,7 +287,10 @@ class SaleOrder(models.Model):
                     mo.write({'on_hold': False})
                     mo.write({'on_hold_text': ""})
                     for wo in mo.workorder_ids:
-                        wo.write({'on_hold': True})
+                        wo.write({'on_hold': False})
+
+                    for pi in mo.picking_ids:
+                        pi.on_hold = False
             if not ship:
                 for li in self.order_line:
                     li.job_id.write({'on_hold': False})
