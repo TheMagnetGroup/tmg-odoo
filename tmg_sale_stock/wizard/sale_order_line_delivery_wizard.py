@@ -76,7 +76,7 @@ class SaleOrderLineDeliveryWizard(models.TransientModel):
                 partner_id = self.env['res.partner'].browse(partner)
                 partner_id.write({
                     'customer': False,  # new request specifiy this to be False
-                    'type': 'delivery' 
+                    'type': 'delivery'
                 })  # todo: maybe other default fields
                 existing_partner_id = self.env['res.partner'].search(self._get_existing_partner_searching_domain(partner_id), limit=1)
                 if existing_partner_id:
