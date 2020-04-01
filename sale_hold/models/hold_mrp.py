@@ -17,7 +17,7 @@ class hold_mrp(models.Model):
         return ret
 
     @api.multi
-    @api.onchange('on_hold')
+    @api.depends('on_hold')
     def update_on_change_text(self):
         for order in self:
             for pick in order.picking_ids:
