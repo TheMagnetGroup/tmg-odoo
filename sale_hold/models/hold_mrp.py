@@ -17,6 +17,18 @@ class hold_mrp(models.Model):
         return ret
 
     @api.multi
+    @api.onchange('on_hold')
+    def update_on_change_text(self):
+        for order in self:
+            picking_ids = self.env['stock.picking'].search([
+                ('group_id', '=', order.procurement_group_id.id),
+            ])
+            for picking in picking_ids:
+                pickobj = self.env['stock.picking']
+                holdsObj = pickobj.browse(picking)
+                holdsObj.on_hold = True
+
+    @api.multi
     def button_plan(self):
         if self.on_hold:
             raise UserError('This order has holds preventing processing.')
