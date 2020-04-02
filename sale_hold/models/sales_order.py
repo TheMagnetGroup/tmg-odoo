@@ -271,7 +271,7 @@ class SaleOrder(models.Model):
                         wo.write({'on_hold': True})
 
                     for pi in mo.picking_ids:
-                        pi.on_hold = True
+                        pi.write({'on_hold': True})
 
 
             for pi in self.picking_ids:
@@ -290,7 +290,7 @@ class SaleOrder(models.Model):
                         wo.write({'on_hold': False})
 
                     for pi in mo.picking_ids:
-                        pi.on_hold = False
+                        pi.write({'on_hold': False})
             if not ship:
                 for li in self.order_line:
                     li.job_id.write({'on_hold': False})
