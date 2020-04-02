@@ -18,6 +18,7 @@ import hashlib
 import re
 import io
 import os
+
 _logger = logging.getLogger(__name__)
 try:
     import boto3
