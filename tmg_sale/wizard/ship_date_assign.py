@@ -27,7 +27,8 @@ class ShipDateAssign(models.TransientModel):
             for m in manOrds:
                 # m.write({'date_planned_start':  self.scheduled_date})
                 m.date_planned_start = self.scheduled_date
-
+                for p in m.picking.ids:
+                    p.write({'scheduled_date': self.scheduled_date})
             for d in dels:
                 d.scheduled_date = self.scheduled_date
         return {'type': 'ir.actions.act_window_close'}
