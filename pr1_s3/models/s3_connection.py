@@ -12,6 +12,7 @@ import time
 import base64
 import hashlib
 import re
+_logger = logging.getLogger(__name__)
 try:
     import boto3
 except:
