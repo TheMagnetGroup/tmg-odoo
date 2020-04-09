@@ -56,7 +56,7 @@
             <!-- Add reference number if report is for supplier -->
             <xpath expr="//div[1]/table[1]/thead/tr/th[2]" position="after">
                 <t t-if="o.partner_type=='supplier'">
-                    <th><span>PO#</span></th>
+                    <th><span>Invoice</span></th>
                 </t>
             </xpath>
             <xpath expr="//div[1]/table[1]/tbody/tr/td[2]" position="after">
