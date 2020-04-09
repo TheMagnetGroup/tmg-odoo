@@ -163,6 +163,8 @@
     Could we just update the external identifier?
     3. Users should only be able to import sale order order line delivery addresses for the sale order line they initiate the import from.
     [2060046]
+    
+        * Christian Dunn - 2020/04/09 -   Added check for validation to make sure location has product.
     """,
     'license': 'OEEL-1',
     'author': 'Odoo Inc',

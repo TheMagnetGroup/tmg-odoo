@@ -20,10 +20,11 @@ class StockPicking(models.Model):
         self.ensure_one()
         if self.picking_type_code == 'outgoing' and self.carrier_id and not self.package_ids:
             raise ValidationError(_('Please define one or more packages before validating the delivery order.'))
+        ''
         if self.picking_type_code == 'internal':
             if not any(found.product_id == ml.product_id for ml in self.move_line_ids_without_package for found in ml.location_id.quant_ids):
                 raise ValidationError(_('Invalid location for pick.'))
-            
+
         return super(StockPicking, self).button_validate()
 
     @api.one
