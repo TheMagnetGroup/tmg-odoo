@@ -1,0 +1,89 @@
+<odoo>
+    <data>
+        <template id="tmg_external_layout_standard" inherit_id="web.external_layout_standard">
+            <!-- Replace the stock company address with the remit to address if supplied -->
+            <xpath expr="//div[@t-field='company.partner_id']" position="replace">
+                <t t-if="(o._name == 'account.invoice' or o._name == 'account.payment') and company.remit_to_id and o.partner_id.customer==True">
+                    <div t-field="company.remit_to_id"
+                         t-options='{"widget": "contact", "fields": ["address", "name"], "no_marker": true}'
+                    />
+                </t>
+                <t t-else="else">
+                    <div t-field="company.partner_id"
+                         t-options='{"widget": "contact", "fields": ["address", "name"], "no_marker": true}'
+                    />
+                </t>
+            </xpath>
+        </template>
+
+        <template id="tmg_report_invoice_document" inherit_id="account.report_invoice_document" priority="31">
+            <!-- Flip the partner id/ship to at the top of the invoice -->
+            <xpath expr="//address//parent::t" position="replace">
+                <t t-set="address">
+                    <t t-set="information_block">
+                        <address style="margin-top: 50px" t-field="o.partner_id"
+                            t-options='{"widget": "contact", "fields": ["address", "name"], "no_marker": True}' groups="sale.group_delivery_invoice_address"/>
+                    </t>
+                    <t t-if="o.partner_shipping_id and (o.partner_shipping_id != o.partner_id)">
+                        <div groups="sale.group_delivery_invoice_address">
+                            <span style="bold;margin-top: 50px">Shipping address:</span>
+                            <div t-field="o.partner_shipping_id"
+                                t-options='{"widget": "contact", "fields": ["address", "name"], "no_marker": True}'/>
+                        </div>
+                    </t>
+                </t>
+            </xpath>
+            <!-- Hide the "Reference:" at the top of the invoice -->
+            <xpath expr="//div[@name='reference']" position="replace"/>
+            <!-- Replace the "Description:" heading with "PO #:" -->
+            <xpath expr="//div[@name='description']//child::strong" position="replace">
+                <strong>PO #:</strong>
+            </xpath>
+            <!-- Get rid of the reference sentence at the bottom of the form -->
+            <xpath expr="//p[@t-if='o.reference']" position="replace"/>
+            <!-- Add the phone and email from the remit to address as contact information -->
+            <xpath expr="//p[@name='note']" position="after">
+                    <p t-if="o.company_id.remit_to_id.phone" name="credit_phone">
+                        Credit Phone: <span t-field="o.company_id.remit_to_id.phone"/>
+                    </p>
+                    <p t-if="o.company_id.remit_to_id.email" name="credit_email">
+                        Department Email: <span t-field="o.company_id.remit_to_id.email"/>
+                    </p>
+            </xpath>
+        </template>
+
+        <template id="tmg_report_payment_receipt_document" inherit_id="account.report_payment_receipt_document" priority="31">
+            <!-- Add reference number if report is for supplier -->
+            <xpath expr="//div[1]/table[1]/thead/tr/th[2]" position="after">
+                <t t-if="o.partner_type=='supplier'">
+                    <th><span>PO#</span></th>
+                </t>
+            </xpath>
+            <xpath expr="//div[1]/table[1]/tbody/tr/td[2]" position="after">
+                <t t-if="o.partner_type=='supplier'">
+                    <td><span t-field="inv.reference"/></td>
+                </t>
+            </xpath>
+        </template>
+
+        <template id="tmg_ckus_stub" inherit_id="l10n_us_check_printing.ckus_stub">
+            <!-- Replace Due Date with Invoice Date -->
+            <xpath expr="//div/table/thead/tr/th[1]" position="replace">
+                <th class="text-left">Invoice Date</th>
+            </xpath>
+            <xpath expr="//div/table/tbody/t/t[2]/tr/td[1]" position="replace">
+                <td class="text-left"><t t-if="stub_line['invoice_date']" t-esc="stub_line['invoice_date']"/></td>
+            </xpath>
+        </template>
+
+        <template id="tmg_print_check_top" inherit_id="l10n_us_check_printing.print_check_top">
+            <!-- Replace the stock check stub template with the TMG check stub template -->
+            <xpath expr="//t/t/t/div/t[2]" position="replace">
+                <t t-call="tmg_accounting.tmg_ckus_stub"><t t-set="stub_num" t-value="1"/></t>
+            </xpath>
+            <xpath expr="//t/t/t/div/t[3]" position="replace">
+                <t t-call="tmg_accounting.tmg_ckus_stub"><t t-set="stub_num" t-value="2"/></t>
+            </xpath>
+        </template>
+    </data>
+</odoo>
