@@ -7,26 +7,30 @@
                     <div t-field="company.remit_to_id"
                          t-options='{"widget": "contact", "fields": ["address", "name"], "no_marker": true}'
                     />
+                    <div style="padding-bottom: 1in"/>
                 </t>
                 <t t-else="else">
                     <div t-field="company.partner_id"
                          t-options='{"widget": "contact", "fields": ["address", "name"], "no_marker": true}'
                     />
+                    <div style="padding-bottom: 1in"/>
                 </t>
             </xpath>
         </template>
 
         <template id="tmg_report_invoice_document" inherit_id="account.report_invoice_document" priority="31">
-            <!-- Flip the partner id/ship to at the top of the invoice -->
+            <!-- Flip the partner id/ship to at the top of the invoice and add 1in between the company and partner address-->
             <xpath expr="//address//parent::t" position="replace">
                 <t t-set="address">
                     <t t-set="information_block">
-                        <address style="margin-top: 50px" t-field="o.partner_id"
+                        <div style="padding-top: 1in"/>
+                        <address style="padding-left: .25in" t-field="o.partner_id"
                             t-options='{"widget": "contact", "fields": ["address", "name"], "no_marker": True}' groups="sale.group_delivery_invoice_address"/>
                     </t>
                     <t t-if="o.partner_shipping_id and (o.partner_shipping_id != o.partner_id)">
+                        <div style="padding-top: 1in"/>
                         <div groups="sale.group_delivery_invoice_address">
-                            <span style="bold;margin-top: 50px">Shipping address:</span>
+                            <span>Shipping address:</span>
                             <div t-field="o.partner_shipping_id"
                                 t-options='{"widget": "contact", "fields": ["address", "name"], "no_marker": True}'/>
                         </div>
