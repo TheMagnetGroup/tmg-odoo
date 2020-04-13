@@ -34,5 +34,16 @@
       </field>
     </record>
 
+    <record id="tmg_customer_rebate_view" model="ir.ui.view">
+      <field name="name">tmg.customer.rebate.view</field>
+      <field name="model">res.partner</field>
+      <field name="inherit_id" ref="base.view_partner_form"/>
+      <field name="arch" type="xml">
+        <xpath expr="//page[@name='sales_purchases']/group[@name='container_row_2']/group[@name='sale']/field[@name='customer']" position="after">
+          <field name="Rebate" string="Rebate" attrs="{'invisible': [('customer','=',False)]}"/>
+        </xpath>
+      </field>
+    </record>
+
   </data>
 </odoo>
