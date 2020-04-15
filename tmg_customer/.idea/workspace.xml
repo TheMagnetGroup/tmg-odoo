@@ -3,16 +3,15 @@
   <component name="ChangeListManager">
     <list default="true" id="381617a5-210b-44c8-a3a3-eab8d945a92f" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/__manifest__.py" beforeDir="false" afterPath="$PROJECT_DIR$/__manifest__.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/models/tmg_customer_models.py" beforeDir="false" afterPath="$PROJECT_DIR$/models/tmg_customer_models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/security/ir.model.access.csv" beforeDir="false" afterPath="$PROJECT_DIR$/security/ir.model.access.csv" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/views/tmg_customer_views.xml" beforeDir="false" afterPath="$PROJECT_DIR$/views/tmg_customer_views.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
-  </component>
-  <component name="FavoritesManager">
-    <favorites_list name="tmg_customer" />
   </component>
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
@@ -55,7 +54,7 @@
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../mrp_job/views/sale_order_views.xml" />
     <property name="restartRequiresConfirmation" value="false" />
     <property name="settings.editor.selected.configurable" value="vcs.Git" />
   </component>
@@ -72,7 +71,7 @@
       <recent name="$PROJECT_DIR$" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.odoo-bin noinstall">
+  <component name="RunManager" selected="Python.odoo-bin">
     <configuration default="true" type="PythonConfigurationType" factoryName="Python">
       <module name="tmg_customer" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -128,7 +127,7 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="SCRIPT_NAME" value="$USER_HOME$/source/odoo/odoo-bin" />
-      <option name="PARAMETERS" value="--addons-path=./addons,../enterprise,~/mods/tmg-odoo -i tmg_customer -d odoo" />
+      <option name="PARAMETERS" value="--addons-path=./addons,../enterprise,~/mods/tmg-odoo -i tmg_customer -d staging" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
       <option name="MODULE_MODE" value="false" />
@@ -210,26 +209,34 @@
     <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="WindowStateProjectService">
-    <state x="451" y="145" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1586813950978">
+    <state x="451" y="145" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1586979497905">
       <screen x="67" y="27" width="1853" height="923" />
     </state>
-    <state x="451" y="145" key="#com.intellij.execution.impl.EditConfigurationsDialog/67.27.1853.923@67.27.1853.923" timestamp="1586813950978" />
-    <state width="1830" height="236" key="GridCell.Tab.0.bottom" timestamp="1586817505004">
+    <state x="451" y="145" key="#com.intellij.execution.impl.EditConfigurationsDialog/67.27.1853.923@67.27.1853.923" timestamp="1586979497905" />
+    <state x="776" y="195" width="424" height="584" key="#com.intellij.ide.macro.MacrosDialog" timestamp="1586979348694">
       <screen x="67" y="27" width="1853" height="923" />
     </state>
-    <state width="1830" height="236" key="GridCell.Tab.0.bottom/67.27.1853.923@67.27.1853.923" timestamp="1586817505004" />
-    <state width="1830" height="236" key="GridCell.Tab.0.center" timestamp="1586817505004">
+    <state x="776" y="195" width="424" height="584" key="#com.intellij.ide.macro.MacrosDialog/67.27.1853.923@67.27.1853.923" timestamp="1586979348694" />
+    <state x="776" y="245" width="424" height="484" key="FileChooserDialogImpl" timestamp="1586973346461">
       <screen x="67" y="27" width="1853" height="923" />
     </state>
-    <state width="1830" height="236" key="GridCell.Tab.0.center/67.27.1853.923@67.27.1853.923" timestamp="1586817505004" />
-    <state width="1830" height="236" key="GridCell.Tab.0.left" timestamp="1586817505003">
+    <state x="776" y="245" width="424" height="484" key="FileChooserDialogImpl/67.27.1853.923@67.27.1853.923" timestamp="1586973346461" />
+    <state width="1830" height="236" key="GridCell.Tab.0.bottom" timestamp="1586989291215">
       <screen x="67" y="27" width="1853" height="923" />
     </state>
-    <state width="1830" height="236" key="GridCell.Tab.0.left/67.27.1853.923@67.27.1853.923" timestamp="1586817505003" />
-    <state width="1830" height="236" key="GridCell.Tab.0.right" timestamp="1586817505004">
+    <state width="1830" height="236" key="GridCell.Tab.0.bottom/67.27.1853.923@67.27.1853.923" timestamp="1586989291215" />
+    <state width="1830" height="236" key="GridCell.Tab.0.center" timestamp="1586989291214">
       <screen x="67" y="27" width="1853" height="923" />
     </state>
-    <state width="1830" height="236" key="GridCell.Tab.0.right/67.27.1853.923@67.27.1853.923" timestamp="1586817505004" />
+    <state width="1830" height="236" key="GridCell.Tab.0.center/67.27.1853.923@67.27.1853.923" timestamp="1586989291214" />
+    <state width="1830" height="236" key="GridCell.Tab.0.left" timestamp="1586989291213">
+      <screen x="67" y="27" width="1853" height="923" />
+    </state>
+    <state width="1830" height="236" key="GridCell.Tab.0.left/67.27.1853.923@67.27.1853.923" timestamp="1586989291213" />
+    <state width="1830" height="236" key="GridCell.Tab.0.right" timestamp="1586989291214">
+      <screen x="67" y="27" width="1853" height="923" />
+    </state>
+    <state width="1830" height="236" key="GridCell.Tab.0.right/67.27.1853.923@67.27.1853.923" timestamp="1586989291214" />
   </component>
   <component name="masterDetails">
     <states>

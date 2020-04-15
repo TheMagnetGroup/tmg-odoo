@@ -34,16 +34,84 @@
       </field>
     </record>
 
-    <record id="tmg_customer_rebate_view" model="ir.ui.view">
-      <field name="name">tmg.customer.rebate.view</field>
+    <record id="tmg_customer_buyinggroup_view" model="ir.ui.view">
+      <field name="name">tmg.customer.buyinggroup.view</field>
       <field name="model">res.partner</field>
       <field name="inherit_id" ref="base.view_partner_form"/>
       <field name="arch" type="xml">
-        <xpath expr="//page[@name='sales_purchases']/group[@name='container_row_2']/group[@name='sale']/field[@name='customer']" position="after">
-          <field name="Rebate" string="Rebate" attrs="{'invisible': [('customer','=',False)]}"/>
+        <xpath expr="//page[@name='sales_purchases']/group[@name='container_row_2']/group[@name='sale']/field[@name='Rebate']" position="after">
+          <field name="buying_group_id" attrs="{'readonly': 1, 'invisible': [('customer','=',False)]}"/>
         </xpath>
       </field>
     </record>
 
+    <record id="tmg_customer_buyinggroup_view_acct" model="ir.ui.view">
+      <field name="name">tmg.customer.buyinggroup.view.accounting</field>
+      <field name="model">res.partner</field>
+      <field name="inherit_id" ref="tmg_customer_buyinggroup_view"/>
+      <field name="groups_id" eval="[(6, 0, [ref('account.group_account_invoice') ])]" />
+      <field name="arch" type="xml">
+        <xpath expr="//field[@name='buying_group_id']" position="attributes">
+          <attribute  name="readonly">0</attribute>
+        </xpath>
+      </field>
+    </record>
+
+    <record id="buying_group_action" model="ir.actions.act_window">
+      <field name="name">Buying Group</field>
+      <field name="res_model">partner.buying.group</field>
+      <field name="view_type">form</field>
+      <field name="view_mode">tree,form</field>
+    </record>
+    <menuitem id="menu_buying_group_settings" name="Buying Group"
+      action="buying_group_action" parent="account.menu_finance_configuration" sequence="40" />
+
+    <record id="tmg_order_buyinggroup_view" model="ir.ui.view">
+      <field name="name">tmg.order.buyinggroup.view</field>
+      <field name="model">sale.order</field>
+      <field name="inherit_id" ref="sale.view_order_form"/>
+      <field name="priority">32</field>
+      <field name="arch" type="xml">
+        <xpath expr="//field[@name='user_id']" position="after">
+          <field name="buying_group_id" attrs="{'readonly': 1}"/>
+        </xpath>
+      </field>
+    </record>
+
+    <record id="tmg_order_buyinggroup_view_acct" model="ir.ui.view">
+      <field name="name">tmg.order.buyinggroup.view.accounting</field>
+      <field name="model">sale.order</field>
+      <field name="inherit_id" ref="tmg_order_buyinggroup_view"/>
+      <field name="priority">32</field>
+      <field name="groups_id" eval="[(6, 0, [ref('account.group_account_invoice') ])]" />
+      <field name="arch" type="xml">
+        <xpath expr="//field[@name='buying_group_id']" position="attributes">
+          <attribute  name="readonly">0</attribute>
+        </xpath>
+      </field>
+    </record>
+
+    <record id="tmg_invoice_buyinggroup_view" model="ir.ui.view">
+      <field name="name">tmg.invoice.buyinggroup.view</field>
+      <field name="model">account.invoice</field>
+      <field name="inherit_id" ref="account.invoice_form"/>
+      <field name="arch" type="xml">
+        <xpath expr="//field[@name='team_id']" position="after">
+          <field name="buying_group_id" attrs="{'readonly': 1}"/>
+        </xpath>
+      </field>
+    </record>
+
+    <record id="tmg_invoice_buyinggroup_view_acct" model="ir.ui.view">
+      <field name="name">tmg.invoice.buyinggroup.view.accounting</field>
+      <field name="model">account.invoice</field>
+      <field name="inherit_id" ref="tmg_invoice_buyinggroup_view"/>
+      <field name="groups_id" eval="[(6, 0, [ref('account.group_account_invoice') ])]" />
+      <field name="arch" type="xml">
+        <xpath expr="//field[@name='buying_group_id']" position="attributes">
+          <attribute  name="readonly">0</attribute>
+        </xpath>
+      </field>
+    </record>
   </data>
 </odoo>
