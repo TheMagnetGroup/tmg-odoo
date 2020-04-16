@@ -9,7 +9,7 @@
 	    <field name="inherit_id" ref="sale.view_order_form"/>
 	    <field name="arch" type="xml">
 			<xpath expr="//button[@name='action_done']" position="after">
-				<button name="action_move_to_printed" type="object" string="Printed" attrs="{'invisible': [('state', '!=', 'sale')]}"/>
+				<button name="action_move_to_printed" type="object" string="Printed" attrs="{'invisible': True}"/>
 			</xpath>
 
 	    	<xpath expr="//field[@name='order_line']//tree//field[@name='name']" position="after">
@@ -34,6 +34,18 @@
 <!--                    <field name="jobs_count" widget="statinfo" string="Jobs"/>-->
 <!--                </button>-->
 <!--	    	</xpath>-->
+	    </field>
+	</record>
+
+	<record id="sale_order_form_inherit_mrp_job_inherit" model="ir.ui.view">
+	    <field name="name">sale.order.form.inherit.mrp.job.printed</field>
+		<field name="model">sale.order</field>
+	    <field name="inherit_id" ref="sale_order_form_inherit_mrp_job"/>
+		<field name="groups_id" eval="[(6, 0, [ref('mrp.group_mrp_manager') ])]" />
+	    <field name="arch" type="xml">
+	    	<xpath expr="//button[@name='action_move_to_printed']" position="replace">
+				<button name="action_move_to_printed" type="object" string="Printed" attrs="{'invisible': [('state', '!=', 'sale')]}"/>
+			</xpath>
 	    </field>
 	</record>
 </odoo>
