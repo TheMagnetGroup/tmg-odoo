@@ -7,6 +7,7 @@
 Manufacturing JOB: Muliple MO processing
 
     * Christian Dunn - 2020/02/07 -   Added picking location to sale report.
+    * Christian Dunn - 2020/04/23 -   Limited visibility of the printed button on Sale Order.
 """,
     "author": "Odoo Inc",
     'website': "https://www.odoo.com",
