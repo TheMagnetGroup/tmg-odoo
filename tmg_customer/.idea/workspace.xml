@@ -3,9 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="381617a5-210b-44c8-a3a3-eab8d945a92f" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/__manifest__.py" beforeDir="false" afterPath="$PROJECT_DIR$/__manifest__.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/models/tmg_customer_models.py" beforeDir="false" afterPath="$PROJECT_DIR$/models/tmg_customer_models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/security/ir.model.access.csv" beforeDir="false" afterPath="$PROJECT_DIR$/security/ir.model.access.csv" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/views/tmg_customer_views.xml" beforeDir="false" afterPath="$PROJECT_DIR$/views/tmg_customer_views.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -194,6 +192,14 @@
       <option name="presentableId" value="Default" />
       <updated>1563542906747</updated>
     </task>
+    <task id="LOCAL-00001" summary="Added buying group to order &amp; invoice screens. Adding setting of buying group on orders and invoices. Added buying group to the sales and invoice analysis report.">
+      <created>1586989462661</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1586989462661</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -208,6 +214,10 @@
     </option>
     <option name="oldMeFiltersMigrated" value="true" />
   </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Added buying group to order &amp; invoice screens. Adding setting of buying group on orders and invoices. Added buying group to the sales and invoice analysis report." />
+    <option name="LAST_COMMIT_MESSAGE" value="Added buying group to order &amp; invoice screens. Adding setting of buying group on orders and invoices. Added buying group to the sales and invoice analysis report." />
+  </component>
   <component name="WindowStateProjectService">
     <state x="451" y="145" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1586979497905">
       <screen x="67" y="27" width="1853" height="923" />
@@ -217,26 +227,38 @@
       <screen x="67" y="27" width="1853" height="923" />
     </state>
     <state x="776" y="195" width="424" height="584" key="#com.intellij.ide.macro.MacrosDialog/67.27.1853.923@67.27.1853.923" timestamp="1586979348694" />
+    <state x="532" y="35" width="912" height="904" key="CommitChangelistDialog2" timestamp="1586989462315">
+      <screen x="67" y="27" width="1853" height="923" />
+    </state>
+    <state x="532" y="35" width="912" height="904" key="CommitChangelistDialog2/67.27.1853.923@67.27.1853.923" timestamp="1586989462315" />
     <state x="776" y="245" width="424" height="484" key="FileChooserDialogImpl" timestamp="1586973346461">
       <screen x="67" y="27" width="1853" height="923" />
     </state>
     <state x="776" y="245" width="424" height="484" key="FileChooserDialogImpl/67.27.1853.923@67.27.1853.923" timestamp="1586973346461" />
-    <state width="1830" height="236" key="GridCell.Tab.0.bottom" timestamp="1586989291215">
+    <state width="1830" height="239" key="GridCell.Tab.0.bottom" timestamp="1588024573065">
+      <screen x="67" y="27" width="1853" height="933" />
+    </state>
+    <state width="1830" height="236" key="GridCell.Tab.0.bottom/67.27.1853.923@67.27.1853.923" timestamp="1587074298387" />
+    <state width="1830" height="239" key="GridCell.Tab.0.bottom/67.27.1853.933@67.27.1853.933" timestamp="1588024573065" />
+    <state width="1830" height="239" key="GridCell.Tab.0.center" timestamp="1588024573064">
+      <screen x="67" y="27" width="1853" height="933" />
+    </state>
+    <state width="1830" height="236" key="GridCell.Tab.0.center/67.27.1853.923@67.27.1853.923" timestamp="1587074298387" />
+    <state width="1830" height="239" key="GridCell.Tab.0.center/67.27.1853.933@67.27.1853.933" timestamp="1588024573064" />
+    <state width="1830" height="239" key="GridCell.Tab.0.left" timestamp="1588024573064">
+      <screen x="67" y="27" width="1853" height="933" />
+    </state>
+    <state width="1830" height="236" key="GridCell.Tab.0.left/67.27.1853.923@67.27.1853.923" timestamp="1587074298386" />
+    <state width="1830" height="239" key="GridCell.Tab.0.left/67.27.1853.933@67.27.1853.933" timestamp="1588024573064" />
+    <state width="1830" height="239" key="GridCell.Tab.0.right" timestamp="1588024573065">
+      <screen x="67" y="27" width="1853" height="933" />
+    </state>
+    <state width="1830" height="236" key="GridCell.Tab.0.right/67.27.1853.923@67.27.1853.923" timestamp="1587074298387" />
+    <state width="1830" height="239" key="GridCell.Tab.0.right/67.27.1853.933@67.27.1853.933" timestamp="1588024573065" />
+    <state x="588" y="223" width="800" height="528" key="Vcs.Push.Dialog.v2" timestamp="1586989475452">
       <screen x="67" y="27" width="1853" height="923" />
     </state>
-    <state width="1830" height="236" key="GridCell.Tab.0.bottom/67.27.1853.923@67.27.1853.923" timestamp="1586989291215" />
-    <state width="1830" height="236" key="GridCell.Tab.0.center" timestamp="1586989291214">
-      <screen x="67" y="27" width="1853" height="923" />
-    </state>
-    <state width="1830" height="236" key="GridCell.Tab.0.center/67.27.1853.923@67.27.1853.923" timestamp="1586989291214" />
-    <state width="1830" height="236" key="GridCell.Tab.0.left" timestamp="1586989291213">
-      <screen x="67" y="27" width="1853" height="923" />
-    </state>
-    <state width="1830" height="236" key="GridCell.Tab.0.left/67.27.1853.923@67.27.1853.923" timestamp="1586989291213" />
-    <state width="1830" height="236" key="GridCell.Tab.0.right" timestamp="1586989291214">
-      <screen x="67" y="27" width="1853" height="923" />
-    </state>
-    <state width="1830" height="236" key="GridCell.Tab.0.right/67.27.1853.923@67.27.1853.923" timestamp="1586989291214" />
+    <state x="588" y="223" width="800" height="528" key="Vcs.Push.Dialog.v2/67.27.1853.923@67.27.1853.923" timestamp="1586989475452" />
   </component>
   <component name="masterDetails">
     <states>

@@ -24,12 +24,15 @@ class tmg_customer(models.Model):
 class SaleOrder(models.Model):
     _inherit = 'sale.order'
 
-    buying_group_id = fields.Many2one('partner.buying.group', string='Buying Group')
+    # buying_group_id = fields.Many2one('partner.buying.group', string='Buying Group')
 
-    @api.onchange('partner_id')
-    def _set_buying_group(self):
-        if self.partner_id:
-            self.buying_group_id = self.partner_id.buying_group_id
+    # @api.onchange('partner_id')
+    # def _set_buying_group(self):
+    #     if self.partner_id:
+    #         if self.partner_id.buying_group_id:
+    #             self.buying_group_id = self.partner_id.buying_group_id
+    #         elif self.partner_id.parent_id.buying_group_id:
+    #             self.buying_group_id = self.partner_id.parent_id.buying_group_id
 
     @api.multi
     def _prepare_invoice(self):
@@ -40,9 +43,15 @@ class SaleOrder(models.Model):
         """
         self.ensure_one()
         invoice_vals = super(SaleOrder, self)._prepare_invoice()
-        invoice_vals.update({
-            'buying_group_id': self.buying_group_id.id
-        })
+        bg_id = None
+        if self.partner_id.buying_group_id:
+            bg_id = self.partner_id.buying_group_id.id
+        elif self.partner_id.parent_id.buying_group_id:
+            bg_id = self.partner_id.parent_id.buying_group_id.id
+        if bg_id:
+            invoice_vals.update({
+                'buying_group_id': bg_id
+            })
         return invoice_vals
 
 
@@ -52,19 +61,19 @@ class AccountInvoice(models.Model):
     buying_group_id = fields.Many2one('partner.buying.group', string='Buying Group')
 
 
-class SaleReport(models.Model):
-    _inherit = 'sale.report'
-
-    buying_group = fields.Char('Buying Group', readonly=True)
-
-    def _query(self, with_clause='', fields={}, groupby='', from_clause=''):
-        fields['buying_group'] = ', bg.name as buying_group'
-
-        groupby += ', bg.name'
-
-        from_clause += 'left join partner_buying_group bg on (s.buying_group_id = bg.id)'
-
-        return super(SaleReport, self)._query(with_clause, fields, groupby, from_clause)
+# class SaleReport(models.Model):
+#     _inherit = 'sale.report'
+#
+#     buying_group = fields.Char('Buying Group', readonly=True)
+#
+#     def _query(self, with_clause='', fields={}, groupby='', from_clause=''):
+#         fields['buying_group'] = ', bg.name as buying_group'
+#
+#         groupby += ', bg.name'
+#
+#         from_clause += 'left join partner_buying_group bg on (s.buying_group_id = bg.id)'
+#
+#         return super(SaleReport, self)._query(with_clause, fields, groupby, from_clause)
 
 
 class AccountInvoiceReport(models.Model):
