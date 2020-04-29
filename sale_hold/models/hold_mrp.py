@@ -16,6 +16,27 @@ class hold_mrp(models.Model):
         ret = super(hold_mrp, self).record_production()
         return ret
 
+
+    @api.model
+    def update_all_picking(self):
+        orders = self.search([('state', '=', 'confirmed')])
+        for order in orders:
+            for pick in order.picking_ids:
+                if order.on_hold:
+                    pick.write({'on_hold': True})
+                else:
+                    pick.write({'on_hold': False})
+
+    @api.multi
+    @api.depends('on_hold')
+    def update_on_change_text(self):
+        for order in self:
+            for pick in order.picking_ids:
+                if order.on_hold:
+                    pick.on_hold = True
+                else:
+                    pick.on_hold = False
+
     @api.multi
     def button_plan(self):
         if self.on_hold:
