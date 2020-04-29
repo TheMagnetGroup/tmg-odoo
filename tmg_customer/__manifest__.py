@@ -8,6 +8,11 @@
     'description': """
         Add bool field to res.partner named "Rebate". 
         Add "Rebate" field to res.partner form view but only show the field if "Is Customer" is true
+        * Jonas Temple - 2020/04/28 -   Added buying groups to Odoo as a new model (partner.buying.group)
+                                        Added buying group to res.partner
+                                        Added buying group to account.invoice and code to set the buying group 
+                                            on the invoice, either from the partner or the partner's parent
+                                        Added buying group to account.invoice.report
     """,
 
     'author': "The Magnet Group",
@@ -24,7 +29,7 @@
 
     # always loaded
     'data': [
-        # 'security/ir.model.access.csv',
+        'security/ir.model.access.csv',
         'views/tmg_customer_views.xml',
        # 'views/templates.xml',
     ],

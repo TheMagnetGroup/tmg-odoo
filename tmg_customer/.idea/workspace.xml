@@ -1,14 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="381617a5-210b-44c8-a3a3-eab8d945a92f" name="Default Changelist" comment="" />
+    <list default="true" id="381617a5-210b-44c8-a3a3-eab8d945a92f" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/__manifest__.py" beforeDir="false" afterPath="$PROJECT_DIR$/__manifest__.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
-  </component>
-  <component name="FavoritesManager">
-    <favorites_list name="tmg_customer" />
   </component>
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
@@ -48,8 +47,10 @@
   <component name="PropertiesComponent">
     <property name="ASKED_SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="Git.Branch.Popup.ShowAllRemotes" value="true" />
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../tmg_salesperson" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../mrp_job/views/sale_order_views.xml" />
     <property name="restartRequiresConfirmation" value="false" />
     <property name="settings.editor.selected.configurable" value="vcs.Git" />
   </component>
@@ -95,13 +96,13 @@
       <envs>
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
-      <option name="SDK_HOME" value="" />
+      <option name="SDK_HOME" value="/usr/bin/python3.6" />
       <option name="WORKING_DIRECTORY" value="$USER_HOME$/source/odoo" />
-      <option name="IS_MODULE_SDK" value="true" />
+      <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="SCRIPT_NAME" value="$USER_HOME$/source/odoo/odoo-bin" />
-      <option name="PARAMETERS" value="--addons-path=./addons,../enterprise,~/mods/tmg-odoo -d odoo" />
+      <option name="PARAMETERS" value="--addons-path=./addons,../enterprise,~/mods/tmg-odoo -d staging" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
       <option name="MODULE_MODE" value="false" />
@@ -116,13 +117,13 @@
       <envs>
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
-      <option name="SDK_HOME" value="" />
+      <option name="SDK_HOME" value="/usr/bin/python3.6" />
       <option name="WORKING_DIRECTORY" value="$USER_HOME$/source/odoo" />
-      <option name="IS_MODULE_SDK" value="true" />
+      <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="SCRIPT_NAME" value="$USER_HOME$/source/odoo/odoo-bin" />
-      <option name="PARAMETERS" value="--addons-path=./addons,../enterprise,~/mods/tmg-odoo -i tmg_customer -d odoo" />
+      <option name="PARAMETERS" value="--addons-path=./addons,../enterprise,~/mods/tmg-odoo -i tmg_customer -d staging" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
       <option name="MODULE_MODE" value="false" />
@@ -189,6 +190,21 @@
       <option name="presentableId" value="Default" />
       <updated>1563542906747</updated>
     </task>
+    <task id="LOCAL-00001" summary="Added buying group to order &amp; invoice screens. Adding setting of buying group on orders and invoices. Added buying group to the sales and invoice analysis report.">
+      <created>1586989462661</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1586989462661</updated>
+    </task>
+    <task id="LOCAL-00002" summary="Opted to just have buying group set at the invoice level since that is where we pay rebates for buying groups.">
+      <created>1588098443804</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1588098443804</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -202,6 +218,55 @@
       </map>
     </option>
     <option name="oldMeFiltersMigrated" value="true" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Added buying group to order &amp; invoice screens. Adding setting of buying group on orders and invoices. Added buying group to the sales and invoice analysis report." />
+    <MESSAGE value="Opted to just have buying group set at the invoice level since that is where we pay rebates for buying groups." />
+    <option name="LAST_COMMIT_MESSAGE" value="Opted to just have buying group set at the invoice level since that is where we pay rebates for buying groups." />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="451" y="145" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1586979497905">
+      <screen x="67" y="27" width="1853" height="923" />
+    </state>
+    <state x="451" y="145" key="#com.intellij.execution.impl.EditConfigurationsDialog/67.27.1853.923@67.27.1853.923" timestamp="1586979497905" />
+    <state x="776" y="195" width="424" height="584" key="#com.intellij.ide.macro.MacrosDialog" timestamp="1586979348694">
+      <screen x="67" y="27" width="1853" height="923" />
+    </state>
+    <state x="776" y="195" width="424" height="584" key="#com.intellij.ide.macro.MacrosDialog/67.27.1853.923@67.27.1853.923" timestamp="1586979348694" />
+    <state x="532" y="35" width="912" height="904" key="CommitChangelistDialog2" timestamp="1588098443449">
+      <screen x="67" y="27" width="1853" height="933" />
+    </state>
+    <state x="532" y="35" width="912" height="904" key="CommitChangelistDialog2/67.27.1853.923@67.27.1853.923" timestamp="1586989462315" />
+    <state x="532" y="35" key="CommitChangelistDialog2/67.27.1853.933@67.27.1853.933" timestamp="1588098443449" />
+    <state x="776" y="245" width="424" height="484" key="FileChooserDialogImpl" timestamp="1586973346461">
+      <screen x="67" y="27" width="1853" height="923" />
+    </state>
+    <state x="776" y="245" width="424" height="484" key="FileChooserDialogImpl/67.27.1853.923@67.27.1853.923" timestamp="1586973346461" />
+    <state width="1830" height="239" key="GridCell.Tab.0.bottom" timestamp="1588024573065">
+      <screen x="67" y="27" width="1853" height="933" />
+    </state>
+    <state width="1830" height="236" key="GridCell.Tab.0.bottom/67.27.1853.923@67.27.1853.923" timestamp="1587074298387" />
+    <state width="1830" height="239" key="GridCell.Tab.0.bottom/67.27.1853.933@67.27.1853.933" timestamp="1588024573065" />
+    <state width="1830" height="239" key="GridCell.Tab.0.center" timestamp="1588024573064">
+      <screen x="67" y="27" width="1853" height="933" />
+    </state>
+    <state width="1830" height="236" key="GridCell.Tab.0.center/67.27.1853.923@67.27.1853.923" timestamp="1587074298387" />
+    <state width="1830" height="239" key="GridCell.Tab.0.center/67.27.1853.933@67.27.1853.933" timestamp="1588024573064" />
+    <state width="1830" height="239" key="GridCell.Tab.0.left" timestamp="1588024573064">
+      <screen x="67" y="27" width="1853" height="933" />
+    </state>
+    <state width="1830" height="236" key="GridCell.Tab.0.left/67.27.1853.923@67.27.1853.923" timestamp="1587074298386" />
+    <state width="1830" height="239" key="GridCell.Tab.0.left/67.27.1853.933@67.27.1853.933" timestamp="1588024573064" />
+    <state width="1830" height="239" key="GridCell.Tab.0.right" timestamp="1588024573065">
+      <screen x="67" y="27" width="1853" height="933" />
+    </state>
+    <state width="1830" height="236" key="GridCell.Tab.0.right/67.27.1853.923@67.27.1853.923" timestamp="1587074298387" />
+    <state width="1830" height="239" key="GridCell.Tab.0.right/67.27.1853.933@67.27.1853.933" timestamp="1588024573065" />
+    <state x="588" y="225" width="800" height="528" key="Vcs.Push.Dialog.v2" timestamp="1588098461992">
+      <screen x="67" y="27" width="1853" height="933" />
+    </state>
+    <state x="588" y="223" width="800" height="528" key="Vcs.Push.Dialog.v2/67.27.1853.923@67.27.1853.923" timestamp="1586989475452" />
+    <state x="588" y="225" key="Vcs.Push.Dialog.v2/67.27.1853.933@67.27.1853.933" timestamp="1588098461992" />
   </component>
   <component name="masterDetails">
     <states>
