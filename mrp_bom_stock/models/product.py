@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from odoo import fields, models, api
+from odoo import fields, models, api, _
 
 
 class Product(models.Model):
@@ -13,10 +13,10 @@ class Product(models.Model):
         res = super(Product, self)._compute_quantities_dict(lot_id=lot_id, owner_id=owner_id, package_id=package_id, from_date=from_date, to_date=to_date)
         for product in self.filtered(lambda p: p.bom_id):
             components = product._get_bom_component_qty(product.bom_id)
-            res[product.id]['qty_available'] = res[product.id]['qty_available'] + product._get_possible_assembled_kit(components, res, 'qty_available')
-            res[product.id]['incoming_qty'] = res[product.id]['incoming_qty'] + product._get_possible_assembled_kit(components, res, 'incoming_qty')
-            res[product.id]['outgoing_qty'] = res[product.id]['outgoing_qty'] + product._get_possible_assembled_kit(components, res, 'outgoing_qty')
-            res[product.id]['virtual_available'] = res[product.id]['virtual_available'] + product._get_possible_assembled_kit(components, res, 'virtual_available')
+            res[product.id]['qty_available'] = product._get_possible_assembled_kit(components, res, 'qty_available')
+            res[product.id]['incoming_qty'] = product._get_possible_assembled_kit(components, res, 'incoming_qty')
+            res[product.id]['outgoing_qty'] = product._get_possible_assembled_kit(components, res, 'outgoing_qty')
+            res[product.id]['virtual_available'] = product._get_possible_assembled_kit(components, res, 'virtual_available')
         return res
 
     @api.multi
@@ -106,13 +106,8 @@ class Product(models.Model):
         boms, lines = self.bom_id.explode(self, bom_quantity)
         for line, line_data in lines:
             products += line.product_id
-        action = self.env.ref('stock.product_open_quants').read()[0]
-        action['domain'] = [('product_id', 'in', products.ids)]
-        action['context'] = {
-            'search_default_internal_loc': 1,
-            'search_default_locationgroup': 1,
-            'search_default_productgroup': 1,
-        }
+        action = self.env.ref('mrp_bom_stock.product_open_components').read()[0]
+        action['domain'] = [('id', 'in', products.ids)]
         return action
 
     @api.multi
@@ -168,6 +163,15 @@ class ProductTemplate(models.Model):
         action = self.env.ref('stock.product_open_quants').read()[0]
         action['context'] = {'search_default_internal_loc': 1}
         if self.bom_id:
-            action = self.env.ref('mrp_bom_stock.action_stock_kit_report_template').read()[0]
+            products = []
+            for product in self.mapped('product_variant_ids'):
+                bom_quantity = product.uom_id._compute_quantity(1.0, self.bom_id.product_uom_id)
+                boms, lines = self.bom_id.explode(product, bom_quantity)
+                for line, line_data in lines:
+                    if line.product_id.id not in products:
+                        products.append(line.product_id.id)
+            action = self.env.ref('mrp_bom_stock.product_open_components').read()[0]
+            action['domain'] = [('id', 'in', products)]
+            return action
         action['domain'] = [('product_id', 'in', products.ids)]
         return action
