@@ -1,0 +1,20 @@
+<odoo>
+<record id="view_partner_form_credit_inherit" model="ir.ui.view">
+      <field name="name">res.partner.form.credit.inherit</field>
+      <field name="model">res.partner</field>
+      <field name="inherit_id" ref="base.view_partner_form" />
+      <field name="groups_id" eval="[(6, 0, [ref('base.group_system') ])]" />
+      <field name="arch" type="xml">
+         <xpath expr="//page[@name='sales_purchases']" position="after">
+             <page string="Technical">
+                 <field name="promostandards"/>
+                 <field name="daily_call_cap"/>
+                 <field name="current_call_count"/>
+                 <field name="debug"/>
+             </page>
+
+         </xpath>
+      </field>
+   </record>
+
+    </odoo>

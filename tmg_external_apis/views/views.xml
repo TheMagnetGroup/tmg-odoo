@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+<data>
+   <record model="ir.ui.view" id="view_tmg_api_tree">
+	   		<field name="name">view_tmg_api_tree</field>
+			<field name="model">tmg_external_api.api_logging</field>
+			<field name="arch" type="xml">
+				<tree name="API Logs">
+					<field name="api_name"/>
+					<field name="partner_id"/>
+
+				</tree>
+	   		</field>
+	    </record>
+
+       <record model="ir.ui.view" id="view_tmg_api_form">
+	   		<field name="name">view_tmg_api_form</field>
+			<field name="model">tmg_external_api.api_logging</field>
+			<field name="arch" type="xml">
+				<form name="API Logs">
+					<field name="api_name"/>
+					<field name="partner_id"/>
+
+				</form>
+	   		</field>
+	    </record>
+
+    <record model="ir.ui.view" id="view_tmg_api_promostandards_form">
+	   		<field name="name">view_tmg_api_promostandards_form</field>
+			<field name="model">tmg_external_api.promostandards</field>
+			<field name="arch" type="xml">
+				<form name="Promostandards">
+					<field name="api_name"/>
+
+                    <button name="test_button"
+					string="Print Shipping Labels"
+					type="object"
+					/>
+				</form>
+	   		</field>
+	    </record>
+
+<record id="action_tmg_external_api" model="ir.actions.act_window">
+            <field name="name">External API</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tmg_external_api.api_logging</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form,pivot</field>
+        </record>
+
+    <record id="action_tmg_external_api_promostandards" model="ir.actions.act_window">
+            <field name="name">Promostandards</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tmg_external_api.promostandards</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+
+
+
+  <record id="tmg_external_api_menu_root" model="ir.ui.menu">
+
+    <field name="active" eval="True"/>
+    <field name="groups_id" eval="[(6, 0, [])]"/>
+    <field name="name">External APIs</field>
+    <field name="parent_id" eval="False"/>
+    <field name="sequence">11</field>
+    <field name="web_icon">fa fa-diamond,#f1c40f,#34495e</field>
+  </record>
+	<record id="tmg_external_api_menu" model="ir.ui.menu">
+	<field name="action" ref="action_tmg_external_api"/>
+    <field name="active" eval="True"/>
+    <field name="name">Logging</field>
+    <field name="parent_id" ref="tmg_external_api_menu_root"/>
+    <field name="sequence">2</field>
+
+  </record>
+
+    <record id="tmg_external_api_menu_promostandards" model="ir.ui.menu">
+	<field name="action" ref="action_tmg_external_api_promostandards"/>
+    <field name="active" eval="True"/>
+    <field name="name">Promostandards</field>
+    <field name="parent_id" ref="tmg_external_api_menu_root"/>
+    <field name="sequence">1</field>
+
+  </record>
+
+
+
+
+
+
+<!--       <menuitem id="tmg_api_logging_root"-->
+<!--                  string="Logging"-->
+<!--                  parent="menu_tmg_external_api_root"-->
+<!--                  sequence="1"/>-->
+
+<!--       <menuitem id="tmg_api_logging_root"-->
+<!--                  string="Logging"-->
+<!--                  parent="menu_tmg_external_api_root"-->
+<!--                  sequence="1"/>-->
+</data>
+</odoo>
