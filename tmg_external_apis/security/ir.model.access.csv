@@ -1,3 +1,0 @@
-id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_tmg_external_apis_APILogging,tmg_external_api.api_logging,model_tmg_external_api_api_logging,base.group_user,1,1,1,1
-access_tmg_external_apis_Promostandards,tmg_external_api.promostandards,model_tmg_external_api_promostandards,,1,1,1,1
