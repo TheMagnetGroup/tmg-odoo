@@ -18,7 +18,7 @@
 			<field name="model">tmg_external_api.promostandards</field>
 			<field name="arch" type="xml">
 				<tree name="API Logs">
-					<field name="api_name"/>
+					<field name="name"/>
 					<field name="debug"/>
 
 				</tree>
