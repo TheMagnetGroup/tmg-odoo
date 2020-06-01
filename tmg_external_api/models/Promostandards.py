@@ -7,7 +7,7 @@ import json
 class promostandards(models.Model):
     _name = 'tmg_external_api.promostandards'
 
-    api_name = fields.Char(string="API Name")
+    name = fields.Char(string="API Name")
 
     debug = fields.Boolean(string="Debug Mode")
 
