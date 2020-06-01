@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 <data>
-   <record model="ir.ui.view" id="view_tmg_api_tree">
+   <record model="ir.ui.view" id="view_tmg_logging_tree">
 	   		<field name="name">view_tmg_api_tree</field>
 			<field name="model">tmg_external_api.api_logging</field>
 			<field name="arch" type="xml">
