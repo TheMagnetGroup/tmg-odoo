@@ -1,6 +1,6 @@
 <odoo>
-<record id="view_partner_form_credit_inherit" model="ir.ui.view">
-      <field name="name">res.partner.form.credit.inherit</field>
+<record id="view_partner_form_promostandards_inherit" model="ir.ui.view">
+      <field name="name">res.partner.form.promostandards.inherit</field>
       <field name="model">res.partner</field>
       <field name="inherit_id" ref="base.view_partner_form" />
       <field name="groups_id" eval="[(6, 0, [ref('base.group_system') ])]" />
