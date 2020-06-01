@@ -12,10 +12,10 @@
 				</tree>
 	   		</field>
 	    </record>
-    
+
        <record model="ir.ui.view" id="view_tmg_api_tree">
 	   		<field name="name">view_tmg_promostandards_tree</field>
-			<field name="model">tmg_external_api.api_logging</field>
+			<field name="model">tmg_external_api.promostandards</field>
 			<field name="arch" type="xml">
 				<tree name="API Logs">
 					<field name="api_name"/>
