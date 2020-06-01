@@ -31,7 +31,7 @@
 			<field name="arch" type="xml">
 				<form name="Promostandards">
 					<field name="api_name"/>
-
+                    <field name="debug"/>
                     <button name="test_button"
 					string="Print Shipping Labels"
 					type="object"
