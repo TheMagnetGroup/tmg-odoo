@@ -7,10 +7,12 @@
       <field name="arch" type="xml">
          <xpath expr="//page[@name='sales_purchases']" position="after">
              <page string="Technical">
+                 <sheet>
                  <field name="promostandards"/>
                  <field name="daily_call_cap"/>
                  <field name="current_call_count"/>
                  <field name="debug"/>
+                 </sheet>
              </page>
 
          </xpath>
