@@ -1,44 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 <data>
-   <record model="ir.ui.view" id="view_tmg_api_tree">
-	   		<field name="name">view_tmg_api_tree</field>
-			<field name="model">tmg_external_api.api_logging</field>
-			<field name="arch" type="xml">
-				<tree name="API Logs">
-					<field name="api_name"/>
-					<field name="partner_id"/>
+<!--   <record model="ir.ui.view" id="view_tmg_api_tree">-->
+<!--	   		<field name="name">view_tmg_api_tree</field>-->
+<!--			<field name="model">tmg_external_api.api_logging</field>-->
+<!--			<field name="arch" type="xml">-->
+<!--				<tree name="API Logs">-->
+<!--					<field name="api_name"/>-->
+<!--					<field name="partner_id"/>-->
 
-				</tree>
-	   		</field>
-	    </record>
+<!--				</tree>-->
+<!--	   		</field>-->
+<!--	    </record>-->
 
-       <record model="ir.ui.view" id="view_tmg_api_form">
-	   		<field name="name">view_tmg_api_form</field>
-			<field name="model">tmg_external_api.api_logging</field>
-			<field name="arch" type="xml">
-				<form name="API Logs">
-					<field name="api_name"/>
-					<field name="partner_id"/>
+<!--       <record model="ir.ui.view" id="view_tmg_api_form">-->
+<!--	   		<field name="name">view_tmg_api_form</field>-->
+<!--			<field name="model">tmg_external_api.api_logging</field>-->
+<!--			<field name="arch" type="xml">-->
+<!--				<form name="API Logs">-->
+<!--					<field name="api_name"/>-->
+<!--					<field name="partner_id"/>-->
 
-				</form>
-	   		</field>
-	    </record>
+<!--				</form>-->
+<!--	   		</field>-->
+<!--	    </record>-->
 
-    <record model="ir.ui.view" id="view_tmg_api_promostandards_form">
-	   		<field name="name">view_tmg_api_promostandards_form</field>
-			<field name="model">tmg_external_api.promostandards</field>
-			<field name="arch" type="xml">
-				<form name="Promostandards">
-					<field name="api_name"/>
-                    <field name="debug"/>
-                    <button name="test_button"
-					string="Print Shipping Labels"
-					type="object"
-					/>
-				</form>
-	   		</field>
-	    </record>
+<!--    <record model="ir.ui.view" id="view_tmg_api_promostandards_form">-->
+<!--	   		<field name="name">view_tmg_api_promostandards_form</field>-->
+<!--			<field name="model">tmg_external_api.promostandards</field>-->
+<!--			<field name="arch" type="xml">-->
+<!--				<form name="Promostandards">-->
+<!--					<field name="api_name"/>-->
+<!--                    <field name="debug"/>-->
+<!--                    <button name="test_button"-->
+<!--					string="Print Shipping Labels"-->
+<!--					type="object"-->
+<!--					/>-->
+<!--				</form>-->
+<!--	   		</field>-->
+<!--	    </record>-->
 
 <record id="action_tmg_external_api" model="ir.actions.act_window">
             <field name="name">External API</field>
