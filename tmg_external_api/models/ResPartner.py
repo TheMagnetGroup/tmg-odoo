@@ -15,7 +15,7 @@ class Partner(models.Model):
         partners = self.search(
             [('promostandards', '=', True)])
         for partner in partners:
-            partner.current_call_cap = 0
+            partner.write({'current_call_count': 0})
 
         return True
 
