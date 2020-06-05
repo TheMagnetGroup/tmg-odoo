@@ -10,6 +10,8 @@ class APILogging(models.Model):
     request = fields.Text(string="Request")
 
 
-    @api.depends('api_name', 'partner_id', 'name')
+    @api.depends('api_name', 'partner_id')
     def _get_order_name(self):
-        self.name= self.api_name + "," + self.partner_id.name
+        name = self.name or ''
+        partner_name = self.name or ''
+        self.name= partner_name + "," + name
