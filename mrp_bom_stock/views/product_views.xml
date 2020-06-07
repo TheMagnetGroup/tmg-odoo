@@ -1,5 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
+    <record id="component_quantities_view_tree" model="ir.ui.view">
+        <field name="name">component.quantities.tree</field>
+        <field name="model">product.product</field>
+        <field eval="7" name="priority"/>
+        <field name="arch" type="xml">
+            <tree string="Component Quantities">
+                <field name="default_code"/>
+                <field name="name"/>
+                <field name="standard_price"/>
+                <field name="product_tmpl_id" invisible="1"/>
+                <field name="active" invisible="1"/>
+                <field name="qty_available"/>
+                <field name="virtual_available_qty"/>
+                <field name="uom_id" options="{'no_open': True, 'no_create': True}" groups="uom.group_uom"/>
+            </tree>
+        </field>
+    </record>
+    <record id="product_open_components" model="ir.actions.act_window">
+        <field name="name">Component Quantities</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">product.product</field>
+        <field name="context">{}</field>
+        <field name="search_view_id" ref="product.product_search_form_view"/>
+        <field name="view_ids"
+               eval="[(5, 0, 0),
+                      (0, 0, {'view_mode': 'tree', 'view_id': ref('mrp_bom_stock.component_quantities_view_tree')}),
+                      (0, 0, {'view_mode': 'form', 'view_id': ref('product.product_variant_easy_edit_view')})]"/>
+    </record>
 	<record id="product_template_view_form_inherit_mrp_bom_stock" model="ir.ui.view">
 		<field name="name">product.template.form.inherit.mrp_bom_stock</field>
 		<field name="model">product.template</field>
@@ -8,6 +36,26 @@
 			<label for="sale_delay" position="before">
 				<field name="bom_id" attrs="{'required': [('bom_count', '>', 0)]}"/>
 			</label>
+            <button name="action_open_quants" position="replace">
+                <button type="object" name="action_open_quants" attrs="{'invisible':['|', ('type', '!=', 'product'), ('bom_id', '!=', False)]}" class="oe_stat_button" icon="fa-building-o">
+                    <div class="o_field_widget o_stat_info">
+                        <span class="o_stat_value" widget="statinfo">
+                            <field name="qty_available" widget="statinfo" nolabel="1" class="mr4"/>
+                            <field name="uom_name"/>
+                        </span>
+                        <span class="o_stat_text">On Hand</span>
+                    </div>
+                </button>
+                <button type="object" name="action_open_quants" attrs="{'invisible':['|', ('type', '!=', 'product'), ('bom_id', '=', False)]}" class="oe_stat_button" icon="fa-building-o">
+                    <div class="o_field_widget o_stat_info">
+                        <span class="o_stat_value" widget="statinfo">
+                            <field name="qty_available" widget="statinfo" nolabel="1" class="mr4"/>
+                            <field name="uom_name"/>
+                        </span>
+                        <span class="o_stat_text">ATM</span>
+                    </div>
+                </button>
+            </button>
             <button name="%(stock.action_stock_level_forecast_report_template)d" position="replace">
                 <button type="action" name="%(stock.action_stock_level_forecast_report_template)d" attrs="{'invisible':['|', ('type', '!=', 'product'), ('bom_id', '!=', False)]}" class="oe_stat_button" icon="fa-building-o">
                     <div class="o_field_widget o_stat_info">
@@ -58,16 +106,16 @@
                         <span class="o_stat_text">On Hand</span>
                     </div>
                  </button>
-                <button class="oe_stat_button" 
+                <button class="oe_stat_button"
                     name="action_open_components_quants"
-                    icon="fa-building-o" 
+                    icon="fa-building-o"
                     type="object" attrs="{'invisible':['|', ('type', '!=', 'product'), ('bom_id', '=', False)]}">
                        <div class="o_field_widget o_stat_info">
                             <span class="o_stat_value">
                                 <field name="qty_available" widget="statinfo" nolabel="1" class="mr4"/>
                                 <field name="uom_name"/>
                             </span>
-                            <span class="o_stat_text">On Hand</span>
+                            <span class="o_stat_text">ATM</span>
                        </div>
                 </button>
             </button>
