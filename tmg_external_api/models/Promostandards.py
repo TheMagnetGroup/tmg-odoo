@@ -49,10 +49,11 @@ class promostandards(models.Model):
             })
             return True
 
-    @api.multi
-    def test_button(self):
-        if not self.check_call_cap(1):
-            return False
+    ##Test function for call cap
+    # @api.multi
+    # def test_button(self):
+    #     if not self.check_call_cap(1):
+    #         return False
 
 
 
