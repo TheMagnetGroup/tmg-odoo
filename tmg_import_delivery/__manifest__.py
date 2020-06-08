@@ -10,6 +10,7 @@
           
         * Christian Dunn - 2020/02/07 -   Added attention to flag to the delivery order.
         * Christian Dunn - 2020/02/07 -   Fixed bug with fedex information not pulling over.
+        * Jonas Temple   - 2020/06/08 -   Added attention to to the sale order report
     """,
 
     "author": "The Magnet Group",
@@ -21,7 +22,7 @@
     # for the full list
 
     # any module necessary for this one to work correctly
-    'depends': [ 'tmg_sale_stock','tmg_mrp','delivery_ups', 'delivery_fedex'],
+    'depends': [ 'tmg_sale_stock','tmg_mrp','delivery_ups', 'delivery_fedex','sale'],
 
     # always loaded
     'data': [
@@ -31,6 +32,7 @@
         'views/views.xml',
         'views/picking_view.xml',
         'views/fedex_provider_view.xml',
+        'reports/tmg_sale.xml'
 
     ],
     # only loaded in demonstration mode
