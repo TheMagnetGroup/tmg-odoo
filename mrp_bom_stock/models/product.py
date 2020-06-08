@@ -105,7 +105,9 @@ class Product(models.Model):
         bom_quantity = self.uom_id._compute_quantity(1.0, self.bom_id.product_uom_id)
         boms, lines = self.bom_id.explode(self, bom_quantity)
         for line, line_data in lines:
-            products += line.product_id
+            if line.to_exclude:
+                continue
+            products |= line.product_id
         action = self.env.ref('mrp_bom_stock.product_open_components').read()[0]
         action['domain'] = [('id', 'in', products.ids)]
         return action
@@ -123,6 +125,15 @@ class ProductTemplate(models.Model):
     _inherit = "product.template"
 
     bom_id = fields.Many2one('mrp.bom', string='Bill of Material', help="Bill of Material to compute manufacturable quantities.")
+
+    def _compute_quantities_dict(self):
+        qty_dict = super(ProductTemplate, self)._compute_quantities_dict()
+        for template in self:
+            if template.bom_id and any([bol.is_shared() for bol in template.bom_id.bom_line_ids]):
+                shared_lines = template.bom_id.bom_line_ids.filtered(lambda bol: bol.is_shared())
+                manufacturable_qty = min(shared_lines.mapped('product_id').mapped('qty_available'))
+                qty_dict[template.id]['qty_available'] = manufacturable_qty
+        return qty_dict
 
     def action_view_stock_move_lines(self):
         self.ensure_one()
@@ -168,7 +179,7 @@ class ProductTemplate(models.Model):
                 bom_quantity = product.uom_id._compute_quantity(1.0, self.bom_id.product_uom_id)
                 boms, lines = self.bom_id.explode(product, bom_quantity)
                 for line, line_data in lines:
-                    if line.product_id.id not in products:
+                    if line.product_id.id not in products and not line.to_exclude:
                         products.append(line.product_id.id)
             action = self.env.ref('mrp_bom_stock.product_open_components').read()[0]
             action['domain'] = [('id', 'in', products)]
