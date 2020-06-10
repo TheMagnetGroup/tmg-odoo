@@ -20,6 +20,13 @@ class promostandards(models.Model):
         return  partner
 
     @api.multi
+    def get_api(self, api_name):
+        apiContainer = self.env["tmg_external_api.promostandards"]
+        apiID = apiContainer.search([('name', '=', api_name)])
+        apiObj = apiContainer.Browse(apiID)
+        return apiObj
+
+    @api.multi
     def check_call_cap(self, partner_id):
         partner = self.get_partner(partner_id)
         if partner.current_call_count + 1 > partner.daily_call_cap:
@@ -28,9 +35,10 @@ class promostandards(models.Model):
             return True
 
     @api.multi
-    def _check_debug(self, partner_id):
+    def _check_debug(self, partner_id, api_name):
         partner = self.get_partner(partner_id)
-        if self.debug or partner.debug:
+        api = self.get_api(api_name)
+        if api.debug or partner.debug:
             return True
         else:
             return False
@@ -39,7 +47,7 @@ class promostandards(models.Model):
     def log_transaction(self, partner_id, request, api_name):
         partner = self.get_partner(partner_id)
         partner.current_call_count += 1
-        if self._check_debug(partner_id):
+        if self._check_debug(partner_id, api_name) :
             log_obj = self.env("tmg_external_api.api_logging")
             new_log = log_obj.create({
                 'api_name': api_name,
@@ -60,6 +68,7 @@ class promostandards(models.Model):
         if not self.check_call_cap(Partner_id):
             data = [('Error', '=', "Call Cap") ]
             return data
+
 
         statusObj = self.env['tmg_external_api.order_status']
         data = statusObj.OrderStatus(PONumber, SONumber,LastUpdate,Partner_id)
