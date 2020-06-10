@@ -56,7 +56,15 @@ class promostandards(models.Model):
     #         return False
 
 
+    def OrderStatus(self, PONumber, SONumber, LastUpdate, Partner_id, Request):
+        if not self.check_call_cap(Partner_id):
+            data = [('Error', '=', "Call Cap") ]
+            return data
 
+        statusObj = self.env['tmg_external_api.order_status']
+        data = statusObj.OrderStatus(PONumber, SONumber,LastUpdate,Partner_id)
+        self.log_transaction(Partner_id,Request,"Order Status")
+        return data
     # def OrderStatus(self, PONumber, SONumber, LastUpdate, Partner_id):
     #     if LastUpdate == '':
     #         LastUpdate = '02/01/1990'
