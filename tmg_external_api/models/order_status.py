@@ -15,7 +15,7 @@ class order_status(models.Model):
                         FROM sale_order as sale
                         join res_partner partner ON (partner.id = sale.partner_id)
                         where (client_order_ref = %(PONumber)s or %(PONumber)s =  '')
-                        and (CAST(partner.id as VARCHAR(20)) = %(Partner_ID)s or %(Partner_ID)s = '')
+                        and ((CAST(partner.id as VARCHAR(20)) = %(Partner_ID)s or CAST(partner.parent_id as VARCHAR(20)) = %(Partner_ID)s) or %(Partner_ID)s = '')
                         and (sale.name = %(SONumber)s or %(SONumber)s = '')
                         and (sale.write_date >= %(LastUpdate)s);"""
             params = {
