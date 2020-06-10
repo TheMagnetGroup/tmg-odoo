@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
-
+from datetime import date, datetime
 from odoo import models, fields, api
 import json
 
 
 class order_status(models.Model):
-    _name = 'tmg_external_api.promostandards'
+    _name = 'tmg_external_api.order_status'
 
 
     def OrderStatus(self, PONumber, SONumber, LastUpdate, Partner_id):
@@ -41,11 +41,11 @@ class order_status(models.Model):
                     ('ship_date', '=', order.expected_date),
                     ('in_hands', '=', order.in_hands),
                     ('status', '=', orderStatus),
-                    ('SONumber', '=', order.name)
+                    ('SONumber', '=', order.name),
                     ('PONumber', '=', order.client_order_ref)
                 ]
                 itemList.append(data)
-            json_string = json.dumps(itemList)
+
             return itemList
 
     def _get_current_status(self, order):
