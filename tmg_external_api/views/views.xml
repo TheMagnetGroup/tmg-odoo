@@ -42,12 +42,14 @@
 <!--			<field name="model">tmg_external_api.promostandards</field>-->
 <!--			<field name="arch" type="xml">-->
 <!--				<form name="Promostandards">-->
-<!--					<field name="api_name"/>-->
+<!--                    <group>-->
+<!--					<field name="name"/>-->
 <!--                    <field name="debug"/>-->
 <!--                    <button name="test_button"-->
 <!--					string="Print Shipping Labels"-->
 <!--					type="object"-->
 <!--					/>-->
+<!--                    </group>-->
 <!--				</form>-->
 <!--	   		</field>-->
 <!--	    </record>-->
