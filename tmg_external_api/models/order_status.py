@@ -42,7 +42,8 @@ class order_status(models.Model):
                     ('in_hands', '=', order.in_hands),
                     ('status', '=', orderStatus),
                     ('SONumber', '=', order.name),
-                    ('PONumber', '=', order.client_order_ref)
+                    ('PONumber', '=', order.client_order_ref),
+                    ('state_name', '=')
                 ]
                 itemList.append(data)
 
@@ -55,22 +56,27 @@ class order_status(models.Model):
 
     def _get_current_status(self, order):
         if order.state == 'cancel':
-            return 14
+            return [14, 'Canceled']
         if order.invoice_status == 'invoiced':
-            return 13
+            return [13, 'Complete']
         if order.order_holds:
             credit_found = False
             has_hold = False
+            current_hold = 0
+            current_desc = ''
             for hold in order.order_holds:
-                desc = hold.promostandards_hold_description
-                return int(self._get_lookup_value(desc,'promostandards_order_status'))
-                if hold.credit_hold:
-                    credit_found = True
-                    return 6
                 has_hold = True
+                desc = hold.promostandards_hold_description
+                hold_type = int(self._get_lookup_value(desc,'promostandards_order_status'))
+                if hold_type > current_hold:
+                    current_hold = hold_type
+                    current_desc = desc
+
+
+
             if has_hold:
-                return 5
+                return [int(current_hold), desc]
         for prod in order.production_ids:
             if prod.state == 'progress':
-                return 10
-        return 2
+                return [10, 'In Progress']
+        return [2, 'Order Confirmed']
