@@ -16,7 +16,7 @@ class tmg_reference(models.Model):
         recs = cont.search([('category', '=', categoryPassed)])
         output = []
         for r in recs:
-            t = [r.name, r.value]
+            t = [r.value, r.name]
             output.append(t)
         return output
 
