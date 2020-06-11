@@ -14,7 +14,7 @@ Add sales holds to orders that can block production or delivery. Also implements
     'category': 'Sale',
     'version': '0.1',
     # any module necessary for this one to work correctly
-    'depends': ['sale_management', 'sale_stock', 'mrp_job', 'tmg_mrp'],
+    'depends': ['sale_management', 'sale_stock', 'mrp_job', 'tmg_mrp', 'tmg_external_api'],
 
     # always loaded
     'data': [

@@ -25,6 +25,18 @@
 	   		</field>
 	    </record>
 
+    <record model="ir.ui.view" id="view_tmg_reference_tree">
+	   		<field name="name">view_tmg_reference_tree</field>
+			<field name="model">tmg_external_api.tmg_reference</field>
+			<field name="arch" type="xml">
+				<tree name="Reference Fields">
+					<field name="name"/>
+					<field name="value"/>
+                    <field name="category"/>
+				</tree>
+	   		</field>
+	    </record>
+
 <!--       <record model="ir.ui.view" id="view_tmg_api_form">-->
 <!--	   		<field name="name">view_tmg_api_form</field>-->
 <!--			<field name="model">tmg_external_api.api_logging</field>-->
@@ -70,6 +82,14 @@
             <field name="view_mode">tree,form</field>
         </record>
 
+    <record id="action_tmg_external_api_reference" model="ir.actions.act_window">
+            <field name="name">Reference</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tmg_external_api.tmg_reference</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+
 
 
   <record id="tmg_external_api_menu_root" model="ir.ui.menu">
@@ -94,6 +114,15 @@
 	<field name="action" ref="action_tmg_external_api_promostandards"/>
     <field name="active" eval="True"/>
     <field name="name">Promostandards</field>
+    <field name="parent_id" ref="tmg_external_api_menu_root"/>
+    <field name="sequence">1</field>
+
+  </record>
+
+    <record id="tmg_external_api_menu_reference" model="ir.ui.menu">
+	<field name="action" ref="action_tmg_external_api_reference"/>
+    <field name="active" eval="True"/>
+    <field name="name">Reference</field>
     <field name="parent_id" ref="tmg_external_api_menu_root"/>
     <field name="sequence">1</field>
 

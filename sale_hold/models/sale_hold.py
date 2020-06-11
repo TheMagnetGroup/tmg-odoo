@@ -10,8 +10,15 @@ class sale_hold(models.Model):
     active = fields.Boolean(string="Active")
     group_ids = fields.Many2many("res.groups", "rel_sales_to_holds", 'salesid', 'holdid',string="Security Group")
     credit_hold = fields.Boolean(string="Credit Hold")
-    promostandards_hold_description = fields.Char(string="Promostandards Hold Description")
+    promostandards_hold_description = fields.Selection(selection=lambda x: x.env['tmg_external_api.tmg_reference'].getEnums('promostandards_order_status'), string="Promostandards Hold Description")
 
+
+    @api.multi
+    @api.onchange('promostandards_hold_description')
+    def changed(self):
+        turd = 'turd'
+        for record in self:
+            turd     = 'turd'
     # @api.multi
     # def unlink(self):
     #     """Allows to delete sales order lines in draft,cancel states"""

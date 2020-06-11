@@ -48,22 +48,29 @@ class order_status(models.Model):
 
             return itemList
 
+    def _get_lookup_value(self, name, category):
+        cont = self.env('tmg_external_api.tmg_reference')
+        val = cont.search([('category', '=', category), ('name', '=', name)])
+        return int(val) or 5
+
     def _get_current_status(self, order):
         if order.state == 'cancel':
-            return 'Canceled'
+            return 14
         if order.invoice_status == 'invoiced':
-            return 'Completed'
+            return 13
         if order.order_holds:
             credit_found = False
             has_hold = False
             for hold in order.order_holds:
+                desc = hold.promostandards_hold_description
+                return int(self._get_lookup_value(desc,'promostandards_order_status'))
                 if hold.credit_hold:
                     credit_found = True
-                    return 'Credit Hold'
+                    return 6
                 has_hold = True
             if has_hold:
-                return 'General Hold'
+                return 5
         for prod in order.production_ids:
             if prod.state == 'progress':
-                return 'production'
-        return 'Confirmed'
+                return 10
+        return 2

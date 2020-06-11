@@ -60,9 +60,9 @@ class promostandards(models.Model):
             return True
 
     #Test function for call cap
-    # @api.multi
-    # def test_button(self):
-    #     test = self.OrderStatus("","","","156409"," fjfj")
+    @api.multi
+    def test_button(self):
+        test = self.log_transaction('1',"qeqwwe","","156409"," fjfj")
 
     @api.multi
     def OrderStatus(self, PONumber, SONumber, LastUpdate, Partner_id, Request):
@@ -75,60 +75,6 @@ class promostandards(models.Model):
         data = statusObj.OrderStatus(PONumber, SONumber,LastUpdate,Partner_id)
         self.log_transaction(Partner_id,Request,"Order Status")
         return data
-    # def OrderStatus(self, PONumber, SONumber, LastUpdate, Partner_id):
-    #     if LastUpdate == '':
-    #         LastUpdate = '02/01/1990'
-    #     sql = """SELECT sale.id
-    #                 FROM sale_order as sale
-    #                 join res_partner partner ON (partner.id = sale.partner_id)
-    #                 where (client_order_ref = %(PONumber)s or %(PONumber)s =  '')
-    #                 and (CAST(partner.id as VARCHAR(20)) = %(Partner_ID)s or %(Partner_ID)s = '')
-    #                 and (sale.name = %(SONumber)s or %(SONumber)s = '')
-    #                 and (sale.write_date >= %(LastUpdate)s);"""
-    #     params = {
-    #         'PONumber': PONumber,
-    #         'SONumber': SONumber,
-    #         'LastUpdate': LastUpdate,
-    #         'Partner_ID': Partner_id,
-    #     }
-    #     self.env.cr.execute(sql, params)
-    #     orderObj = self.env['sale.order']
-    #     itemList = []
-    #
-    #     for val in self.env.cr.dictfetchall():
-    #         order_id = val['id']
-    #         order = orderObj.browse(order_id)
-    #         orderStatus = self._get_current_status(order)
-    #
-    #         data = [
-    #
-    #             ('active', '=', True),
-    #             # ('parent_id', '=', partner_id.parent_id.id),
-    #             ('name', '=', order.name),
-    #             ('ship_date', '=', order.expected_date),
-    #             ('in_hands', '=', order.in_hands),
-    #             ('status', '=', orderStatus),
-    #             ('SONumber', '=', order.name)
-    #         ]
-    #         itemList.append(data)
-    #     json_string = json.dumps(itemList)
-    #     return itemList
-    #
-    # def _get_current_status(self, order):
-    #     if order.state == 'cancel':
-    #         return 'Canceled'
-    #     if order.invoice_status == 'invoiced':
-    #         return 'Completed'
-    #     if order.order_holds:
-    #         credit_found = False
-    #         has_hold = False
-    #         for hold in order.order_holds:
-    #             if hold.credit_hold:
-    #                 credit_found = True
-    #                 return 'Credit Hold'
-    #             has_hold = True
-    #         if has_hold:
-    #             return 'General Hold'
-    #     return 'Confirmed'
+
 
 
