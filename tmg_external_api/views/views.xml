@@ -29,7 +29,7 @@
 	   		<field name="name">view_tmg_reference_tree</field>
 			<field name="model">tmg_external_api.tmg_reference</field>
 			<field name="arch" type="xml">
-				<tree name="Reference Fields">
+				<tree name="Reference Fields" editable="top">
 					<field name="name"/>
 					<field name="value"/>
                     <field name="category"/>
