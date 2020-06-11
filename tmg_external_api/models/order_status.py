@@ -40,10 +40,10 @@ class order_status(models.Model):
                     ('name', '=', order.name),
                     ('ship_date', '=', order.expected_date),
                     ('in_hands', '=', order.in_hands),
-                    ('status', '=', orderStatus),
+                    ('status', '=', orderStatus[0]),
                     ('SONumber', '=', order.name),
                     ('PONumber', '=', order.client_order_ref),
-                    ('state_name', '=')
+                    ('state_name', '=', orderStatus[1])
                 ]
                 itemList.append(data)
 
