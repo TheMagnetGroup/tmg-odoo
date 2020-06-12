@@ -21,16 +21,6 @@ class inventory(models.Model):
         if not style_rqs:
             return []
 
-        # original_rqs = objectify.fromstring(soap_request_parms)
-        # # original_rqs = json.loads(soap_request_parms)
-        # u_name = original_rqs['Request']['id']
-        # consumer_id = fields.Integer()
-        # partner_search = [('name', '=', u_name)]
-        # consumer_id = self.env['res.users'].search_read(partner_search, ['partner_id'])
-        #
-        # prostd_obj = self.env["tmg_external_api.promostandards"]
-        # prostd_obj.log_transaction(consumer_id[0]['partner_id'][0], soap_request_parms, self._name)
-
         inventory._product_template_id = 0
         # inventory._product_bom_id = 0
         not_component = False

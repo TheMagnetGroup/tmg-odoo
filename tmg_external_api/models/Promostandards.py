@@ -49,13 +49,13 @@ class promostandards(models.Model):
     def log_transaction(self, partner_id, request, api_name):
         partner = self.get_partner(partner_id)
         partner.current_call_count += 1
-        # if self._check_debug(partner_id, api_name):
-        #     log_obj = self.env('tmg_external_api.api_logging')
-        #     new_log = log_obj.create({
-        #         'api_name': api_name,
-        #         'partner_id': partner_id,
-        #         'request': request
-        #     })
+        if self._check_debug(partner_id, api_name):
+            log_obj = self.env['tmg_external_api.api_logging']
+            new_log = log_obj.create({
+                'api_name': api_name,
+                'partner_id': partner_id,
+                'request': request
+            })
         return True
 
     #Test function for call cap
