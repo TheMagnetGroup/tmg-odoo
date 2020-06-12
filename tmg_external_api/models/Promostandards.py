@@ -50,7 +50,7 @@ class promostandards(models.Model):
         partner = self.get_partner(partner_id)
         partner.current_call_count += 1
         if self._check_debug(partner_id, api_name) :
-            log_obj = self.env("tmg_external_api.api_logging")
+            log_obj = self.env["tmg_external_api.api_logging"]
             new_log = log_obj.create({
                 'api_name': api_name,
                 'partner_id': partner_id,
