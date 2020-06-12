@@ -7,7 +7,7 @@
         <field name="arch" type="xml">
             <tree string="Component Quantities">
                 <field name="default_code"/>
-                <field name="name"/>
+                <field name="display_name"/>
                 <field name="standard_price"/>
                 <field name="product_tmpl_id" invisible="1"/>
                 <field name="active" invisible="1"/>
