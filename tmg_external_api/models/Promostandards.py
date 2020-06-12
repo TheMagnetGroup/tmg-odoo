@@ -49,15 +49,14 @@ class promostandards(models.Model):
     def log_transaction(self, partner_id, request, api_name):
         partner = self.get_partner(partner_id)
         partner.current_call_count += 1
-        if self._check_debug(partner_id, api_name) :
-            log_obj = self.env("tmg_external_api.api_logging")
-            new_log = log_obj.create({
-                'api_name': api_name,
-                'partner_id': partner_id,
-                'request': request,
-
-            })
-            return True
+        # if self._check_debug(partner_id, api_name):
+        #     log_obj = self.env('tmg_external_api.api_logging')
+        #     new_log = log_obj.create({
+        #         'api_name': api_name,
+        #         'partner_id': partner_id,
+        #         'request': request
+        #     })
+        return True
 
     #Test function for call cap
     # @api.multi
@@ -75,6 +74,29 @@ class promostandards(models.Model):
         data = statusObj.OrderStatus(PONumber, SONumber,LastUpdate,Partner_id)
         self.log_transaction(Partner_id,Request,"Order Status")
         return data
+
+    @api.model
+    def Inventory(self, style_rqs, colors_rqs, partner_id, request):
+        if not self.check_call_cap(partner_id):
+            data = [('Error', '=', "Call Cap")]
+            return data
+
+        inventory_obj = self.env['tmg_external_api.inventory']
+        data = inventory_obj.Inventory(style_rqs, colors_rqs)
+        self.log_transaction(partner_id, request, "Inventory")
+        return data
+
+    @api.model
+    def InventoryFilterValues(self, style_rqs, partner_id, request):
+        if not self.check_call_cap(partner_id):
+            data = [('Error', '=', "Call Cap")]
+            return data
+
+        inventory_obj = self.env['tmg_external_api.inventory']
+        data = inventory_obj.InventoryFilterValues(style_rqs)
+        self.log_transaction(partner_id, request, "Inventory Filter Values")
+        return data
+
     # def OrderStatus(self, PONumber, SONumber, LastUpdate, Partner_id):
     #     if LastUpdate == '':
     #         LastUpdate = '02/01/1990'
