@@ -50,9 +50,9 @@ class order_status(models.Model):
             return itemList
 
     def _get_lookup_value(self, name, category):
-        cont = self.env('tmg_external_api.tmg_reference')
-        val = cont.search([('category', '=', category), ('name', '=', name)])
-        return int(val) or 5
+        cont = self.env['tmg_external_api.tmg_reference']
+        val = cont.search([('category', '=', category), ('value', '=', name)])
+        return val.name or 'General Hold'
 
     def _get_current_status(self, order):
         if order.state == 'cancel':
@@ -66,16 +66,16 @@ class order_status(models.Model):
             current_desc = ''
             for hold in order.order_holds:
                 has_hold = True
-                desc = hold.promostandards_hold_description
-                hold_type = int(self._get_lookup_value(desc,'promostandards_order_status'))
-                if hold_type > current_hold:
-                    current_hold = hold_type
-                    current_desc = desc
+                desc = int(hold.promostandards_hold_description)
+                hold_type = self._get_lookup_value(desc,'promostandards_order_status')
+                if desc > current_hold:
+                    current_hold = desc
+                    current_desc = hold_type
 
 
 
             if has_hold:
-                return [int(current_hold), desc]
+                return [int(current_hold), current_desc]
         for prod in order.production_ids:
             if prod.state == 'progress':
                 return [10, 'In Progress']

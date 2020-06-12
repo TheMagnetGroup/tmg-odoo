@@ -60,9 +60,9 @@ class promostandards(models.Model):
             return True
 
     #Test function for call cap
-    @api.multi
-    def test_button(self):
-        test = self.log_transaction('1',"qeqwwe","","156409"," fjfj")
+    # @api.multi
+    # def test_button(self):
+    #     test = self.OrderStatus("","SO4043","01-01-2000",'3326', "fjfj")
 
     @api.multi
     def OrderStatus(self, PONumber, SONumber, LastUpdate, Partner_id, Request):
