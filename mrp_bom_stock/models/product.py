@@ -16,7 +16,7 @@ class Product(models.Model):
             res[product.id]['qty_available'] = product._get_possible_assembled_kit(components, res, 'qty_available')
             res[product.id]['incoming_qty'] = product._get_possible_assembled_kit(components, res, 'incoming_qty')
             res[product.id]['outgoing_qty'] = product._get_possible_assembled_kit(components, res, 'outgoing_qty')
-            res[product.id]['virtual_available'] = product._get_possible_assembled_kit(components, res, 'virtual_available')
+            res[product.id]['virtual_available_qty'] = product._get_possible_assembled_kit(components, res, 'virtual_available')
         return res
 
     @api.multi
@@ -105,8 +105,6 @@ class Product(models.Model):
         bom_quantity = self.uom_id._compute_quantity(1.0, self.bom_id.product_uom_id)
         boms, lines = self.bom_id.explode(self, bom_quantity)
         for line, line_data in lines:
-            if line.to_exclude:
-                continue
             products |= line.product_id
         action = self.env.ref('mrp_bom_stock.product_open_components').read()[0]
         action['domain'] = [('id', 'in', products.ids)]
@@ -119,6 +117,13 @@ class Product(models.Model):
         action['domain'] = [('product_id', '=', self.id)]
         action['context'] = {}
         return action
+
+    def open_incoming_moves_todo(self):
+        action_data = self.action_view_stock_move_lines()
+        action_data['context'] = {}
+        action_data['context'].update({'search_default_todo': 1, 'search_default_done': 0})
+        action_data['domain'].append(('move_id.picking_code', '=', 'incoming'))
+        return action_data
 
 
 class ProductTemplate(models.Model):
@@ -179,10 +184,17 @@ class ProductTemplate(models.Model):
                 bom_quantity = product.uom_id._compute_quantity(1.0, self.bom_id.product_uom_id)
                 boms, lines = self.bom_id.explode(product, bom_quantity)
                 for line, line_data in lines:
-                    if line.product_id.id not in products and not line.to_exclude:
+                    if line.product_id.id not in products:
                         products.append(line.product_id.id)
             action = self.env.ref('mrp_bom_stock.product_open_components').read()[0]
             action['domain'] = [('id', 'in', products)]
             return action
         action['domain'] = [('product_id', 'in', products.ids)]
         return action
+
+    def open_incoming_moves_todo(self):
+        action_data = self.action_view_stock_move_lines()
+        action_data['context'] = {}
+        action_data['context'].update({'search_default_todo': 1, 'search_default_done': 0})
+        action_data['domain'].append(('move_id.picking_code', '=', 'incoming'))
+        return action_data
