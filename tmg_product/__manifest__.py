@@ -7,6 +7,7 @@
 
     'description': """
         This TMG module extends the product module to allow for attribute price extras based on quantity breaks
+        * Jon W. Bergt 2020-06-11 - mrp_job added to 'depends' list to ensure job_id is available in tmg_product load
     """,
 
     'author': "The Magnet Group",
@@ -19,7 +20,10 @@
     'version': '0.1',
 
     # any module necessary for this one to work correctly
-    'depends': ['product','sale'],
+    'depends': ['product',
+                'sale',
+                'mrp_job'
+                ],
 
     # always loaded
     'data': [

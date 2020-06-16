@@ -52,7 +52,15 @@ class ProductTemplate(models.Model):
     _inherit = 'product.template'
     
     product_tags_ids = fields.Many2many('product.template.tags', string='Product Tags')
-    
+    product_style_number = fields.Char(string='Product Style Number')
+
+    _sql_constraints = [
+        ('product_style_number_uniq',
+         'UNIQUE (product_style_number)',
+         'This Product Style Number is already used for another product'
+         )
+    ]
+
     @api.multi
     def _get_combination_info(self, combination=False, product_id=False, add_qty=1, pricelist=False, parent_combination=False, only_template=False):
 

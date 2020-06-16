@@ -7,6 +7,7 @@
 
     'description': """
         * Christian Dunn - 2020/05/29 -   Initial Commit
+        * Jon W. Bergt - 2020-06-11 -  Updated to include requirements for Inventory API
     """,
 
     'author': "The Magnet Group",
@@ -19,8 +20,10 @@
     'version': '0.1',
 
     # any module necessary for this one to work correctly
-    'depends': ['tmg_sale','sales_margin_percentage'],
-
+    'depends': ['tmg_sale',
+                'sales_margin_percentage',
+                'tmg_product'
+                ],
     # always loaded
     'data': [
         'data/cron.xml',
