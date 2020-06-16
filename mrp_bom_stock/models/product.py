@@ -16,7 +16,7 @@ class Product(models.Model):
             res[product.id]['qty_available'] = product._get_possible_assembled_kit(components, res, 'qty_available')
             res[product.id]['incoming_qty'] = product._get_possible_assembled_kit(components, res, 'incoming_qty')
             res[product.id]['outgoing_qty'] = product._get_possible_assembled_kit(components, res, 'outgoing_qty')
-            res[product.id]['virtual_available'] = product._get_possible_assembled_kit(components, res, 'virtual_available')
+            res[product.id]['virtual_available_qty'] = product._get_possible_assembled_kit(components, res, 'virtual_available')
         return res
 
     @api.multi
@@ -105,7 +105,7 @@ class Product(models.Model):
         bom_quantity = self.uom_id._compute_quantity(1.0, self.bom_id.product_uom_id)
         boms, lines = self.bom_id.explode(self, bom_quantity)
         for line, line_data in lines:
-            products += line.product_id
+            products |= line.product_id
         action = self.env.ref('mrp_bom_stock.product_open_components').read()[0]
         action['domain'] = [('id', 'in', products.ids)]
         return action
@@ -118,11 +118,27 @@ class Product(models.Model):
         action['context'] = {}
         return action
 
+    def open_incoming_moves_todo(self):
+        action_data = self.action_view_stock_move_lines()
+        action_data['context'] = {}
+        action_data['context'].update({'search_default_todo': 1, 'search_default_done': 0})
+        action_data['domain'].append(('move_id.picking_code', '=', 'incoming'))
+        return action_data
+
 
 class ProductTemplate(models.Model):
     _inherit = "product.template"
 
     bom_id = fields.Many2one('mrp.bom', string='Bill of Material', help="Bill of Material to compute manufacturable quantities.")
+
+    def _compute_quantities_dict(self):
+        qty_dict = super(ProductTemplate, self)._compute_quantities_dict()
+        for template in self:
+            if template.bom_id and any([bol.is_shared() for bol in template.bom_id.bom_line_ids]):
+                shared_lines = template.bom_id.bom_line_ids.filtered(lambda bol: bol.is_shared())
+                manufacturable_qty = min(shared_lines.mapped('product_id').mapped('qty_available'))
+                qty_dict[template.id]['qty_available'] = manufacturable_qty
+        return qty_dict
 
     def action_view_stock_move_lines(self):
         self.ensure_one()
@@ -175,3 +191,10 @@ class ProductTemplate(models.Model):
             return action
         action['domain'] = [('product_id', 'in', products.ids)]
         return action
+
+    def open_incoming_moves_todo(self):
+        action_data = self.action_view_stock_move_lines()
+        action_data['context'] = {}
+        action_data['context'].update({'search_default_todo': 1, 'search_default_done': 0})
+        action_data['domain'].append(('move_id.picking_code', '=', 'incoming'))
+        return action_data

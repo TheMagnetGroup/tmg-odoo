@@ -40,30 +40,43 @@ class order_status(models.Model):
                     ('name', '=', order.name),
                     ('ship_date', '=', order.expected_date),
                     ('in_hands', '=', order.in_hands),
-                    ('status', '=', orderStatus),
+                    ('status', '=', orderStatus[0]),
                     ('SONumber', '=', order.name),
-                    ('PONumber', '=', order.client_order_ref)
+                    ('PONumber', '=', order.client_order_ref),
+                    ('state_name', '=', orderStatus[1])
                 ]
                 itemList.append(data)
 
             return itemList
 
+    def _get_lookup_value(self, name, category):
+        cont = self.env['tmg_external_api.tmg_reference']
+        val = cont.search([('category', '=', category), ('value', '=', name)])
+        return val.name or 'General Hold'
+
     def _get_current_status(self, order):
         if order.state == 'cancel':
-            return 'Canceled'
+            return [14, 'Canceled']
         if order.invoice_status == 'invoiced':
-            return 'Completed'
+            return [13, 'Complete']
         if order.order_holds:
             credit_found = False
             has_hold = False
+            current_hold = 0
+            current_desc = ''
             for hold in order.order_holds:
-                if hold.credit_hold:
-                    credit_found = True
-                    return 'Credit Hold'
                 has_hold = True
+                desc = int(hold.promostandards_hold_description)
+                hold_type = self._get_lookup_value(desc,'promostandards_order_status')
+                if desc > current_hold:
+                    current_hold = desc
+                    current_desc = hold_type
+
+
+
             if has_hold:
-                return 'General Hold'
+                return [int(current_hold), current_desc]
         for prod in order.production_ids:
             if prod.state == 'progress':
-                return 'production'
-        return 'Confirmed'
+                return [10, 'In Progress']
+        return [2, 'Order Confirmed']
