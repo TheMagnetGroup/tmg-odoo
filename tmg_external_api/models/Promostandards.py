@@ -70,10 +70,10 @@ class promostandards(models.Model):
             return data
         soCont = self.env['tmg_external_api.shipment_notificaiton']
         data = soCont.ShipmentNotification(PONumber, SONumber,Ship,Partner_id)
-        self.log_transaction(Partner_id, Request, "Order Status")
+        self.log_transaction(Partner_id, Request, "Shipment Notification")
         return data
 
-    
+
     def shipments(self):
         soCont = self.env['sale.order']
         apiID = soCont.search([('name', '=', 'SO016')])
