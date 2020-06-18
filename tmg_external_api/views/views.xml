@@ -49,22 +49,22 @@
 <!--	   		</field>-->
 <!--	    </record>-->
 
-<!--    <record model="ir.ui.view" id="view_tmg_api_promostandards_form">-->
-<!--	   		<field name="name">view_tmg_api_promostandards_form</field>-->
-<!--			<field name="model">tmg_external_api.promostandards</field>-->
-<!--			<field name="arch" type="xml">-->
-<!--				<form name="Promostandards">-->
-<!--                    <group>-->
-<!--					<field name="name"/>-->
-<!--                    <field name="debug"/>-->
-<!--                    <button name="test_button"-->
-<!--					string="Print Shipping Labels"-->
-<!--					type="object"-->
-<!--					/>-->
-<!--                    </group>-->
-<!--				</form>-->
-<!--	   		</field>-->
-<!--	    </record>-->
+    <record model="ir.ui.view" id="view_tmg_api_promostandards_form">
+	   		<field name="name">view_tmg_api_promostandards_form</field>
+			<field name="model">tmg_external_api.promostandards</field>
+			<field name="arch" type="xml">
+				<form name="Promostandards">
+                    <group>
+					<field name="name"/>
+                    <field name="debug"/>
+                    <button name="test_button"
+					string="Print Shipping Labels"
+					type="object"
+					/>
+                    </group>
+				</form>
+	   		</field>
+	    </record>
 
 <record id="action_tmg_external_api" model="ir.actions.act_window">
             <field name="name">External API</field>
