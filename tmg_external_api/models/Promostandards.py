@@ -64,10 +64,16 @@ class promostandards(models.Model):
         # test = self.OrderStatus("","SO4043","01-01-2000",'3326', "fjfj")
         test = self.ship_notification('','','01-01-2020', '20548')
 
-    def ship_notification(self, PONumber, SONumber, Ship, Partner_id):
+    def ship_notification(self, PONumber, SONumber, Ship, Partner_id, Request):
+        if not self.check_call_cap(Partner_id):
+            data = [('Error', '=', "Call Cap")]
+            return data
         soCont = self.env['tmg_external_api.shipment_notificaiton']
         data = soCont.ShipmentNotification(PONumber, SONumber,Ship,Partner_id)
+        self.log_transaction(Partner_id, Request, "Order Status")
         return data
+
+    
     def shipments(self):
         soCont = self.env['sale.order']
         apiID = soCont.search([('name', '=', 'SO016')])
