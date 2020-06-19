@@ -179,15 +179,17 @@ class ProductTemplate(models.Model):
         action = self.env.ref('stock.product_open_quants').read()[0]
         action['context'] = {'search_default_internal_loc': 1}
         if self.bom_id:
-            products = []
-            for product in self.mapped('product_variant_ids'):
-                bom_quantity = product.uom_id._compute_quantity(1.0, self.bom_id.product_uom_id)
-                boms, lines = self.bom_id.explode(product, bom_quantity)
-                for line, line_data in lines:
-                    if line.product_id.id not in products:
-                        products.append(line.product_id.id)
+            #             products = []
+            #             for product in self.mapped('product_variant_ids'):
+            #                 bom_quantity = product.uom_id._compute_quantity(1.0, self.bom_id.product_uom_id)
+            #                 boms, lines = self.bom_id.explode(product, bom_quantity)
+            #                 for line, line_data in lines:
+            #                     if line.product_id.id not in products:
+            #                         products.append(line.product_id.id)
+            #             for line in self.bom_id.bom_line_ids.filtered(lambda l: l.attribute_value_ids and all([av.attribute_id.create_variant == 'never' for av in l.attribute_value_ids])):
+            #                 products.append(line.product_id.id)
             action = self.env.ref('mrp_bom_stock.product_open_components').read()[0]
-            action['domain'] = [('id', 'in', products)]
+            action['domain'] = [('id', 'in', self.bom_id.bom_line_ids.mapped('product_id').ids)]
             return action
         action['domain'] = [('product_id', 'in', products.ids)]
         return action
