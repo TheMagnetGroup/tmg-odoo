@@ -52,7 +52,7 @@ class ProductTemplate(models.Model):
     _inherit = 'product.template'
     
     product_tags_ids = fields.Many2many('product.template.tags', string='Product Tags')
-    product_style_number = fields.Char(string='Product Style Number')
+    product_style_number = fields.Char(string='Product Style Number', copy=False)
 
     _sql_constraints = [
         ('product_style_number_uniq',
