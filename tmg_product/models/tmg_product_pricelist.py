@@ -52,6 +52,17 @@ class ProductTemplate(models.Model):
     _inherit = 'product.template'
     
     product_tags_ids = fields.Many2many('product.template.tags', string='Product Tags')
+    depth = fields.Float(string='Product Depth')
+    width = fields.Float(string='Product Width')
+    height = fields.Float(string='Product Height')
+    dimensions = fields.Char(string='Dimensions', compute='_compute_dimensions', store=False)
+    primary_material = fields.Char(string='Primary Material')
+    market_introduction_date = fields.Date(string='Market Introduction Date')
+    warehouses = fields.Many2many('stock.warehouse', string='Warehouses')
+    data_last_change_date = fields.Date(string='Data Last Change Date')
+    ala_catalog = fields.Float(string='As Low As Catalog', compute='_compute_ala_catalog')
+    ala_net = fields.Float(string='As Low As Net', compute='_compute_ala_net')
+    ala_code = fields.Char(string='As Low As Code', compute='_compute_ala_code')
     
     @api.multi
     def _get_combination_info(self, combination=False, product_id=False, add_qty=1, pricelist=False, parent_combination=False, only_template=False):
@@ -66,6 +77,27 @@ class ProductTemplate(models.Model):
 
 
         return result
+
+    @api.depends('depth', 'width', 'height')
+    def _compute_dimensions(self):
+        for product in self:
+            dimensions = None
+            if product.depth and product.width and product.height:
+                dimensions = "{width:.2f}\" x {height:.2f}\" x {depth:.2f}\"".format(width=product.width, height=product.height, depth=product.depth)
+            product.dimensions = dimensions
+
+    def _compute_ala_catalog(self):
+        for product in self:
+            self.ala_catalog = 0
+
+    def _compute_ala_net(self):
+        for product in self:
+            self.ala_net = 0
+
+    def _compute_ala_code(self):
+        for product in self:
+            self.ala_code = ""
+
 
 class SaleOrderLine(models.Model):
     _inherit = 'sale.order.line'
@@ -203,6 +235,20 @@ class tmg_product_pricelist_item(models.Model):
     _inherit = 'product.pricelist.item'
 
     extra_ids = fields.One2many('product.pricelist.item.extras', 'pricelist_item_id', string="Price Extras", copy=True)
+    discount_code = fields.Selection([
+        ('A', 'A - 50% Discount'),
+        ('B', 'B - 45% Discount'),
+        ('C', 'C - 40% Discount'),
+        ('D', 'D - 35% Discount'),
+        ('E', 'E - 30% Discount'),
+        ('F', 'F - 25% Discount'),
+        ('G', 'G - 20% Discount'),
+        ('H', 'H - 15% Discount'),
+        ('X', 'X - 0% Discount'),
+        ('Z', 'Z - 100% Discount'),
+        ], string='Discount Code')
+    published = fields.Boolean(string='Published', help="Published pricing shows on our external website, ESP, SAGE, etc.",
+                               default=True)
 
 
 class tmg_product_pricelist_item_extra(models.Model):

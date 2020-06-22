@@ -2,6 +2,7 @@
 
 from odoo import models, fields, api
 
+
 class tmg_product_template_tags(models.Model):
     _name = 'product.template.tags'
     _description = "Product Tags"

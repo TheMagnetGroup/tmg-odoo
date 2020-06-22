@@ -18,7 +18,64 @@
                         </field>
                     </group>
                 </xpath>
+                <xpath expr="//field[@name='date_end']" position="after">
+                    <field name="discount_code"/>
+                    <field name="published"/>
+                </xpath>
             </field>
+        </record>
+
+        <record id="tmg_product_pricelist_item_tree_view" model="ir.ui.view">
+            <field name="name">tmg_product_pricelist_items_tree</field>
+            <field name="model">product.pricelist.item</field>
+            <field name="arch" type="xml">
+                <tree name="Pricelist Items">
+                    <field name="pricelist_id"/>
+                    <field name="name"/>
+                    <field name="product_id"/>
+                    <field name="product_tmpl_id"/>
+                    <field name="categ_id"/>
+                    <field name="min_quantity"/>
+                    <field name="date_start"/>
+                    <field name="date_end"/>
+                    <field name="discount_code"/>
+                    <field name="published"/>
+                </tree>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="tmg_product_pricelist_item_view_search">
+            <field name="name">product.pricelist.item.search</field>
+            <field name="model">product.pricelist.item</field>
+            <field name="arch" type="xml">
+                <search string="Products Pricelist Item Search">
+                    <field name="pricelist_id" string="Pricelist Name"/>
+                    <field name="name" string="Pricelist Item" filter_domain="['|','|','|',('product_id','ilike',self),('product_tmpl_id','ilike',self),('product_id.default_code','ilike',self),('product_tmpl_id.default_code','ilike',self)]"/>
+                    <filter name="published" string="Published Pricing Only" domain="[('published','=',True)]"/>
+                    <group expand="0" string="Group By">
+                        <filter string="Pricelist" name="pricelist" domain="[]" context="{'group_by':'pricelist_id'}"/>
+                        <filter string="Product" name="product_template" domain="[]" context="{'group_by':'product_tmpl_id'}"/>
+                        <filter string="Product Variant" name="product_id" domain="[]" context="{'group_by':'product_id'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <record id="action_tmg_product_pricelist_items" model="ir.actions.act_window">
+            <field name="name">Pricelist Items</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">product.pricelist.item</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="search_view_id" ref="tmg_product.tmg_product_pricelist_item_view_search"/>
+        </record>
+
+        <record id="tmg_prouct_pricelist_items_menu" model="ir.ui.menu">
+	        <field name="action" ref="action_tmg_product_pricelist_items"/>
+            <field name="active" eval="True"/>
+            <field name="name">Pricelist Items</field>
+            <field name="parent_id" ref="sale.product_menu_catalog"/>
+            <field name="sequence">3</field>
         </record>
 
         <record id="tmg_sale_order_view_tree" model="ir.ui.view">
@@ -32,17 +89,6 @@
             </field>
         </record>
 
-        <record id="tmg_sale_order_view_form" model="ir.ui.view">
-            <field name="name">tmg.sale.order.view.form</field>
-            <field name="model">sale.order</field>
-            <field name="inherit_id" ref="sale.view_order_form"/>
-            <field name="arch" type="xml">
-                <xpath expr="//field[@name='order_line']/form/group/group/field[@name='price_unit']" position="before">
-                    <field name="price_at_qty"/>
-                </xpath>
-            </field>
-        </record>
-
         <record id="tmg_product_template_form_view" model="ir.ui.view">
             <field name="name">tmg.product.template.form</field>
             <field name="model">product.template</field>
@@ -51,6 +97,20 @@
                 <field name="categ_id" position="after">
                     <field name="product_tags_ids" widget="many2many_tags" options="{'color_field': 'color', 'no_create_edit': True}"/>
                 </field>
+                <xpath expr="//form[1]/sheet[1]/notebook[1]" position="inside">
+                    <page name="additional_data" string="Additional Data">
+                        <group string="Dimensions">
+                            <field name="width"/>
+                            <field name="height"/>
+                            <field name="depth"/>
+                        </group>
+                        <group string="Miscellaneous">
+                            <field name="primary_material"/>
+                            <field name="market_introduction_date"/>
+                            <field name="warehouses" widget="many2many_tags"/>
+                        </group>
+                    </page>
+                </xpath>
             </field>
         </record>
 
