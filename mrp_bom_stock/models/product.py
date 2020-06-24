@@ -6,17 +6,28 @@ from odoo import fields, models, api, _
 class Product(models.Model):
     _inherit = 'product.product'
 
+    def _compute_quantities(self):
+        super(Product, self)._compute_quantities()
+        res = self._compute_quantities_dict(self._context.get('lot_id'), self._context.get('owner_id'),
+                                            self._context.get('package_id'), self._context.get('from_date'),
+                                            self._context.get('to_date'))
+        for product in self:
+            product.virtual_available_qty = res[product.id]['virtual_available_qty']
+
     def _compute_quantities_dict(self, lot_id, owner_id, package_id, from_date=False, to_date=False):
         """
             Inherited to update quantity fields for manufacturable products
         """
-        res = super(Product, self)._compute_quantities_dict(lot_id=lot_id, owner_id=owner_id, package_id=package_id, from_date=from_date, to_date=to_date)
+        res = super(Product, self)._compute_quantities_dict(lot_id=lot_id, owner_id=owner_id, package_id=package_id,
+                                                            from_date=from_date, to_date=to_date)
         for product in self:
             res[product.id]['virtual_available_qty'] = res[product.id]['qty_available'] - res[product.id][
                 'outgoing_qty']
             if product.bom_id:
                 components = product._get_bom_component_qty(product.bom_id)
-                res[product.id]['virtual_available_qty'] = product._get_possible_assembled_kit(components, res, 'virtual_available') - res[product.id]['outgoing_qty']
+                res[product.id]['virtual_available_qty'] = product._get_possible_assembled_kit(components, res,
+                                                                                               'virtual_available') - \
+                                                           res[product.id]['outgoing_qty']
         return res
 
     @api.multi
@@ -66,7 +77,8 @@ class Product(models.Model):
         action = self.env.ref('stock.stock_move_line_action').read()[0]
         action['domain'] = [('product_id', '=', self.id)]
         product_ids = [self.id]
-        bom = self.env['mrp.bom'].search(['|', ('product_id', '=', self.id), ('product_tmpl_id', '=', self.product_tmpl_id.id)], limit=1)
+        bom = self.env['mrp.bom'].search(
+            ['|', ('product_id', '=', self.id), ('product_tmpl_id', '=', self.product_tmpl_id.id)], limit=1)
         if bom:
             product_ids += bom.bom_line_ids.mapped('product_id').ids
             action['domain'] = [('product_id', 'in', product_ids)]
@@ -81,7 +93,8 @@ class Product(models.Model):
             'search_default_status': 1, 'search_default_order_month': 1,
             'graph_measure': 'unit_quantity'
         }
-        bom = self.env['mrp.bom'].search(['|', ('product_id', '=', self.id), ('product_tmpl_id', '=', self.product_tmpl_id.id)], limit=1)
+        bom = self.env['mrp.bom'].search(
+            ['|', ('product_id', '=', self.id), ('product_tmpl_id', '=', self.product_tmpl_id.id)], limit=1)
         if bom:
             action = self.env.ref('mrp_bom_stock.action_purchase_line_product_tree').read()[0]
             products = self.product_variant_ids + bom.bom_line_ids.mapped('product_id')
@@ -95,7 +108,8 @@ class Product(models.Model):
         """
         res = super(Product, self)._compute_purchased_product_qty()
         for product in self.filtered(lambda t: t.bom_id):
-            product.purchased_product_qty = sum([p.purchased_product_qty for p in (product.bom_id.bom_line_ids.mapped('product_id'))])
+            product.purchased_product_qty = sum(
+                [p.purchased_product_qty for p in (product.bom_id.bom_line_ids.mapped('product_id'))])
         return res
 
     @api.multi
@@ -129,18 +143,30 @@ class Product(models.Model):
 class ProductTemplate(models.Model):
     _inherit = "product.template"
 
-    bom_id = fields.Many2one('mrp.bom', string='Bill of Material', help="Bill of Material to compute manufacturable quantities.")
+    bom_id = fields.Many2one('mrp.bom', string='Bill of Material',
+                             help="Bill of Material to compute manufacturable quantities.")
+
+    def _compute_quantities(self):
+        super(ProductTemplate, self)._compute_quantities()
+        res = self._compute_quantities_dict()
+        for template in self:
+            template.virtual_available_qty = res[template.id]['virtual_available_qty']
 
     def _compute_quantities_dict(self):
         qty_dict = super(ProductTemplate, self)._compute_quantities_dict()
         for template in self:
-            qty_dict[template.id]['virtual_available_qty'] = qty_dict[template.id]['qty_available'] - qty_dict[template.id]['outgoing_qty']
+            qty_dict[template.id]['virtual_available_qty'] = qty_dict[template.id]['qty_available'] - \
+                                                             qty_dict[template.id]['outgoing_qty']
             if template.bom_id:
-                manufacturable_qty = qty_dict[template.id]['qty_available']
+                manufacturable_qty = sum(template.variant_ids.mapped('virtual_available_qty'))
                 shared_lines = template.bom_id.bom_line_ids.filtered(lambda bol: bol.is_shared())
                 if shared_lines:
-                    manufacturable_qty = min([min(shared_lines.mapped('product_id').mapped('qty_available')), manufacturable_qty])
-                qty_dict[template.id]['virtual_available_qty'] = manufacturable_qty - qty_dict[template.id]['outgoing_qty']
+                    manufacturable_qty = min(
+                        [min(shared_lines.mapped('product_id').mapped('qty_available')), manufacturable_qty])
+                else:
+                    manufacturable_qty =
+                qty_dict[template.id]['virtual_available_qty'] = manufacturable_qty - qty_dict[template.id][
+                    'outgoing_qty']
         return qty_dict
 
     def action_view_stock_move_lines(self):
