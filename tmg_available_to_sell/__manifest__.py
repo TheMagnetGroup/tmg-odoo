@@ -22,15 +22,10 @@
     'version': '0.1',
 
     # any module necessary for this one to work correctly
-    'depends': ['sale', 'stock'],
+    'depends': ['sale_stock'],
 
     # always loaded
     'data': [
-        # 'security/ir.model.access.csv',
         'views/tmg_available_to_sell_views.xml',
-    ],
-    # only loaded in demonstration mode
-    'demo': [
-        'demo/demo.xml',
     ],
 }
