@@ -139,7 +139,7 @@ class ProductTemplate(models.Model):
                 manufacturable_qty = qty_dict[template.id]['qty_available']
                 shared_lines = template.bom_id.bom_line_ids.filtered(lambda bol: bol.is_shared())
                 if shared_lines:
-                    manufacturable_qty = min([min(shared_lines.mapped('product_id').mapped('qty_available')), manufacturable_qty)
+                    manufacturable_qty = min([min(shared_lines.mapped('product_id').mapped('qty_available')), manufacturable_qty])
                 qty_dict[template.id]['virtual_available_qty'] = manufacturable_qty - qty_dict[template.id]['outgoing_qty']
         return qty_dict
 
