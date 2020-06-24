@@ -11,12 +11,10 @@ class Product(models.Model):
             Inherited to update quantity fields for manufacturable products
         """
         res = super(Product, self)._compute_quantities_dict(lot_id=lot_id, owner_id=owner_id, package_id=package_id, from_date=from_date, to_date=to_date)
+        res[product.id]['virtual_available_qty'] = res[product.id]['qty_available'] - res[product.id]['outgoing_qty']
         for product in self.filtered(lambda p: p.bom_id):
             components = product._get_bom_component_qty(product.bom_id)
-            res[product.id]['qty_available'] = product._get_possible_assembled_kit(components, res, 'qty_available')
-            res[product.id]['incoming_qty'] = product._get_possible_assembled_kit(components, res, 'incoming_qty')
-            res[product.id]['outgoing_qty'] = product._get_possible_assembled_kit(components, res, 'outgoing_qty')
-            res[product.id]['virtual_available_qty'] = product._get_possible_assembled_kit(components, res, 'virtual_available')
+            res[product.id]['virtual_available_qty'] = product._get_possible_assembled_kit(components, res, 'virtual_available') - res[product.id]['outgoing_qty']
         return res
 
     @api.multi
@@ -134,10 +132,11 @@ class ProductTemplate(models.Model):
     def _compute_quantities_dict(self):
         qty_dict = super(ProductTemplate, self)._compute_quantities_dict()
         for template in self:
+            qty_dict[template.id]['virtual_available_qty'] = qty_dict[template.id]['qty_available'] - qty_dict[template.id]['outgoing_qty']
             if template.bom_id and any([bol.is_shared() for bol in template.bom_id.bom_line_ids]):
                 shared_lines = template.bom_id.bom_line_ids.filtered(lambda bol: bol.is_shared())
                 manufacturable_qty = min(shared_lines.mapped('product_id').mapped('qty_available'))
-                qty_dict[template.id]['qty_available'] = manufacturable_qty
+                qty_dict[template.id]['virtual_available_qty'] = manufacturable_qty - qty_dict[template.id]['outgoing_qty']
         return qty_dict
 
     def action_view_stock_move_lines(self):
