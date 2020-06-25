@@ -46,15 +46,15 @@
                         <span class="o_stat_text">On Hand</span>
                     </div>
                 </button>
-<!--                <button type="object" name="action_open_quants" attrs="{'invisible':['|', ('type', '!=', 'product'), ('bom_id', '=', False)]}" class="oe_stat_button" icon="fa-building-o">-->
-<!--                    <div class="o_field_widget o_stat_info">-->
-<!--                        <span class="o_stat_value" widget="statinfo">-->
-<!--                            <field name="qty_available" widget="statinfo" nolabel="1" class="mr4"/>-->
-<!--                            <field name="uom_name"/>-->
-<!--                        </span>-->
-<!--                        <span class="o_stat_text">ATM</span>-->
-<!--                    </div>-->
-<!--                </button>-->
+                <button type="object" name="action_open_quants" attrs="{'invisible':['|', ('type', '!=', 'product'), ('bom_id', '=', False)]}" class="oe_stat_button" icon="fa-building-o">
+                    <div class="o_field_widget o_stat_info">
+                        <span class="o_stat_value" widget="statinfo">
+                            <field name="virtual_available_qty" widget="statinfo" nolabel="1" class="mr4"/>
+                            <field name="uom_name"/>
+                        </span>
+                        <span class="o_stat_text">Quantity Available</span>
+                    </div>
+                </button>
             </button>
             <button name="%(stock.action_stock_level_forecast_report_template)d" position="replace">
                 <button type="action" name="%(stock.action_stock_level_forecast_report_template)d" invisible="1" class="oe_stat_button" icon="fa-building-o">
@@ -100,18 +100,18 @@
                         <span class="o_stat_text">On Hand</span>
                     </div>
                  </button>
-<!--                <button class="oe_stat_button"-->
-<!--                    name="action_open_components_quants"-->
-<!--                    icon="fa-building-o"-->
-<!--                    type="object" attrs="{'invisible':['|', ('type', '!=', 'product'), ('bom_id', '=', False)]}">-->
-<!--                       <div class="o_field_widget o_stat_info">-->
-<!--                            <span class="o_stat_value">-->
-<!--                                <field name="qty_available" widget="statinfo" nolabel="1" class="mr4"/>-->
-<!--                                <field name="uom_name"/>-->
-<!--                            </span>-->
-<!--                            <span class="o_stat_text">ATM</span>-->
-<!--                       </div>-->
-<!--                </button>-->
+                <button class="oe_stat_button"
+                    name="action_open_components_quants"
+                    icon="fa-building-o"
+                    type="object" attrs="{'invisible':['|', ('type', '!=', 'product'), ('bom_id', '=', False)]}">
+                       <div class="o_field_widget o_stat_info">
+                            <span class="o_stat_value">
+                                <field name="virtual_available_qty" widget="statinfo" nolabel="1" class="mr4"/>
+                                <field name="uom_name"/>
+                            </span>
+                            <span class="o_stat_text">Quantity Available</span>
+                       </div>
+                </button>
             </button>
             <button name="%(stock.action_stock_level_forecast_report_product)d" position="replace">
                 <button type="action" name="%(stock.action_stock_level_forecast_report_product)d" invisible="1" class="oe_stat_button" icon="fa-building-o">
