@@ -159,10 +159,9 @@ class ProductTemplate(models.Model):
                 shared_lines = template.bom_id.bom_line_ids.filtered(lambda bol: bol.is_shared())
                 if shared_lines:
                     manufacturable_qty = min([min(shared_lines.mapped('product_id').mapped('virtual_available_qty')), manufacturable_qty])
-                    _logger.info('manufacturable_qty {}'.format(manufacturable_qty))
                 else:
                     manufacturable_qty = manufacturable_qty - qty_dict[template.id]['outgoing_qty']
-                    _logger.info('manufacturable_qty {}'.format(manufacturable_qty))
+                qty_dict[template.id]['virtual_available_qty'] = manufacturable_qty
         return qty_dict
 
     def action_view_stock_move_lines(self):
