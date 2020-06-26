@@ -30,6 +30,10 @@ class PriceList(models.Model):
                 # if there is a rule:
                 if result[pid][1]:
                     rule_id = self.env['product.pricelist.item'].browse(result[pid][1])
+                    # If there was a rule id then append the discount code, if any, to the result
+                    if rule_id:
+                        result[pid].append(rule_id.discount_code)
+
                     # if the rule has extra ids:
                     if rule_id and rule_id.extra_ids:
 
@@ -78,6 +82,10 @@ class ProductTemplate(models.Model):
 
         return result
 
+    @api.multi
+    def _build_price_grid(self, products_pricelist_partner):
+        for 
+
     @api.depends('depth', 'width', 'height')
     def _compute_dimensions(self):
         for product in self:
@@ -97,6 +105,16 @@ class ProductTemplate(models.Model):
     def _compute_ala_code(self):
         for product in self:
             self.ala_code = ""
+
+    def _build_price_grid(self, catalog_pricelist='Catalog', net_pricelist='Net'):
+        # Get the passed catalog/net pricelists or the default
+        cat = self.env['product.pricelist'].search([('name','=',catalog_pricelist)])
+        net = self.env['product.pricelist'].search([('name','=',net_pricelist)])
+        # If we have both
+        if cat and net:
+            # Get the published quantities from the catalog pricelist
+            quantities = self.env['product.pricelist.item'].search([('id','=',cat.id),('published','=',True)])
+            for product in self:
 
 
 class SaleOrderLine(models.Model):
