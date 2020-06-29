@@ -114,7 +114,7 @@ class shipment_notificaiton(models.Model):
         for v in values:
             vals = []
             for p in picking_ids:
-                if picking_ids.partner_id == v:
+                if p.partner_id == v:
                     vals.append(p)
             cont.append(vals)
         return cont

@@ -62,7 +62,7 @@ class promostandards(models.Model):
     @api.multi
     def test_button(self):
         # test = self.OrderStatus("","SO4043","01-01-2000",'3326', "fjfj")
-        test = self.ship_notification('','','01-01-2020', '20548')
+        test = self.ship_notification('','','01-01-2020', '20548', '')
 
     def ship_notification(self, PONumber, SONumber, Ship, Partner_id, Request):
         if not self.check_call_cap(Partner_id):
