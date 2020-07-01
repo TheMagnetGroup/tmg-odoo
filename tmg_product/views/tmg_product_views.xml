@@ -125,5 +125,55 @@
             </field>
         </record>
 
+        <record id="tmg_product_attribute_form" model="ir.ui.view">
+            <field name="name">tmg.product.attribute.form</field>
+            <field name="model">product.attribute</field>
+            <field name="inherit_id" ref="product.product_attribute_view_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='create_variant']" position="after">
+                    <field name="category"/>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="tmg_web_category_form" model="ir.ui.view">
+            <field name="name">tmg.web.category.form</field>
+            <field name="model">product.public.category</field>
+            <field name="inherit_id" ref="website_sale.product_public_category_form_view"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='parent_id']" position="after">
+                    <field name="asi_category_id" domain="[('external_source','=','asi')]"/>
+                    <field name="sage_category_id" domain="[('external_source','=','sage')]"/>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="tmg_product_external_categories_tree_view" model="ir.ui.view">
+            <field name="name">tmg_product_external_categories_tree</field>
+            <field name="model">product.external.categories</field>
+            <field name="arch" type="xml">
+                <tree name="External Categories">
+                    <field name="name"/>
+                    <field name="external_source"/>
+                    <field name="external_id"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="action_tmg_product_external_categories" model="ir.actions.act_window">
+            <field name="name">External Categories</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">product.external.categories</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+
+        <record id="tmg_product_external_categories_menu" model="ir.ui.menu">
+	        <field name="action" ref="action_tmg_product_external_categories"/>
+            <field name="active" eval="True"/>
+            <field name="name">External Categories</field>
+            <field name="parent_id" ref="website_sale.menu_product_settings"/>
+            <field name="sequence">3</field>
+        </record>
     </data>
 </odoo>

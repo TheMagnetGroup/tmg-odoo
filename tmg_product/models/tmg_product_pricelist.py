@@ -51,6 +51,24 @@ class PriceList(models.Model):
 
         return result
 
+    def get_product_published_quantities(self, product, date=False):
+        # Get the published quantities for a product template. Note that this routine does
+        # not support quantities for a product.product or product category, only a product template
+        if not date:
+            date = self._context.get('date') or fields.Date.today()
+        date = fields.Date.to_date(date)  # boundary conditions differ if we have a datetime
+        self._cr.execute(
+            'SELECT item.min_quantity '
+            'FROM product_pricelist_item AS item '
+            'WHERE (item.product_tmpl_id = %s)'
+            'AND (item.pricelist_id = %s) '
+            'AND (item.date_start IS NULL OR item.date_start<=%s) '
+            'AND (item.date_end IS NULL OR item.date_end>=%s) '
+            'AND (item.published = True) '
+            'ORDER BY item.min_quantity',
+            (product.id, self.id, date, date))
+        return [x[0] for x in self._cr.fetchall()]
+
 
 class ProductTemplate(models.Model):
     _inherit = 'product.template'
@@ -64,9 +82,9 @@ class ProductTemplate(models.Model):
     market_introduction_date = fields.Date(string='Market Introduction Date')
     warehouses = fields.Many2many('stock.warehouse', string='Warehouses')
     data_last_change_date = fields.Date(string='Data Last Change Date')
-    ala_catalog = fields.Float(string='As Low As Catalog', compute='_compute_ala_catalog')
-    ala_net = fields.Float(string='As Low As Net', compute='_compute_ala_net')
-    ala_code = fields.Char(string='As Low As Code', compute='_compute_ala_code')
+    ala_catalog = fields.Float(string='As Low As Catalog', compute='_compute_ala')
+    ala_net = fields.Float(string='As Low As Net', compute='_compute_ala')
+    ala_code = fields.Char(string='As Low As Code', compute='_compute_ala')
     
     @api.multi
     def _get_combination_info(self, combination=False, product_id=False, add_qty=1, pricelist=False, parent_combination=False, only_template=False):
@@ -79,12 +97,7 @@ class ProductTemplate(models.Model):
         # Call the base method
         result = super(ProductTemplate, self)._get_combination_info(combination, product_id, add_qty, pricelist, parent_combination, only_template)
 
-
         return result
-
-    @api.multi
-    def _build_price_grid(self, products_pricelist_partner):
-        for 
 
     @api.depends('depth', 'width', 'height')
     def _compute_dimensions(self):
@@ -94,27 +107,39 @@ class ProductTemplate(models.Model):
                 dimensions = "{width:.2f}\" x {height:.2f}\" x {depth:.2f}\"".format(width=product.width, height=product.height, depth=product.depth)
             product.dimensions = dimensions
 
-    def _compute_ala_catalog(self):
+    @api.multi
+    def _compute_ala(self):
         for product in self:
-            self.ala_catalog = 0
-
-    def _compute_ala_net(self):
-        for product in self:
-            self.ala_net = 0
-
-    def _compute_ala_code(self):
-        for product in self:
-            self.ala_code = ""
+            pricingGrid = product._build_price_grid()
+            if pricingGrid:
+                product.ala_catalog = pricingGrid[1][-1]
+                product.ala_net = pricingGrid[2][-1]
+                product.ala_code = pricingGrid[3][-1]
+            else:
+                product.ala_catalog = None
+                product.ala_net = None
+                product.ala_code = None
 
     def _build_price_grid(self, catalog_pricelist='Catalog', net_pricelist='Net'):
         # Get the passed catalog/net pricelists or the default
-        cat = self.env['product.pricelist'].search([('name','=',catalog_pricelist)])
-        net = self.env['product.pricelist'].search([('name','=',net_pricelist)])
+        cat = self.env['product.pricelist'].search([('name', '=', catalog_pricelist)])
+        net = self.env['product.pricelist'].search([('name', '=', net_pricelist)])
         # If we have both
+        cat_prices = []
+        net_prices = []
+        discount_codes = []
         if cat and net:
-            # Get the published quantities from the catalog pricelist
-            quantities = self.env['product.pricelist.item'].search([('id','=',cat.id),('published','=',True)])
             for product in self:
+                # Get the published quantities from the catalog pricelist, assuming current date as effectivity
+                quantities = cat.get_product_published_quantities(product)
+                for qty in quantities:
+                    cat_prices.append(cat.get_product_price(self, qty, None))
+                    net_price = net.get_product_price_rule(self, qty, None)
+                    net_prices.append(net_price[0])
+                    if net_price[1]:
+                        pi = product.env['product.pricelist.item'].browse(net_price[1])
+                        discount_codes.append(pi.discount_code)
+            return [quantities, cat_prices, net_prices, discount_codes]
 
 
 class SaleOrderLine(models.Model):
