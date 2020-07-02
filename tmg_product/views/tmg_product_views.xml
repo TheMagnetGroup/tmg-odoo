@@ -99,16 +99,32 @@
                 </field>
                 <xpath expr="//form[1]/sheet[1]/notebook[1]" position="inside">
                     <page name="additional_data" string="Additional Data">
-                        <group string="Dimensions">
-                            <field name="width"/>
-                            <field name="height"/>
-                            <field name="depth"/>
+                        <group>
+                            <group string="Dimensions">
+                                <field name="width"/>
+                                <field name="height"/>
+                                <field name="depth"/>
+                            </group>
+                            <group string="Miscellaneous">
+                                <field name="primary_material"/>
+                                <field name="market_introduction_date"/>
+                                <field name="warehouses" widget="many2many_tags"/>
+                            </group>
                         </group>
-                        <group string="Miscellaneous">
-                            <field name="primary_material"/>
-                            <field name="market_introduction_date"/>
-                            <field name="warehouses" widget="many2many_tags"/>
-                        </group>
+                        <field name="decoration_method_ids" widget="one2many_list" context="{'show_attribute': False}" modifiers="{'readonly':'false'}">
+                            <tree string="Decoration Methods" editable="bottom">
+                                <field name="decoration_method_id"/>
+                                <field name="prod_time_lo"/>
+                                <field name="prod_time_hi"/>
+                                <field name="pms"/>
+                                <field name="full_color"/>
+                                <field name="max_colors"/>
+                                <field name="number_sides"/>
+                                <field name="quick_ship"/>
+                                <field name="quick_ship_prod_days"/>
+                                <field name="quick_ship_max"/>
+                            </tree>
+                        </field>
                     </page>
                 </xpath>
             </field>
@@ -175,5 +191,7 @@
             <field name="parent_id" ref="website_sale.menu_product_settings"/>
             <field name="sequence">3</field>
         </record>
+
+
     </data>
 </odoo>

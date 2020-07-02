@@ -100,28 +100,31 @@ class ProductExternalCategories(models.Model):
                                             data=json.dumps(self.ASIAuth).encode('utf-8'),
                                             headers={'Content-type': 'application/json'},
                                             method='POST')
-        with urllib.request.urlopen(asirequest) as asiresponse:
-            # Read the entire response
-            asiresponsestr = asiresponse.read().decode('utf-8')
-            # Serialize the response into python. If unable to serialize then break out of the function
-            try:
-                asiresponsedict = json.loads(asiresponsestr)
-            except:
-                self._send_error_email('Error serializaing ASI response: ' + asiresponsestr)
-                return
+        try:
+            with urllib.request.urlopen(asirequest) as asiresponse:
+                # Read the entire response
+                asiresponsestr = asiresponse.read().decode('utf-8')
+                # Serialize the response into python. If unable to serialize then break out of the function
+                try:
+                    asiresponsedict = json.loads(asiresponsestr)
+                except:
+                    self._send_error_email('Error serializaing ASI response: ' + asiresponsestr)
+                    return
 
-            # If the response contains a 'Message' then something didn't work
-            if "Message" in asiresponsedict:
-                self._send_error_email('ASI error message returned' + asiresponsedict['Message'])
-                return
+                # If the response contains a 'Message' then something didn't work
+                if "Message" in asiresponsedict:
+                    self._send_error_email('ASI error message returned' + asiresponsedict['Message'])
+                    return
 
-            # If the response does NOT contain 'AccessToken'
-            if "AccessToken"  not in asiresponsedict:
-                self._send_error_email('ASI authorization returned no token')
-                return
+                # If the response does NOT contain 'AccessToken'
+                if "AccessToken"  not in asiresponsedict:
+                    self._send_error_email('ASI authorization returned no token')
+                    return
 
-            # Get the token and return
-            return asiresponsedict['AccessToken']
+                # Get the token and return
+                return asiresponsedict['AccessToken']
+        except Exception as e:
+            self._send_error_email("An exception occurred during retrieval of the ASI access token: " % str(e))
 
     def load_sage_categories(self):
 
@@ -133,47 +136,51 @@ class ProductExternalCategories(models.Model):
         sagerequest = urllib.request.Request("https://www.promoplace.com/ws/ws.dll/SITK",
                                              data=json.dumps(self.SAGERequest).encode('utf-8'),
                                              method='POST')
-        with urllib.request.urlopen(sagerequest) as sageresponse:
-            # Read the entire response
-            sageresponsestr = sageresponse.read().decode('utf-8')
-            # Serialize the response into python. If unable to serialize then break out of the function
-            try:
-                sageresponsedict = json.loads(sageresponsestr)
-            except:
-                self._send_error_email('Error serializing SAGE response: ' + sageresponsestr)
-                return
+        # General catch all
+        try:
+            with urllib.request.urlopen(sagerequest) as sageresponse:
+                # Read the entire response
+                sageresponsestr = sageresponse.read().decode('utf-8')
+                # Serialize the response into python. If unable to serialize then break out of the function
+                try:
+                    sageresponsedict = json.loads(sageresponsestr)
+                except:
+                    self._send_error_email('Error serializing SAGE response: ' + sageresponsestr)
+                    return
 
-            # Did by chance SAGE return an error in the response? If so...bail out
-            if "ErrMsg" in sageresponsedict:
-                self._send_error_email('SAGE error message returned: ' + sageresponsedict['ErrMsg'])
-                return
+                # Did by chance SAGE return an error in the response? If so...bail out
+                if "ErrMsg" in sageresponsedict:
+                    self._send_error_email('SAGE error message returned: ' + sageresponsedict['ErrMsg'])
+                    return
 
-            # And one last check to ensure the categories were in the dictionary
-            if "Categories" not in sageresponsedict:
-                self._send_error_email('No Categories found in SAGE response string: ' + str(sageresponsedict))
-                return
+                # And one last check to ensure the categories were in the dictionary
+                if "Categories" not in sageresponsedict:
+                    self._send_error_email('No Categories found in SAGE response string: ' + str(sageresponsedict))
+                    return
 
-            # Check each category and either write or update the name
-            for category in sageresponsedict['Categories']:
-                ec = self.env['product.external.categories'].search([('external_source', '=', 'sage'),
-                                                                     ('external_id', '=', category['ID'])])
-                if len(ec.ids) == 0:
-                    ec.create({
-                        'name': category['Name'],
-                        'external_id': category['ID'],
-                        'external_source': 'sage'
-                    })
-                else:
-                    ec.write({
-                        'name': category['Name']
-                    })
+                # Check each category and either write or update the name
+                for category in sageresponsedict['Categories']:
+                    ec = self.env['product.external.categories'].search([('external_source', '=', 'sage'),
+                                                                         ('external_id', '=', category['ID'])])
+                    if len(ec.ids) == 0:
+                        ec.create({
+                            'name': category['Name'],
+                            'external_id': category['ID'],
+                            'external_source': 'sage'
+                        })
+                    else:
+                        ec.write({
+                            'name': category['Name']
+                        })
 
-            # Now look for any categories that we have but are not in SAGE. We'll do this by searching for any
-            # category that was not updated on or after the timestamp we captured at the beginning of the routine
-            orphaned_categories = self.env['product.external.categories'].search([('external_source','=','sage'),
-                                                                                  ('write_date','<',cur_date.strftime("%Y-%m-%d %H:%M:%S"))])
-            for oc in orphaned_categories:
-                oc.unlink()
+                # Now look for any categories that we have but are not in SAGE. We'll do this by searching for any
+                # category that was not updated on or after the timestamp we captured at the beginning of the routine
+                orphaned_categories = self.env['product.external.categories'].search([('external_source','=','sage'),
+                                                                                      ('write_date','<',cur_date.strftime("%Y-%m-%d %H:%M:%S"))])
+                for oc in orphaned_categories:
+                    oc.unlink()
+        except Exception as err:
+            self._send_error_email("An exception occurred during the SAGE category import: " % str(err))
 
     def load_asi_categories(self):
 
@@ -190,41 +197,45 @@ class ProductExternalCategories(models.Model):
                                             headers={"Authorization": "Bearer %s" % asitoken,
                                                      "Content-type": "application/json"})
 
-        with urllib.request.urlopen(asirequest) as asiresponse:
-            # Read the entire response
-            asiresponsestr = asiresponse.read().decode('utf-8')
-            # Serialize the response into python. If unable to serialize then break out of the function
-            try:
-                asiresponsedict = json.loads(asiresponsestr)
-            except:
-                self._send_error_email('Error serializing ASI response: ' + asiresponsestr)
-                return
+        try:
+            with urllib.request.urlopen(asirequest) as asiresponse:
+                # Read the entire response
+                asiresponsestr = asiresponse.read().decode('utf-8')
+                # Serialize the response into python. If unable to serialize then break out of the function
+                try:
+                    asiresponsedict = json.loads(asiresponsestr)
+                except:
+                    self._send_error_email('Error serializing ASI response: ' + asiresponsestr)
+                    return
 
-            # And one last check to ensure the categories were in the dictionary
-            if "categories" not in asiresponsedict:
-                self._send_error_email('No Categories found in ASI response string: ' + str(asiresponsedict))
-                return
+                # And one last check to ensure the categories were in the dictionary
+                if "categories" not in asiresponsedict:
+                    self._send_error_email('No Categories found in ASI response string: ' + str(asiresponsedict))
+                    return
 
-            # Check each category and either write or update the name
-            for category in asiresponsedict['categories']:
-                ec = self.env['product.external.categories'].search([('external_source', '=', 'asi'),
-                                                                     ('name', '=', category)])
-                if len(ec.ids) == 0:
-                    ec.create({
-                        'name': category,
-                        'external_source': 'asi'
-                    })
-                else:
-                    ec.write({
-                        'name': category
-                    })
+                # Check each category and either write or update the name
+                for category in asiresponsedict['categories']:
+                    ec = self.env['product.external.categories'].search([('external_source', '=', 'asi'),
+                                                                         ('name', '=', category)])
+                    if len(ec.ids) == 0:
+                        ec.create({
+                            'name': category,
+                            'external_source': 'asi'
+                        })
+                    else:
+                        ec.write({
+                            'name': category
+                        })
 
-            # Now look for any categories that we have but are not in ASI. We'll do this by searching for any
-            # category that was not updated on or after the timestamp we captured at the beginning of the routine
-            orphaned_categories = self.env['product.external.categories'].search([('external_source','=','asi'),
-                                                                                  ('write_date','<',cur_date.strftime("%Y-%m-%d %H:%M:%S"))])
-            for oc in orphaned_categories:
-                oc.unlink()
+                # Now look for any categories that we have but are not in ASI. We'll do this by searching for any
+                # category that was not updated on or after the timestamp we captured at the beginning of the routine
+                orphaned_categories = self.env['product.external.categories'].search([('external_source','=','asi'),
+                                                                                      ('write_date','<',cur_date.strftime("%Y-%m-%d %H:%M:%S"))])
+                for oc in orphaned_categories:
+                    oc.unlink()
+
+        except Exception as err:
+            self._send_error_email("An error occurred during the ASI category import: " % str(err))
 
 
 class ProductPublicCategory(models.Model):
@@ -234,3 +245,69 @@ class ProductPublicCategory(models.Model):
                                       ondelete='set null')
     sage_category_id = fields.Many2one(comodel_name='product.external.categories', string='SAGE Category',
                                        ondelete='set null')
+
+
+class ProductDecorationMethod(models.Model):
+    _name = 'product.template.decorationmethod'
+    _description = 'Product Decoration Method'
+
+    product_tmpl_id = fields.Many2one(comodel_name='product.template', string='Product Template')
+    decoration_method_id = fields.Many2one(comodel_name='product.template.attribute.value', string='Decoration Method',
+                                           delete='restrict', required=True)
+    prod_time_lo = fields.Integer(string='Production Time Low',
+                                  help='Lowest decoration time (in days) for this product and decoration method',
+                                  required=True)
+    prod_time_hi = fields.Integer(string='Production Time High',
+                                  help='Highest decoration time (in days) for this product and decoration method',
+                                  required=True)
+    quick_ship = fields.Boolean(string='Quick Ship Available',
+                                help='Is Quick Ship available for this product and decoration method',
+                                required=True)
+    quick_ship_prod_days = fields.Integer(string='Quick Ship Production Days',
+                                          help='If quick ship is available, the number of production days required')
+    quick_ship_max = fields.Integer(string='Quick Ship Maximum Quantity',
+                                    help='If quick ship is available the maximum quantity that can be shipped')
+    number_sides = fields.Integer(string='Number Sides Included', default=1,
+                                  help='Number of decoration locations included for this product and decoration method',
+                                  required=True)
+    pms = fields.Boolean(string='PMS Available', help='Is Pantone color matching available for this product and decoration method',
+                         required=True)
+    full_color = fields.Boolean(string='Full Color Available', help='Is Full Colro decoration avaiable for this product and decoration method',
+                                required=True)
+    max_colors = fields.Boolean(string='Maximum Decoration colors',
+                                help='Maximum number of colors that can be used for this product and decoration method',
+                                required=True)
+
+
+class ProductDecorationArea(models.Model):
+    _name = 'product.template.decorationarea'
+    _description = 'Product Decoration Area'
+
+    product_tmpl_id = fields.Many2one(comodel_name='product.template', string='Product Template', ondelete='restrict')
+    decoration_area_id = fields.Many2one(comodel_name='product.template.attribute.value')
+    decoration_method_id = fields.Many2one(comodel_name='product.template.decorationmethod', string='Decoration Method')
+    height = fields.Float(string='Decoration Height', help='The height of the decoration area in inches.')
+    width = fields.Float(string='Decoration Width', help='The width of the decoration area in inches.')
+    shape = fields.Selection([
+        ('Circle'),
+        ('Rectangle'),
+        ('Other')
+    ], string='Decoration Shape')
+    diameter = fields.Float(string='Decoration Diameter', help='The diameter of the decoration area in inches.')
+    dimensions = fields.Char(string='Dimensions', compute='_compute_dimensions', store=False)
+
+    @api.depends('width', 'height')
+    def _compute_dimensions(self):
+        for decoarea in self:
+            dimensions = None
+            if decoarea.depth and decoarea.width:
+                dimensions = "{width:.2f}\" x {height:.2f}\"".format(width=decoarea.width, height=decoarea.height)
+            decoarea.dimensions = dimensions
+
+
+class ProductTemplate(models.Model):
+    _inherit = 'product.template'
+
+    decoration_method_ids = fields.One2many(comodel_name='product.template.decorationmethod', inverse_name='product_tmpl_id')
+    decoration_area_ids = fields.One2many(comodel_name='product.template.decorationarea', inverse_name='decoration_area_id')
+
