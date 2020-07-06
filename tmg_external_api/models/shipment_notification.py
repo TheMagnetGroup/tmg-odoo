@@ -18,7 +18,8 @@ class shipment_notificaiton(models.Model):
                         where (client_order_ref = %(PONumber)s or %(PONumber)s =  '')
                         and ((CAST(partner.id as VARCHAR(20)) = %(Partner_ID)s or CAST(partner.parent_id as VARCHAR(20)) = %(Partner_ID)s) or %(Partner_ID)s = '')
                         and (sale.name = %(SONumber)s or %(SONumber)s = '')
-                        and (pick.date_done >= %(LastUpdate)s);"""
+                        and (pick.date_done >= %(LastUpdate)s);
+                        Group By sale.id"""
             params = {
                 'PONumber': PONumber,
                 'SONumber': SONumber,
@@ -29,11 +30,9 @@ class shipment_notificaiton(models.Model):
             orderObj = self.env['sale.order']
 
             itemList = []
-            SOList = []
+
             for val in self.env.cr.dictfetchall():
-                SOList.append(val['id'])
-            ScrollList = set(SOList)
-            for val in ScrollList:
+
                 order_id = val['id']
                 order = orderObj.browse(order_id)
                 complete = False
