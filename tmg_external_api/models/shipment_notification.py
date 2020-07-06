@@ -29,8 +29,11 @@ class shipment_notificaiton(models.Model):
             orderObj = self.env['sale.order']
 
             itemList = []
-
+            SOList = []
             for val in self.env.cr.dictfetchall():
+                SOList.append(val['id'])
+            ScrollList = set(SOList)
+            for val in ScrollList:
                 order_id = val['id']
                 order = orderObj.browse(order_id)
                 complete = False
@@ -103,8 +106,9 @@ class shipment_notificaiton(models.Model):
             # ('parent_id', '=', partner_id.parent_id.id),
             ('Address2', '=', partner_id.street2 or 'Not Provided'),
             ('City', '=', partner_id.city or 'Not Provided'),
-            ('State', '=', partner_id.state_id.name or 'NA'),
-            ('Zip', '=', partner_id.zip or 'NA')
+            ('State', '=', partner_id.state_id.code or 'NA'),
+            ('Zip', '=', partner_id.zip or 'NA'),
+            ('Country', '=', partner_id.country_id.name or 'NA')
         ]
         return data
 
