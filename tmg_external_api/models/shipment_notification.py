@@ -18,7 +18,7 @@ class shipment_notificaiton(models.Model):
                         where (client_order_ref = %(PONumber)s or %(PONumber)s =  '')
                         and ((CAST(partner.id as VARCHAR(20)) = %(Partner_ID)s or CAST(partner.parent_id as VARCHAR(20)) = %(Partner_ID)s) or %(Partner_ID)s = '')
                         and (sale.name = %(SONumber)s or %(SONumber)s = '')
-                        and (pick.date_done >= %(LastUpdate)s);
+                        and (pick.date_done >= %(LastUpdate)s)
                         Group By sale.id"""
             params = {
                 'PONumber': PONumber,
