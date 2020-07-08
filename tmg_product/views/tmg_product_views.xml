@@ -98,7 +98,7 @@
                     <field name="product_tags_ids" widget="many2many_tags" options="{'color_field': 'color', 'no_create_edit': True}"/>
                 </field>
                 <xpath expr="//form[1]/sheet[1]/notebook[1]" position="inside">
-                    <page name="additional_data" string="Additional Data">
+                    <page name="additional_data" string="Additional Data" attrs="{'invisible': [('sale_ok', '=', False)]}">
                         <group>
                             <group string="Dimensions">
                                 <field name="width"/>
@@ -111,20 +111,55 @@
                                 <field name="warehouses" widget="many2many_tags"/>
                             </group>
                         </group>
-                        <field name="decoration_method_ids" widget="one2many_list" context="{'show_attribute': False}" modifiers="{'readonly':'false'}">
-                            <tree string="Decoration Methods" editable="bottom">
-                                <field name="decoration_method_id"/>
-                                <field name="prod_time_lo"/>
-                                <field name="prod_time_hi"/>
-                                <field name="pms"/>
-                                <field name="full_color"/>
-                                <field name="max_colors"/>
-                                <field name="number_sides"/>
-                                <field name="quick_ship"/>
-                                <field name="quick_ship_prod_days"/>
-                                <field name="quick_ship_max"/>
-                            </tree>
-                        </field>
+                        <group string = "Decoration Methods">
+                            <field name="decoration_method_ids" widget="one2many_list" context="{'show_attribute': False}"
+                                   modifiers="{'readonly':'false'}">
+                                <tree editable="bottom">
+                                    <field name="decoration_method_id" options="{'no_create_edit':True}"
+                                            domain="[('product_tmpl_id.id','=',parent.id),('attribute_id.category','=','decoration')]"
+                                            />
+                                    <field name="prod_time_lo"/>
+                                    <field name="prod_time_hi"/>
+                                    <field name="pms"/>
+                                    <field name="full_color"/>
+                                    <field name="max_colors"/>
+                                    <field name="number_sides"/>
+                                    <field name="quick_ship"/>
+                                    <field name="quick_ship_prod_days"/>
+                                    <field name="quick_ship_max"/>
+                                </tree>
+                            </field>
+                        </group>
+                        <group string="Decoration Locations">
+                            <field name="decoration_area_ids" widget="one2many_list" context="{'show_attribute': False}"
+                                   modifiers="{'readonly':'false'}">
+                                <tree editable="bottom">
+                                    <field name="decoration_area_id" options="{'no_create_edit':True}"
+                                            domain="[('product_tmpl_id.id','=',parent.id),('attribute_id.category','=','location')]"
+                                            />
+                                    <field name="decoration_method_id" options="{'no_create_edit':True}"
+                                            domain="[('product_tmpl_id.id','=',parent.id)]"
+                                            />
+                                    <field name="height"/>
+                                    <field name="width"/>
+                                    <field name="shape"/>
+                                    <field name="diameter"/>
+                                </tree>
+                            </field>
+                        </group>
+                        <group string="Additional Charges">
+                            <field name="addl_charge_product_ids" widget="one2many_list" context="{'show_attribute': False}"
+                                   modifiers="{'readonly':'false'}">
+                                <tree editable="bottom">
+                                    <field name="addl_charge_product_id" options="{'no_create_edit':True}"
+                                            domain="[('type','=','service'),('id','!=',parent.id)]"/>
+                                    <field name="decoration_method_ids" options="{'no_create_edit':True}"
+                                            widget="many2many_tags"
+                                            domain="[('product_tmpl_id.id','=',parent.id),('attribute_id.category','=','decoration')]"
+                                            />
+                                </tree>
+                            </field>
+                        </group>
                     </page>
                 </xpath>
             </field>

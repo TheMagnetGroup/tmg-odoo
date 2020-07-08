@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from odoo import models, fields, api
+from odoo.exceptions import ValidationError
 from datetime import datetime
 import urllib.request
 import json
@@ -251,7 +252,8 @@ class ProductDecorationMethod(models.Model):
     _name = 'product.template.decorationmethod'
     _description = 'Product Decoration Method'
 
-    product_tmpl_id = fields.Many2one(comodel_name='product.template', string='Product Template')
+    name = fields.Char(string='Name', compute='_set_name')
+    product_tmpl_id = fields.Many2one(comodel_name='product.template', string='Product Template', required=True)
     decoration_method_id = fields.Many2one(comodel_name='product.template.attribute.value', string='Decoration Method',
                                            delete='restrict', required=True)
     prod_time_lo = fields.Integer(string='Production Time Low',
@@ -274,25 +276,30 @@ class ProductDecorationMethod(models.Model):
                          required=True)
     full_color = fields.Boolean(string='Full Color Available', help='Is Full Colro decoration avaiable for this product and decoration method',
                                 required=True)
-    max_colors = fields.Boolean(string='Maximum Decoration colors',
+    max_colors = fields.Integer(string='Maximum Decoration colors',
                                 help='Maximum number of colors that can be used for this product and decoration method',
                                 required=True)
+
+    @api.depends('decoration_method_id')
+    def _set_name(self):
+        self.name = self.decoration_method_id.name
 
 
 class ProductDecorationArea(models.Model):
     _name = 'product.template.decorationarea'
     _description = 'Product Decoration Area'
 
-    product_tmpl_id = fields.Many2one(comodel_name='product.template', string='Product Template', ondelete='restrict')
-    decoration_area_id = fields.Many2one(comodel_name='product.template.attribute.value')
-    decoration_method_id = fields.Many2one(comodel_name='product.template.decorationmethod', string='Decoration Method')
+    name = fields.Char(string='Name', compute='_set_name')
+    product_tmpl_id = fields.Many2one(comodel_name='product.template', string='Product Template', ondelete='restrict', required=True)
+    decoration_area_id = fields.Many2one(comodel_name='product.template.attribute.value', string='Decoration Area', required=True)
+    decoration_method_id = fields.Many2one(comodel_name='product.template.decorationmethod', string='Decoration Method', required=True)
     height = fields.Float(string='Decoration Height', help='The height of the decoration area in inches.')
     width = fields.Float(string='Decoration Width', help='The width of the decoration area in inches.')
     shape = fields.Selection([
-        ('Circle'),
-        ('Rectangle'),
-        ('Other')
-    ], string='Decoration Shape')
+        ('circle', 'Circle'),
+        ('rectangle', 'Rectangle'),
+        ('other', 'Other')
+    ], string='Decoration Shape', required=True)
     diameter = fields.Float(string='Decoration Diameter', help='The diameter of the decoration area in inches.')
     dimensions = fields.Char(string='Dimensions', compute='_compute_dimensions', store=False)
 
@@ -304,10 +311,39 @@ class ProductDecorationArea(models.Model):
                 dimensions = "{width:.2f}\" x {height:.2f}\"".format(width=decoarea.width, height=decoarea.height)
             decoarea.dimensions = dimensions
 
+    @api.depends('decoration_area_id', 'decoration_method_id')
+    def _set_name(self):
+        self.name = self.decoration_area_id.name % ", " % self.decoration_method_id.name
+
+    @api.constrains('shape')
+    def _check_shape(self):
+        if self.shape == 'circle' and self.diameter == 0:
+            raise ValidationError("If the shape is a circle then diameter cannot be 0!")
+
+
+class ProductAdditonalCharges(models.Model):
+    _name = 'product.addl.charges'
+    _description = 'Product Addtional Charges'
+
+    product_tmpl_id = fields.Many2one(comodel_name='product.template', string='Product Template', ondelete='restrict',
+                                      required=True)
+    addl_charge_product_id = fields.Many2one(comodel_name='product.template', string='Additional Charge Product',
+                                             ondelete='restrict', required=True)
+    decoration_method_ids = fields.Many2many(comodel_name='product.template.attribute.value', string='Decoration Methods')
+
 
 class ProductTemplate(models.Model):
     _inherit = 'product.template'
 
     decoration_method_ids = fields.One2many(comodel_name='product.template.decorationmethod', inverse_name='product_tmpl_id')
-    decoration_area_ids = fields.One2many(comodel_name='product.template.decorationarea', inverse_name='decoration_area_id')
+    decoration_area_ids = fields.One2many(comodel_name='product.template.decorationarea', inverse_name='product_tmpl_id')
+    addl_charge_product_ids = fields.One2many(comodel_name='product.addl.charges', inverse_name='product_tmpl_id')
+
+    @api.constrains('decoration_method_ids')
+    def _check_deco_methods(self):
+
+        if any(len(template.decoration_method_ids) != len(template.decoration_method_ids.mapped('decoration_method_id')) for template in self):
+            raise ValidationError('You cannot have the same decoration method on multiple lines!')
+        return True
+
 
