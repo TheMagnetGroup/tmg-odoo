@@ -5,7 +5,7 @@ from odoo.exceptions import ValidationError
 from datetime import datetime
 import urllib.request
 import json
-import smtplib
+import xml.etree.ElementTree as ET
 
 
 class tmg_product_template_tags(models.Model):
@@ -346,4 +346,118 @@ class ProductTemplate(models.Model):
             raise ValidationError('You cannot have the same decoration method on multiple lines!')
         return True
 
+    def _build_all_xml(self):
+        # Get a list of all active products that can be sold
+        products = self.env['product.template'].search([('active','=',True),('sale_ok','=',True),('type','=','product')])
+        for product in products:
+            product._build_std_xml()
+
+    def _build_std_xml(self):
+        # First we will build the standard XML for the product.
+        product = ET.Element('product')
+        ET.SubElement(product, "product_style_number").text(self.product_style_number)
+        ET.SubElement(product, "product_name").text(self.name)
+        # The name of the product's category is the product category. The name of the top category in the path
+        # is the brand
+        ET.SubElement(product, "brand_name").text(self.category_id.get_parent_name())
+        ET.SubElement(product, "category_name").text(self.category_id.name)
+        ET.SubElement(product, "website_description").text(self.website_description)
+        ET.SubElement(product, "width").text(str(self.width))
+        ET.SubElement(product, "height").text(str(self.height))
+        ET.SubElement(product, "dimensions").text(self.dimensions)
+        ET.SubElement(product, "depth").text(str(self.depth))
+        ET.SubElement(product, "weight").text(str(self.weight))
+        # Get the res.config.settings model. If not found assume pounds
+        config = self.env['res.config.settings'].search()
+        if not config:
+            ET.SubElement(product, "weight_uom").text("LB")
+        else:
+            if config.product_weight_in_lbs == "1":
+                ET.SubElement(product, "weight_uom").text("LB")
+            else:
+                ET.SubElement(product, "weight_uom").text("KG")
+        ET.SubElement(product, "product_variant_count").text(str(self.product_variant_count))
+        ET.SubElement(product, "primary_material").text(self.primary_material)
+        ET.SubElement(product, "pricing_year").text(datetime.now().year)
+        ET.SubElement(product, "market_introduction_date").text(self.market_introduction_date.strftime("%Y-%m-%d"))
+        ET.SubElement(product, "data_last_change_date").text(self.data_last_change_date.strftime("%Y-%m-%d"))
+        # Split the keywords for the product
+        keyword_elem = ET.SubElement(product, "website_meta_keywords")
+        keywords = self.website_meta_keywords.split(", ")
+        for keyword in keywords:
+            ET.SubElement(keyword_elem, "keyword").text(keyword)
+        product_tags_elem = ET.SubElement(product, "product_tags")
+        for tag in self.product_tags_ids:
+            ET.SubElement(product_tags_elem).text(tag.name)
+        # Website tags will be any e-commerce category with a parent of "Tags"
+        website_tags_elem = ET.SubElement(product, "website_tags")
+        for category in self.public_categ_ids:
+            if category.parent_id.name == 'Tags':
+                ET.SubElement(website_tags_elem, "website_tag").text(category.name)
+        # Website categories will be any e-commerce category with a parent of "Category".  This will also establish
+        # the link between our website category and ASI/SAGE category.
+        website_cats_elem = ET.SubElement(product, "product_categories")
+        for category in self.public_categ_ids:
+            if category.parent_id.name == "Category":
+                website_cat_elem = ET.SubElement(website_cats_elem, "product_category")
+                ET.SubElement(website_cat_elem, "name").text(category.name)
+                ET.SubElement(website_cat_elem, "sage_category").text(category.sage_category_id.name)
+                ET.SubElement(website_cat_elem, "asi_category").text(category.asi_category_id.name)
+        alt_products_elem = ET.SubElement(product, "alternative_products")
+        for product in self.alternative_product_ids:
+            ET.SubElement(alt_products_elem, "alternative_product").text(product.product_style_number)
+        warehouses_elem = ET.SubElement(product, "warehouses")
+        for warehouse in self.warehouses:
+            warehouse_elem = ET.SubElement(warehouses_elem, "warehouse")
+            ET.SubElement(warehouse_elem, "name").text(warehouse.name)
+            ET.SubElement(warehouse_elem, "zip").text(warehouse.partner_id.zip)
+            ET.SubElement(warehouse_elem, "city").text(warehouse.partner_id.city)
+            ET.SubElement(warehouse_elem, "state").text(warehouse.partner_id.state_id.code)
+            ET.SubElement(warehouse_elem, "country").text(warehouse.partner_id.country_id.name)
+            ET.SubElement(warehouse_elem, "code").text(warehouse.code)
+        pvs_elem = ET.SubElement(product, "product_variants")
+        # If the product has variants then add those.
+        if self.product_variant_ids:
+            # Loop through the product.products and add variant specific information
+            for variant in self.product_variant_ids:
+                pv_elem = ET.SubElement(pvs_elem, "product_variant")
+                ET.SubElement(pv_elem, "product_variant_number").text(variant.default_code)
+                ET.SubElement(pv_elem, "product_variant_name").text(variant.name)
+                # Here we'll write the first attribute value that has a category of 'color' or 'thickness'
+                for attribute_value in variant.attribute_value_ids:
+                    if attribute_value.attribute_id.category in ('color','thickness'):
+                        ET.SubElement(pv_elem, "product_variant_swatch").text(attribute_value.html_color)
+                        ET.SubElement(pv_elem, "product_variant_color").text(attribute_value.name)
+                        break
+                # Write the packaging information for this product variant. We will only write out the first packaging
+                # row
+                if variant.packaging_ids:
+                    pkg_elem = ET.SubElement(pv_elem, "packaging")
+                    ET.SubElement(pkg_elem, "name").text(variant.packaging_ids[0].name)
+                    ET.SubElement(pkg_elem, "qty").text(str(variant.packaging_ids[0].qty))
+                    ET.SubElement(pkg_elem, "max_weight").text(str(variant.packaging_ids[0].max_weight))
+                    ET.SubElement(pkg_elem, "length").text(str(variant.packaging_ids[0].weight))
+                    ET.SubElement(pkg_elem, "width").text(str(variant.packaging_ids[0].width))
+                    ET.SubElement(pkg_elem, "height").text(str(variant.packaging_ids[0].height))
+                # Write the attributes that are specific to this variant (color, thickness, etc)
+                attrs_elem = ET.SubElement(product, "attributes")
+                for attribute_value in variant.attribute_value_ids:
+                    attr_elem = ET.SubElement(attrs_elem, "attribute")
+                    ET.SubElement(attr_elem, "attribute_category").text(attribute_value.attribute_id.category)
+                    ET.SubElement(attr_elem, "attribute_id").text(str(attribute_value.id))
+                    ET.SubElement(attr_elem, "attribute_sequence").text(str(attribute_value.sequence))
+
+
+
+
+
+
+class ProductCategory(models.Model):
+    _inherit = 'product.category'
+
+    def get_parent_name(self):
+        if self.parent_id:
+            return self.parent_id._get_parent_name()
+        else:
+            return self.name
 

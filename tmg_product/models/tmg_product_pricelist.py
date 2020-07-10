@@ -85,6 +85,7 @@ class ProductTemplate(models.Model):
     ala_catalog = fields.Float(string='As Low As Catalog', compute='_compute_ala')
     ala_net = fields.Float(string='As Low As Net', compute='_compute_ala')
     ala_code = fields.Char(string='As Low As Code', compute='_compute_ala')
+    data_review_required = fields.Boolean(string='Data Review Required', default=False, copy=False)
     
     @api.multi
     def _get_combination_info(self, combination=False, product_id=False, add_qty=1, pricelist=False, parent_combination=False, only_template=False):
