@@ -12,7 +12,7 @@ class tmg_product_template_tags(models.Model):
     _name = 'product.template.tags'
     _description = "Product Tags"
 
-    name = fields.Char(string='Name',required=True)
+    name = fields.Char(string='Name', required=True)
     color = fields.Integer(string='Color Index')
 
     _sql_constraints = [
@@ -60,6 +60,7 @@ class ProductExternalCategories(models.Model):
         'Username': '',
         'Password': ''
     }
+
     def _send_error_email(self, message):
 
         Mail = self.env['mail.mail']
@@ -77,9 +78,12 @@ class ProductExternalCategories(models.Model):
 
     def set_sage_credentials(self):
         # Get the account and credentials needed for the SAGE request
-        acctid = self.env['tmg_external_api.tmg_reference'].search([('category','=','SAGEAuth'),('name','=','AcctId')])
-        token = self.env['tmg_external_api.tmg_reference'].search([('category','=','SAGEAuth'),('name','=','Token')])
-        sagenum = self.env['tmg_external_api.tmg_reference'].search([('category','=','SAGEAuth'),('name','=','SAGENum')])
+        acctid = self.env['tmg_external_api.tmg_reference'].search(
+            [('category', '=', 'SAGEAuth'), ('name', '=', 'AcctId')])
+        token = self.env['tmg_external_api.tmg_reference'].search(
+            [('category', '=', 'SAGEAuth'), ('name', '=', 'Token')])
+        sagenum = self.env['tmg_external_api.tmg_reference'].search(
+            [('category', '=', 'SAGEAuth'), ('name', '=', 'SAGENum')])
 
         # Set the values in the credentials dictionary
         self.SAGERequest['Request'] = 'CategoryList'
@@ -89,9 +93,11 @@ class ProductExternalCategories(models.Model):
 
     def get_asi_auth_token(self):
         # Get the account and credentials needed for the SAGE request
-        asi = self.env['tmg_external_api.tmg_reference'].search([('category','=','ASIAuth'),('name','=','Asi')])
-        username = self.env['tmg_external_api.tmg_reference'].search([('category','=','ASIAuth'),('name','=','Username')])
-        password = self.env['tmg_external_api.tmg_reference'].search([('category','=','ASIAuth'),('name','=','Password')])
+        asi = self.env['tmg_external_api.tmg_reference'].search([('category', '=', 'ASIAuth'), ('name', '=', 'Asi')])
+        username = self.env['tmg_external_api.tmg_reference'].search(
+            [('category', '=', 'ASIAuth'), ('name', '=', 'Username')])
+        password = self.env['tmg_external_api.tmg_reference'].search(
+            [('category', '=', 'ASIAuth'), ('name', '=', 'Password')])
 
         self.ASIAuth['Asi'] = asi.value
         self.ASIAuth['Username'] = username.value
@@ -118,7 +124,7 @@ class ProductExternalCategories(models.Model):
                     return
 
                 # If the response does NOT contain 'AccessToken'
-                if "AccessToken"  not in asiresponsedict:
+                if "AccessToken" not in asiresponsedict:
                     self._send_error_email('ASI authorization returned no token')
                     return
 
@@ -176,8 +182,10 @@ class ProductExternalCategories(models.Model):
 
                 # Now look for any categories that we have but are not in SAGE. We'll do this by searching for any
                 # category that was not updated on or after the timestamp we captured at the beginning of the routine
-                orphaned_categories = self.env['product.external.categories'].search([('external_source','=','sage'),
-                                                                                      ('write_date','<',cur_date.strftime("%Y-%m-%d %H:%M:%S"))])
+                orphaned_categories = self.env['product.external.categories'].search([('external_source', '=', 'sage'),
+                                                                                      ('write_date', '<',
+                                                                                       cur_date.strftime(
+                                                                                           "%Y-%m-%d %H:%M:%S"))])
                 for oc in orphaned_categories:
                     oc.unlink()
         except Exception as err:
@@ -230,8 +238,10 @@ class ProductExternalCategories(models.Model):
 
                 # Now look for any categories that we have but are not in ASI. We'll do this by searching for any
                 # category that was not updated on or after the timestamp we captured at the beginning of the routine
-                orphaned_categories = self.env['product.external.categories'].search([('external_source','=','asi'),
-                                                                                      ('write_date','<',cur_date.strftime("%Y-%m-%d %H:%M:%S"))])
+                orphaned_categories = self.env['product.external.categories'].search([('external_source', '=', 'asi'),
+                                                                                      ('write_date', '<',
+                                                                                       cur_date.strftime(
+                                                                                           "%Y-%m-%d %H:%M:%S"))])
                 for oc in orphaned_categories:
                     oc.unlink()
 
@@ -272,9 +282,11 @@ class ProductDecorationMethod(models.Model):
     number_sides = fields.Integer(string='Number Sides Included', default=1,
                                   help='Number of decoration locations included for this product and decoration method',
                                   required=True)
-    pms = fields.Boolean(string='PMS Available', help='Is Pantone color matching available for this product and decoration method',
+    pms = fields.Boolean(string='PMS Available',
+                         help='Is Pantone color matching available for this product and decoration method',
                          required=True)
-    full_color = fields.Boolean(string='Full Color Available', help='Is Full Colro decoration avaiable for this product and decoration method',
+    full_color = fields.Boolean(string='Full Color Available',
+                                help='Is Full Colro decoration avaiable for this product and decoration method',
                                 required=True)
     max_colors = fields.Integer(string='Maximum Decoration colors',
                                 help='Maximum number of colors that can be used for this product and decoration method',
@@ -290,9 +302,12 @@ class ProductDecorationArea(models.Model):
     _description = 'Product Decoration Area'
 
     name = fields.Char(string='Name', compute='_set_name')
-    product_tmpl_id = fields.Many2one(comodel_name='product.template', string='Product Template', ondelete='restrict', required=True)
-    decoration_area_id = fields.Many2one(comodel_name='product.template.attribute.value', string='Decoration Area', required=True)
-    decoration_method_id = fields.Many2one(comodel_name='product.template.decorationmethod', string='Decoration Method', required=True)
+    product_tmpl_id = fields.Many2one(comodel_name='product.template', string='Product Template', ondelete='restrict',
+                                      required=True)
+    decoration_area_id = fields.Many2one(comodel_name='product.template.attribute.value', string='Decoration Area',
+                                         required=True)
+    decoration_method_id = fields.Many2one(comodel_name='product.template.decorationmethod', string='Decoration Method',
+                                           required=True)
     height = fields.Float(string='Decoration Height', help='The height of the decoration area in inches.')
     width = fields.Float(string='Decoration Width', help='The width of the decoration area in inches.')
     shape = fields.Selection([
@@ -329,26 +344,43 @@ class ProductAdditonalCharges(models.Model):
                                       required=True)
     addl_charge_product_id = fields.Many2one(comodel_name='product.template', string='Additional Charge Product',
                                              ondelete='restrict', required=True)
-    decoration_method_ids = fields.Many2many(comodel_name='product.template.attribute.value', string='Decoration Methods')
+    decoration_method_ids = fields.Many2many(comodel_name='product.template.attribute.value',
+                                             string='Decoration Methods')
+    charge_type = fields.Selection([
+        ('order', 'Order'),
+        ('run', 'Run'),
+        ('setup', 'Setup')
+    ], string='Charge Type', required=True)
+    charge_yuom = fields.Selection([
+        ('colors', 'Colors'),
+        ('inches', 'Inches'),
+        ('other', 'Other'),
+        ('stitches', 'Stitches'),
+        ('squareinches', 'Square Inches')
+    ], string='Charge Secondary UOM', required=True)
 
 
 class ProductTemplate(models.Model):
     _inherit = 'product.template'
 
-    decoration_method_ids = fields.One2many(comodel_name='product.template.decorationmethod', inverse_name='product_tmpl_id')
-    decoration_area_ids = fields.One2many(comodel_name='product.template.decorationarea', inverse_name='product_tmpl_id')
+    decoration_method_ids = fields.One2many(comodel_name='product.template.decorationmethod',
+                                            inverse_name='product_tmpl_id')
+    decoration_area_ids = fields.One2many(comodel_name='product.template.decorationarea',
+                                          inverse_name='product_tmpl_id')
     addl_charge_product_ids = fields.One2many(comodel_name='product.addl.charges', inverse_name='product_tmpl_id')
 
     @api.constrains('decoration_method_ids')
     def _check_deco_methods(self):
 
-        if any(len(template.decoration_method_ids) != len(template.decoration_method_ids.mapped('decoration_method_id')) for template in self):
+        if any(len(template.decoration_method_ids) != len(template.decoration_method_ids.mapped('decoration_method_id'))
+               for template in self):
             raise ValidationError('You cannot have the same decoration method on multiple lines!')
         return True
 
     def _build_all_xml(self):
         # Get a list of all active products that can be sold
-        products = self.env['product.template'].search([('active','=',True),('sale_ok','=',True),('type','=','product')])
+        products = self.env['product.template'].search(
+            [('active', '=', True), ('sale_ok', '=', True), ('type', '=', 'product')])
         for product in products:
             product._build_std_xml()
 
@@ -425,7 +457,7 @@ class ProductTemplate(models.Model):
                 ET.SubElement(pv_elem, "product_variant_name").text(variant.name)
                 # Here we'll write the first attribute value that has a category of 'color' or 'thickness'
                 for attribute_value in variant.attribute_value_ids:
-                    if attribute_value.attribute_id.category in ('color','thickness'):
+                    if attribute_value.attribute_id.category in ('color', 'thickness'):
                         ET.SubElement(pv_elem, "product_variant_swatch").text(attribute_value.html_color)
                         ET.SubElement(pv_elem, "product_variant_color").text(attribute_value.name)
                         break
@@ -446,10 +478,91 @@ class ProductTemplate(models.Model):
                     ET.SubElement(attr_elem, "attribute_category").text(attribute_value.attribute_id.category)
                     ET.SubElement(attr_elem, "attribute_id").text(str(attribute_value.id))
                     ET.SubElement(attr_elem, "attribute_sequence").text(str(attribute_value.sequence))
+        # Write the decoration location
+        if self.decoration_area_ids:
+            locations_elem = ET.SubElement(product, "decoration_locations")
+            for location in self.decoration_method_ids:
+                location_elem = ET.SubElement(locations_elem, "deocration_location")
+                ET.SubElement(location_elem, "id").text(str(location.id))
+                ET.SubElement(location_elem, "name").text(location.name)
+                methods_elem = ET.SubElement(location_elem, "decoration_methods")
+                method_elem = ET.SubElement(methods_elem, "decoration_method")
+                ET.SubElement(method_elem, "id").text(str(location.decoration_method_id.id))
+                ET.SubElement(method_elem, "name").text(location.decoration_method_id.name)
+                ET.SubElement(method_elem, "sequence").text(str(location.decoration_method_id.sequence))
+                ET.SubElement(method_elem, "height").text(str(location.decoration_method_id.height))
+                ET.SubElement(method_elem, "width").text(str(location.decoration_method_id.width))
+                if location.decoration_method_id.shape == "circle" and location.decoration_method_id.diameter and \
+                        location.decoration_method_id.diameter != 0:
+                    ET.SubElement(method_elem, "diameter").text(str(location.decoration_method_id.diameter))
+                ET.SubElement(method_elem, "dimensions").text(location.decoration_method_id.dimensions)
+                ET.SubElement(method_elem, "shape").text(location.decoration_method_id.shape)
+                ET.SubElement(method_elem, "prod_time_lo").text(str(location.decoration_method_id.prod_time_lo))
+                ET.SubElement(method_elem, "prod_time_hi").text(str(location.decoration_method_id.prod_time_hi))
+                ET.SubElement(method_elem, "quick_ship").text(str(location.decoration_method_id.quick_ship))
+                ET.SubElement(method_elem, "quick_ship_max").text(str(location.decoration_method_id.quick_ship_max))
+                ET.SubElement(method_elem, "quick_ship_prod_days").text(
+                    str(location.decoration_method_id.quick_ship_prod_days))
+                ET.SubElement(method_elem, "number_sides").text(str(location.decoration_method_id.number_sides))
+                ET.SubElement(method_elem, "pms").text(str(location.decoration_method_id.pms))
+                ET.SubElement(method_elem, "full_color").text(str(location.decoration_method_id.full_color))
+                ET.SubElement(method_elem, "max_colors").text(str(location.decoration_method_id.max_colors))
 
+                # Now write the prices.  First get the pricing grid
+                prices_elem = ET.SubElement(method_elem, "prices")
+                price_elem = ET.SubElement(prices_elem, "price")
+                # Set the variants that don't create attributes in the context
+                self = self.with_context(no_create_variant_attributes=[location.decoration_method_id.id])
+                # Build the price grid for standard catalog/net
+                price_grid_dict = self._build_price_grid()
+                # Write the catalog price structure
+                ET.SubElement(price_elem, "name").text(price_grid_dict['catalog_pricelist'])
+                ET.SubElement(price_elem, "currency_id").text(price_grid_dict['catalog_currency'])
+                ET.SubElement(price_elem, "ala_catalog").text(str(price_grid_dict['catalog_prices'][-1]))
+                ET.SubElement(price_elem, "ala_net").text(str(price_grid_dict['net_prices'][-1]))
+                ET.SubElement(price_elem, "ala_discount_code").text(price_grid_dict['discount_codes'][-1])
+                ET.SubElement(price_elem, "uom").text(self.uom_name)
+                quantities_elem = ET.SubElement(price_elem, "quantities")
+                for idx, qty in enumerate(price_grid_dict['quantities'], start=0):
+                    quantity_elem = ET.SubElement(quantities_elem, "quantity")
+                    ET.SubElement(quantity_elem, "min_quantity").text(str(qty))
+                    ET.SubElement(quantity_elem, "catalog_price").text(str(price_grid_dict['catalog_prices'][idx]))
+                    ET.SubElement(quantity_elem, "discount_code").text(str(price_grid_dict['discount_codes'][idx]))
+                    ET.SubElement(quantity_elem, "net_price").text(str(price_grid_dict['net_prices'][idx]))
+                    ET.SubElement(quantity_elem, "date_start").text(str(price_grid_dict['effective_dates'][idx]))
+                    ET.SubElement(quantity_elem, "date_end").text(str(price_grid_dict['expiration_dates'][idx]))
 
-
-
+                # Now write the additional charges that apply to this product/decoration method combination
+                if self.addl_charge_product_ids:
+                    addl_charges_elem = ET.SubElement(method_elem, "additional_charges")
+                    for addl_charge_id in self.addl_charge_product_ids:
+                        if not self.addl_charge_product_ids.decoration_method_ids or \
+                                location.decoration_method_id.id in self.addl_charge_product_id.decoration_method_ids:
+                            addl_charge_elem = ET.SubElement(addl_charges_elem, "additional_charge")
+                            ET.SubElement(addl_charge_elem, "id").text(str(addl_charge_id.id))
+                            ET.SubElement(addl_charge_elem, "uom").text(addl_charge_id.product_tmpl_id.uom_name)
+                            ET.SubElement(addl_charge_elem, "item_number").text(
+                                addl_charge_id.product_tmpl_id.default_code)
+                            ET.SubElement(addl_charge_elem, "name").text(addl_charge_id.product_tmpl_id.name)
+                            ET.SubElement(addl_charge_elem, "charge_type").text(addl_charge_id.charge_type)
+                            ET.SubElement(addl_charge_elem, "charge_yuom").text(addl_charge_id.charge_yuom)
+                            # Set the variants that don't create attributes in the context
+                            self = self.with_context(no_create_variant_attributes=[location.decoration_method_id.id])
+                            # Build the price grid for standard catalog/net
+                            ac_price_grid_dict = addl_charge_id.product_tmpl_id._build_price_grid()
+                            if ac_price_grid_dict:
+                                ET.SubElement(addl_charge_elem, "min_quantity").text(
+                                    str(ac_price_grid_dict['quantities'][0]))
+                                ET.SubElement(addl_charge_elem, "catalog_price").text(
+                                    str(ac_price_grid_dict['catalog_prices'][0]))
+                                ET.SubElement(addl_charge_elem, "discount_code").text(
+                                    str(ac_price_grid_dict['discount_codes'][0]))
+                                ET.SubElement(addl_charge_elem, "net_price").text(
+                                    str(ac_price_grid_dict['net_prices'][0]))
+                                ET.SubElement(addl_charge_elem, "date_start").text(
+                                    str(ac_price_grid_dict['effective_dates'][0]))
+                                ET.SubElement(addl_charge_elem, "date_end").text(
+                                    str(ac_price_grid_dict['expiration_dates'][0]))
 
 
 class ProductCategory(models.Model):
@@ -460,4 +573,3 @@ class ProductCategory(models.Model):
             return self.parent_id._get_parent_name()
         else:
             return self.name
-

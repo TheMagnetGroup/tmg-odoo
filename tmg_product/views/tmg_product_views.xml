@@ -157,6 +157,8 @@
                                             widget="many2many_tags"
                                             domain="[('product_tmpl_id.id','=',parent.id),('attribute_id.category','=','decoration')]"
                                             />
+                                    <field name="charge_type"/>
+                                    <field name="charge_yuom"/>
                                 </tree>
                             </field>
                         </group>

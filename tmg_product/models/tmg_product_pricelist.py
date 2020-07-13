@@ -33,6 +33,8 @@ class PriceList(models.Model):
                     # If there was a rule id then append the discount code, if any, to the result
                     if rule_id:
                         result[pid].append(rule_id.discount_code)
+                        result[pid].append(rule_id.date_start)
+                        result[pid].append(rule_id.date_end)
 
                     # if the rule has extra ids:
                     if rule_id and rule_id.extra_ids:
@@ -121,26 +123,65 @@ class ProductTemplate(models.Model):
                 product.ala_net = None
                 product.ala_code = None
 
+    # This routine returns a dictionary with prices from 2 different priceslists with the intention that the first
+    # pricelist is catalog and the second pricelist is net.  The default functionality is to return
+    # prices from priceslists named specifically 'Catalog' and 'Net'.  The dictionary structure is:
+    #   {
+    #       "catalog_pricelist" : "name",
+    #       "catalog_currency" : "name",
+    #       "net_pricelist" : "name",
+    #       "net_currency" : "name",
+    #       "quantities" : [list_of_quantities],
+    #       "catalog_prices" : [list_of_prices],
+    #       "net_prices" : [list_of_prices],
+    #       "discount_codes" : [list_of_discount_codes],
+    #       "effective_dates" : [list_of_dates],
+    #       "expiration_dates" : [list_of_dates]
+    #   }
     def _build_price_grid(self, catalog_pricelist='Catalog', net_pricelist='Net'):
         # Get the passed catalog/net pricelists or the default
         cat = self.env['product.pricelist'].search([('name', '=', catalog_pricelist)])
         net = self.env['product.pricelist'].search([('name', '=', net_pricelist)])
-        # If we have both
+        price_grid_dict = {}
         cat_prices = []
         net_prices = []
         discount_codes = []
+        effective_dates = []
+        expiration_dates = []
+        # If we have both
         if cat and net:
             for product in self:
                 # Get the published quantities from the catalog pricelist, assuming current date as effectivity
                 quantities = cat.get_product_published_quantities(product)
+                price_grid_dict['catalog_pricelist'] = cat.name
+                price_grid_dict['catalog_currency'] = cat.currency_id.name
+                price_grid_dict['net_pricelist'] = net.name
+                price_grid_dict['net_currency'] = net.currency_id.name
+                price_grid_dict['quantities'] = quantities
                 for qty in quantities:
-                    cat_prices.append(cat.get_product_price(self, qty, None))
+                    cat_price = cat.get_product_price_rule(self, qty, None)
+                    cat_prices.append(cat_price[0])
                     net_price = net.get_product_price_rule(self, qty, None)
                     net_prices.append(net_price[0])
-                    if net_price[1]:
-                        pi = product.env['product.pricelist.item'].browse(net_price[1])
-                        discount_codes.append(pi.discount_code)
-            return [quantities, cat_prices, net_prices, discount_codes]
+                    if len(net_price) > 3:
+                        discount_codes.append(net_price[3])
+                    if len(net_price) >= 6:
+                        effective_dates.append(net_price[4])
+                        expiration_dates.append(net_price[5])
+
+                price_grid_dict['catalog_prices'] = cat_prices
+                price_grid_dict['net_prices'] = net_prices
+                price_grid_dict['discount_codes'] = discount_codes
+                price_grid_dict['effective_dates'] = effective_dates
+                price_grid_dict['expiration_dates'] = expiration_dates
+
+                    # if net_price[1]:
+                        # pi = product.env['product.pricelist.item'].browse(net_price[1])
+                        # discount_codes.append(pi.discount_code)
+                        # price_effective_dates.append(pi.date_start)
+                        # price_effective_dates.append(pi.date_end)
+            #return [quantities, catalog_pricelist, cat_prices, net_pricelist, net_prices, discount_codes, price_effective_dates, price_expiration_dates]
+            return price_grid_dict
 
 
 class SaleOrderLine(models.Model):
