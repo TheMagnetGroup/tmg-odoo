@@ -155,11 +155,11 @@ class ProductTemplate(models.Model):
             qty_dict[template.id]['virtual_available_qty'] = qty_dict[template.id]['qty_available'] - \
                                                              qty_dict[template.id]['outgoing_qty']
             if template.bom_id:
-                manufacturable_qty = sum(template.product_variant_ids.mapped('virtual_available_qty'))
+                manufacturable_qty = [sum(template.product_variant_ids.mapped('virtual_available_qty'))]
                 shared_lines = template.bom_id.bom_line_ids.filtered(lambda bol: bol.is_shared())
                 if shared_lines:
-                    manufacturable_qty = min(shared_lines.mapped('product_id').mapped('virtual_available_qty'))
-                qty_dict[template.id]['virtual_available_qty'] = manufacturable_qty
+                    manufacturable_qty.append(min(shared_lines.mapped('product_id').mapped('virtual_available_qty')))
+                qty_dict[template.id]['virtual_available_qty'] = min(manufacturable_qty)
         return qty_dict
 
     def action_view_stock_move_lines(self):
