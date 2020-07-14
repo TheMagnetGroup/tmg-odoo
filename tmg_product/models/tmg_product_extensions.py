@@ -368,6 +368,7 @@ class ProductTemplate(models.Model):
     decoration_area_ids = fields.One2many(comodel_name='product.template.decorationarea',
                                           inverse_name='product_tmpl_id')
     addl_charge_product_ids = fields.One2many(comodel_name='product.addl.charges', inverse_name='product_tmpl_id')
+    data_errors = fields.Html(string='Required Data Errors')
 
     @api.constrains('decoration_method_ids')
     def _check_deco_methods(self):
@@ -384,129 +385,274 @@ class ProductTemplate(models.Model):
         for product in products:
             product._build_std_xml()
 
+    # In this routine we will check all required data elements to build the product XML and if any are missing
+    # we'll update the data error messages field on this product and return false
+    def _check_xml_data(self):
+        messages = []
+
+        # TODO: re-enable this check
+        # if not self.product_style_number:
+        #     messages.append("<li>Product Style Number missing</li>")
+        if not self.name:
+            messages.append("<li>Product Name missing</li>")
+        if not self.categ_id:
+            messages.append("<li>Product Category missing</li>")
+        if not self.website_description:
+            messages.append("<li>Product Website Description missing</li>")
+        if not self.width:
+            messages.append("<li>Product Width missing</li>")
+        if not self.height:
+            messages.append("<li>Product Height missing</li>")
+        if not self.depth:
+            messages.append("<li>Product Depth missing</li>")
+        if not self.weight:
+            messages.append("<li>Product Weight missing</li>")
+        if not self.product_variant_count or self.product_variant_count == 0:
+            messages.append("<li>Product does not have variants configured</li>")
+        if not self.primary_material:
+            messages.append("<li>Product Primary Material missing</li>")
+        if not self.market_introduction_date:
+            messages.append("<li>Product Market Introduction Date missing</li>")
+        if not self.website_meta_keywords:
+            messages.append("<li>Product Keywords missing</li>")
+        if not self.public_categ_ids:
+            messages.append("<li>Product Website Categories missing</li>")
+        else:
+            for cat in self.public_categ_ids:
+                if not cat.sage_category_id:
+                    messages.append("<li>Product Category %s missing equivalent SAGE category</li>".format(cat.name))
+                if not cat.asi_category_id:
+                    messages.append("<li>Product Category %s missing equivalent ASI category</li>".format(cat.name))
+        if not self.warehouses:
+            messages.append("<li>Product Warehouse(s) missing</li>")
+        else:
+            for warehouse in self.warehouses:
+                if not warehouse.partner_id:
+                    messages.append("<li>Product Warehouse %s missing address entry</li>".format(warehouse.name))
+                else:
+                    if not warehouse.partner_id.zip:
+                        messages.append("<li>Product Warehouse %s Address missing zip code</li>".format(warehouse.name))
+                    if not warehouse.partner_id.city:
+                        messages.append("<li>Product Warehouse %s Address missing city</li>".format(warehouse.name))
+                    if not warehouse.partner_id.state_id:
+                        messages.append("<li>Product Warehouse %s Address missing state</li>".format(warehouse.name))
+                    if not warehouse.partner_id.country_id:
+                        messages.append("<li>Product Warehouse %s Address missing country</li>".format(warehouse.name))
+        if self.product_variant_ids:
+            for variant in self.product_variant_ids:
+                if not variant.name:
+                    messages.append("<li>Product Variant missing name</li>")
+                if not variant.default_code:
+                    messages.append("<li>Product Variant %s missing internal reference</li>".format(variant.name))
+                if not variant.packaging_ids:
+                    messages.append("<li>Product Variant %s missing packaging ids</li>".format(variant.name))
+                else:
+                    if not variant.packaging_ids[0].name:
+                        messages.append("<li>Product Variant %s packaging missing name</li>".format(variant.name))
+                    if not variant.packaging_ids[0].qty:
+                        messages.append("<li>Product Variant %s packaging missing quantity</li>".format(variant.name))
+                    if not variant.packaging_ids[0].max_weight:
+                        messages.append("<li>Product Variant %s packaging missing maximum weight</li>".format(variant.name))
+                    if not variant.packaging_ids[0].length:
+                        messages.append("<li>Product Variant %s packaging missing length</li>".format(variant.name))
+                    if not variant.packaging_ids[0].width:
+                        messages.append("<li>Product Variant %s packaging missing width</li>".format(variant.name))
+                    if not variant.packaging_ids[0].height:
+                        messages.append("<li>Product Variant %s packaging missing height</li>".format(variant.name))
+        if not self.decoration_method_ids:
+            messages.append("<li>Product missing decoration methods</li>")
+        else:
+            for method in self.decoration_method_ids:
+                if not method.name:
+                    messages.append("<li>Decoration method for product missing name</li>")
+                if not method.prod_time_lo:
+                    messages.append("<li>Decoration method %s missing production time low</li>".format(method.name))
+                if not method.prod_time_hi:
+                    messages.append("<li>Decoration method %s missing production time high</li>".format(method.name))
+                if method.quick_ship:
+                    if not method.quick_ship_max:
+                        messages.append("<li>Decoration method %s flagged for quick ship but missing quick ship max quantity</li>".format(method.name))
+                    if not method.quick_ship_prod_days:
+                        messages.append("<li>Decoration method %s flagged for quick ship but missing quick ship production days</li>".format(method.name))
+                if not method.number_sides:
+                    messages.append("<li>Decoration method %s missing number of sides</li>".format(method.name))
+                if not method.max_colors:
+                    messages.append("<li>Decoration method %s missing maximum colors</li>".format(method.name))
+                # Set the variants that don't create attributes in the context
+                self = self.with_context(no_create_variant_attributes=[method.decoration_method_id.id])
+                # Build the price grid for standard catalog/net
+                price_grid_dict = self._build_price_grid()
+                if len(price_grid_dict) == 0:
+                    messages.append("<li>Pricing not returned for product</li>")
+
+        if not self.decoration_area_ids:
+            messages.append("<li>Product missing decoration locations</li>")
+        else:
+            for area in self.decoration_area_ids:
+                if not area.height:
+                    messages.append("<li>Decoration area %s missing height</li>".format(area.name))
+                if not area.width:
+                    messages.append("<li>Decoration area %s missing width</li>".format(area.name))
+                if area.shape == "circle" and (not area.diameter or area.diameter == 0):
+                    messages.append("<li>Decoration area %s shape is circle but no diameter specified</li>".format(area.name))
+                if not area.shape:
+                    messages.append("<li>Decoration area %s missing shape</li>".format(area.name))
+        if self.addl_charge_product_ids:
+            for ac in self.addl_charge_product_ids:
+                if not ac.charge_type:
+                    messages.append("<li>Additional Charge Item %s missing charge type</li>".format(ac.product_tmpl_id.name))
+                if not ac.charge_yuom:
+                    messages.append("<li>Additional Charge Item %s missing other unit of measure</li>".format(ac.product_tmpl_id.name))
+                # Build the price grid for standard catalog/net
+                ac_price_grid_dict = ac.product_tmpl_id._build_price_grid()
+                if len(ac_price_grid_dict) == 0:
+                    messages.append("<li>No pricing found for additional charge item %s</li>".format(ac.product_tmpl_id.name))
+
+        # Now if we wrote ANY messages to the messages list update the data error message field
+        if len(messages):
+            error_text = '<html><body><ul>' + ''.join(messages) + '</ul></body></html>'
+            self.write({
+                'data_errors': error_text
+            })
+            print(error_text)
+            return False
+        else:
+            return True
+
     def _build_std_xml(self):
+
+        # First check if we have any data issues for building this XML. If so, return and don't build the data
+        if not self._check_xml_data():
+            return
+
         # First we will build the standard XML for the product.
         product = ET.Element('product')
-        ET.SubElement(product, "product_style_number").text(self.product_style_number)
-        ET.SubElement(product, "product_name").text(self.name)
+        ET.SubElement(product, "product_style_number").text = "TBD"
+        ET.SubElement(product, "product_name").text = self.name
         # The name of the product's category is the product category. The name of the top category in the path
         # is the brand
-        ET.SubElement(product, "brand_name").text(self.category_id.get_parent_name())
-        ET.SubElement(product, "category_name").text(self.category_id.name)
-        ET.SubElement(product, "website_description").text(self.website_description)
-        ET.SubElement(product, "width").text(str(self.width))
-        ET.SubElement(product, "height").text(str(self.height))
-        ET.SubElement(product, "dimensions").text(self.dimensions)
-        ET.SubElement(product, "depth").text(str(self.depth))
-        ET.SubElement(product, "weight").text(str(self.weight))
+        ET.SubElement(product, "brand_name").text = self.categ_id.get_parent_name()
+        ET.SubElement(product, "category_name").text = self.categ_id.name
+        ET.SubElement(product, "website_description").text = self.website_description
+        ET.SubElement(product, "width").text = str(self.width)
+        ET.SubElement(product, "height").text = str(self.height)
+        ET.SubElement(product, "dimensions").text = self.dimensions
+        ET.SubElement(product, "depth").text = str(self.depth)
+        ET.SubElement(product, "weight").text = str(self.weight)
         # Get the res.config.settings model. If not found assume pounds
-        config = self.env['res.config.settings'].search()
+        config = self.env['res.config.settings'].sudo(self.env.user)
         if not config:
-            ET.SubElement(product, "weight_uom").text("LB")
+            ET.SubElement(product, "weight_uom").text = "LB"
         else:
             if config.product_weight_in_lbs == "1":
-                ET.SubElement(product, "weight_uom").text("LB")
+                ET.SubElement(product, "weight_uom").text = "LB"
             else:
-                ET.SubElement(product, "weight_uom").text("KG")
-        ET.SubElement(product, "product_variant_count").text(str(self.product_variant_count))
-        ET.SubElement(product, "primary_material").text(self.primary_material)
-        ET.SubElement(product, "pricing_year").text(datetime.now().year)
-        ET.SubElement(product, "market_introduction_date").text(self.market_introduction_date.strftime("%Y-%m-%d"))
-        ET.SubElement(product, "data_last_change_date").text(self.data_last_change_date.strftime("%Y-%m-%d"))
+                ET.SubElement(product, "weight_uom").text = "KG"
+        ET.SubElement(product, "product_variant_count").text = str(self.product_variant_count)
+        ET.SubElement(product, "primary_material").text = self.primary_material
+        ET.SubElement(product, "pricing_year").text = datetime.now().year
+        if self.market_introduction_date:
+            ET.SubElement(product, "market_introduction_date").text = datetime.strftime(self.market_introduction_date, "%Y-%m-%d")
+        else:
+            ET.SubElement(product, "market_introduction_date").text = ""
+        if self.data_last_change_date:
+            ET.SubElement(product, "data_last_change_date").text = datetime.strftime(self.data_last_change_date.strftime, "%Y-%m-%d")
+        else:
+            ET.SubElement(product, "data_last_change_date").text = ""
         # Split the keywords for the product
-        keyword_elem = ET.SubElement(product, "website_meta_keywords")
-        keywords = self.website_meta_keywords.split(", ")
-        for keyword in keywords:
-            ET.SubElement(keyword_elem, "keyword").text(keyword)
+        if self.website_meta_keywords:
+            keyword_elem = ET.SubElement(product, "website_meta_keywords")
+            keywords = self.website_meta_keywords.split(", ")
+            for keyword in keywords:
+                ET.SubElement(keyword_elem, "keyword").text = keyword
         product_tags_elem = ET.SubElement(product, "product_tags")
         for tag in self.product_tags_ids:
-            ET.SubElement(product_tags_elem).text(tag.name)
+            ET.SubElement(product_tags_elem).text = tag.name
         # Website tags will be any e-commerce category with a parent of "Tags"
         website_tags_elem = ET.SubElement(product, "website_tags")
         for category in self.public_categ_ids:
             if category.parent_id.name == 'Tags':
-                ET.SubElement(website_tags_elem, "website_tag").text(category.name)
+                ET.SubElement(website_tags_elem, "website_tag").text = category.name
         # Website categories will be any e-commerce category with a parent of "Category".  This will also establish
         # the link between our website category and ASI/SAGE category.
         website_cats_elem = ET.SubElement(product, "product_categories")
         for category in self.public_categ_ids:
             if category.parent_id.name == "Category":
                 website_cat_elem = ET.SubElement(website_cats_elem, "product_category")
-                ET.SubElement(website_cat_elem, "name").text(category.name)
-                ET.SubElement(website_cat_elem, "sage_category").text(category.sage_category_id.name)
-                ET.SubElement(website_cat_elem, "asi_category").text(category.asi_category_id.name)
+                ET.SubElement(website_cat_elem, "name").text = category.name
+                ET.SubElement(website_cat_elem, "sage_category").text = category.sage_category_id.name
+                ET.SubElement(website_cat_elem, "asi_category").text = category.asi_category_id.name
         alt_products_elem = ET.SubElement(product, "alternative_products")
         for product in self.alternative_product_ids:
-            ET.SubElement(alt_products_elem, "alternative_product").text(product.product_style_number)
+            ET.SubElement(alt_products_elem, "alternative_product").text = product.product_style_number
         warehouses_elem = ET.SubElement(product, "warehouses")
         for warehouse in self.warehouses:
             warehouse_elem = ET.SubElement(warehouses_elem, "warehouse")
-            ET.SubElement(warehouse_elem, "name").text(warehouse.name)
-            ET.SubElement(warehouse_elem, "zip").text(warehouse.partner_id.zip)
-            ET.SubElement(warehouse_elem, "city").text(warehouse.partner_id.city)
-            ET.SubElement(warehouse_elem, "state").text(warehouse.partner_id.state_id.code)
-            ET.SubElement(warehouse_elem, "country").text(warehouse.partner_id.country_id.name)
-            ET.SubElement(warehouse_elem, "code").text(warehouse.code)
+            ET.SubElement(warehouse_elem, "name").text = warehouse.name
+            ET.SubElement(warehouse_elem, "zip").text = warehouse.partner_id.zip
+            ET.SubElement(warehouse_elem, "city").text = warehouse.partner_id.city
+            ET.SubElement(warehouse_elem, "state").text = warehouse.partner_id.state_id.code
+            ET.SubElement(warehouse_elem, "country").text = warehouse.partner_id.country_id.name
+            ET.SubElement(warehouse_elem, "code").text = warehouse.code
         pvs_elem = ET.SubElement(product, "product_variants")
         # If the product has variants then add those.
         if self.product_variant_ids:
             # Loop through the product.products and add variant specific information
             for variant in self.product_variant_ids:
                 pv_elem = ET.SubElement(pvs_elem, "product_variant")
-                ET.SubElement(pv_elem, "product_variant_number").text(variant.default_code)
-                ET.SubElement(pv_elem, "product_variant_name").text(variant.name)
+                ET.SubElement(pv_elem, "product_variant_number").text = variant.default_code
+                ET.SubElement(pv_elem, "product_variant_name").text = variant.name
                 # Here we'll write the first attribute value that has a category of 'color' or 'thickness'
                 for attribute_value in variant.attribute_value_ids:
                     if attribute_value.attribute_id.category in ('color', 'thickness'):
-                        ET.SubElement(pv_elem, "product_variant_swatch").text(attribute_value.html_color)
-                        ET.SubElement(pv_elem, "product_variant_color").text(attribute_value.name)
+                        ET.SubElement(pv_elem, "product_variant_swatch").text = attribute_value.html_color
+                        ET.SubElement(pv_elem, "product_variant_color").text = attribute_value.name
                         break
                 # Write the packaging information for this product variant. We will only write out the first packaging
                 # row
                 if variant.packaging_ids:
                     pkg_elem = ET.SubElement(pv_elem, "packaging")
-                    ET.SubElement(pkg_elem, "name").text(variant.packaging_ids[0].name)
-                    ET.SubElement(pkg_elem, "qty").text(str(variant.packaging_ids[0].qty))
-                    ET.SubElement(pkg_elem, "max_weight").text(str(variant.packaging_ids[0].max_weight))
-                    ET.SubElement(pkg_elem, "length").text(str(variant.packaging_ids[0].weight))
-                    ET.SubElement(pkg_elem, "width").text(str(variant.packaging_ids[0].width))
-                    ET.SubElement(pkg_elem, "height").text(str(variant.packaging_ids[0].height))
+                    ET.SubElement(pkg_elem, "name").text = variant.packaging_ids[0].name
+                    ET.SubElement(pkg_elem, "qty").text = str(variant.packaging_ids[0].qty)
+                    ET.SubElement(pkg_elem, "max_weight").text = str(variant.packaging_ids[0].max_weight)
+                    ET.SubElement(pkg_elem, "length").text = str(variant.packaging_ids[0].weight)
+                    ET.SubElement(pkg_elem, "width").text = str(variant.packaging_ids[0].width)
+                    ET.SubElement(pkg_elem, "height").text = str(variant.packaging_ids[0].height)
                 # Write the attributes that are specific to this variant (color, thickness, etc)
                 attrs_elem = ET.SubElement(product, "attributes")
                 for attribute_value in variant.attribute_value_ids:
                     attr_elem = ET.SubElement(attrs_elem, "attribute")
-                    ET.SubElement(attr_elem, "attribute_category").text(attribute_value.attribute_id.category)
-                    ET.SubElement(attr_elem, "attribute_id").text(str(attribute_value.id))
-                    ET.SubElement(attr_elem, "attribute_sequence").text(str(attribute_value.sequence))
+                    ET.SubElement(attr_elem, "attribute_category").text = attribute_value.attribute_id.category
+                    ET.SubElement(attr_elem, "attribute_id").text = str(attribute_value.id)
+                    ET.SubElement(attr_elem, "attribute_sequence").text = str(attribute_value.sequence)
         # Write the decoration location
         if self.decoration_area_ids:
             locations_elem = ET.SubElement(product, "decoration_locations")
             for location in self.decoration_method_ids:
                 location_elem = ET.SubElement(locations_elem, "deocration_location")
-                ET.SubElement(location_elem, "id").text(str(location.id))
-                ET.SubElement(location_elem, "name").text(location.name)
+                ET.SubElement(location_elem, "id").text = str(location.id)
+                ET.SubElement(location_elem, "name").text = location.name
                 methods_elem = ET.SubElement(location_elem, "decoration_methods")
                 method_elem = ET.SubElement(methods_elem, "decoration_method")
-                ET.SubElement(method_elem, "id").text(str(location.decoration_method_id.id))
-                ET.SubElement(method_elem, "name").text(location.decoration_method_id.name)
-                ET.SubElement(method_elem, "sequence").text(str(location.decoration_method_id.sequence))
-                ET.SubElement(method_elem, "height").text(str(location.decoration_method_id.height))
-                ET.SubElement(method_elem, "width").text(str(location.decoration_method_id.width))
-                if location.decoration_method_id.shape == "circle" and location.decoration_method_id.diameter and \
-                        location.decoration_method_id.diameter != 0:
-                    ET.SubElement(method_elem, "diameter").text(str(location.decoration_method_id.diameter))
-                ET.SubElement(method_elem, "dimensions").text(location.decoration_method_id.dimensions)
-                ET.SubElement(method_elem, "shape").text(location.decoration_method_id.shape)
-                ET.SubElement(method_elem, "prod_time_lo").text(str(location.decoration_method_id.prod_time_lo))
-                ET.SubElement(method_elem, "prod_time_hi").text(str(location.decoration_method_id.prod_time_hi))
-                ET.SubElement(method_elem, "quick_ship").text(str(location.decoration_method_id.quick_ship))
-                ET.SubElement(method_elem, "quick_ship_max").text(str(location.decoration_method_id.quick_ship_max))
-                ET.SubElement(method_elem, "quick_ship_prod_days").text(
-                    str(location.decoration_method_id.quick_ship_prod_days))
-                ET.SubElement(method_elem, "number_sides").text(str(location.decoration_method_id.number_sides))
-                ET.SubElement(method_elem, "pms").text(str(location.decoration_method_id.pms))
-                ET.SubElement(method_elem, "full_color").text(str(location.decoration_method_id.full_color))
-                ET.SubElement(method_elem, "max_colors").text(str(location.decoration_method_id.max_colors))
+                ET.SubElement(method_elem, "id").text = str(location.decoration_method_id.id)
+                ET.SubElement(method_elem, "name").text = location.decoration_method_id.name
+                ET.SubElement(method_elem, "sequence").text = str(location.decoration_method_id.sequence)
+                ET.SubElement(method_elem, "height").text = str(location.height)
+                ET.SubElement(method_elem, "width").text = str(location.width)
+                if location.shape == "circle" and location.diameter and \
+                        location.diameter != 0:
+                    ET.SubElement(method_elem, "diameter").text = str(location.diameter)
+                ET.SubElement(method_elem, "dimensions").text = location.dimensions
+                ET.SubElement(method_elem, "shape").text = location.shape
+                ET.SubElement(method_elem, "prod_time_lo").text = str(location.decoration_method_id.prod_time_lo)
+                ET.SubElement(method_elem, "prod_time_hi").text = str(location.decoration_method_id.prod_time_hi)
+                ET.SubElement(method_elem, "quick_ship").text = str(location.decoration_method_id.quick_ship)
+                ET.SubElement(method_elem, "quick_ship_max").text = str(location.decoration_method_id.quick_ship_max)
+                ET.SubElement(method_elem, "quick_ship_prod_days").text = str(location.decoration_method_id.quick_ship_prod_days)
+                ET.SubElement(method_elem, "number_sides").text = str(location.decoration_method_id.number_sides)
+                ET.SubElement(method_elem, "pms").text = str(location.decoration_method_id.pms)
+                ET.SubElement(method_elem, "full_color").text = str(location.decoration_method_id.full_color)
+                ET.SubElement(method_elem, "max_colors").text = str(location.decoration_method_id.max_colors)
 
                 # Now write the prices.  First get the pricing grid
                 prices_elem = ET.SubElement(method_elem, "prices")
@@ -516,21 +662,21 @@ class ProductTemplate(models.Model):
                 # Build the price grid for standard catalog/net
                 price_grid_dict = self._build_price_grid()
                 # Write the catalog price structure
-                ET.SubElement(price_elem, "name").text(price_grid_dict['catalog_pricelist'])
-                ET.SubElement(price_elem, "currency_id").text(price_grid_dict['catalog_currency'])
-                ET.SubElement(price_elem, "ala_catalog").text(str(price_grid_dict['catalog_prices'][-1]))
-                ET.SubElement(price_elem, "ala_net").text(str(price_grid_dict['net_prices'][-1]))
-                ET.SubElement(price_elem, "ala_discount_code").text(price_grid_dict['discount_codes'][-1])
-                ET.SubElement(price_elem, "uom").text(self.uom_name)
+                ET.SubElement(price_elem, "name").text = price_grid_dict['catalog_pricelist']
+                ET.SubElement(price_elem, "currency_id").text = price_grid_dict['catalog_currency']
+                ET.SubElement(price_elem, "ala_catalog").text = str(price_grid_dict['catalog_prices'][-1])
+                ET.SubElement(price_elem, "ala_net").text = str(price_grid_dict['net_prices'][-1])
+                ET.SubElement(price_elem, "ala_discount_code").text = price_grid_dict['discount_codes'][-1]
+                ET.SubElement(price_elem, "uom").text = self.uom_name
                 quantities_elem = ET.SubElement(price_elem, "quantities")
                 for idx, qty in enumerate(price_grid_dict['quantities'], start=0):
                     quantity_elem = ET.SubElement(quantities_elem, "quantity")
-                    ET.SubElement(quantity_elem, "min_quantity").text(str(qty))
-                    ET.SubElement(quantity_elem, "catalog_price").text(str(price_grid_dict['catalog_prices'][idx]))
-                    ET.SubElement(quantity_elem, "discount_code").text(str(price_grid_dict['discount_codes'][idx]))
-                    ET.SubElement(quantity_elem, "net_price").text(str(price_grid_dict['net_prices'][idx]))
-                    ET.SubElement(quantity_elem, "date_start").text(str(price_grid_dict['effective_dates'][idx]))
-                    ET.SubElement(quantity_elem, "date_end").text(str(price_grid_dict['expiration_dates'][idx]))
+                    ET.SubElement(quantity_elem, "min_quantity").text = str(qty)
+                    ET.SubElement(quantity_elem, "catalog_price").text = str(price_grid_dict['catalog_prices'][idx])
+                    ET.SubElement(quantity_elem, "discount_code").text = str(price_grid_dict['discount_codes'][idx])
+                    ET.SubElement(quantity_elem, "net_price").text = str(price_grid_dict['net_prices'][idx])
+                    ET.SubElement(quantity_elem, "date_start").text = str(price_grid_dict['effective_dates'][idx])
+                    ET.SubElement(quantity_elem, "date_end").text = str(price_grid_dict['expiration_dates'][idx])
 
                 # Now write the additional charges that apply to this product/decoration method combination
                 if self.addl_charge_product_ids:
@@ -539,30 +685,37 @@ class ProductTemplate(models.Model):
                         if not self.addl_charge_product_ids.decoration_method_ids or \
                                 location.decoration_method_id.id in self.addl_charge_product_id.decoration_method_ids:
                             addl_charge_elem = ET.SubElement(addl_charges_elem, "additional_charge")
-                            ET.SubElement(addl_charge_elem, "id").text(str(addl_charge_id.id))
-                            ET.SubElement(addl_charge_elem, "uom").text(addl_charge_id.product_tmpl_id.uom_name)
-                            ET.SubElement(addl_charge_elem, "item_number").text(
-                                addl_charge_id.product_tmpl_id.default_code)
-                            ET.SubElement(addl_charge_elem, "name").text(addl_charge_id.product_tmpl_id.name)
-                            ET.SubElement(addl_charge_elem, "charge_type").text(addl_charge_id.charge_type)
-                            ET.SubElement(addl_charge_elem, "charge_yuom").text(addl_charge_id.charge_yuom)
-                            # Set the variants that don't create attributes in the context
-                            self = self.with_context(no_create_variant_attributes=[location.decoration_method_id.id])
+                            ET.SubElement(addl_charge_elem, "id").text = str(addl_charge_id.id)
+                            ET.SubElement(addl_charge_elem, "uom").text = addl_charge_id.product_tmpl_id.uom_name
+                            ET.SubElement(addl_charge_elem, "item_number").text = addl_charge_id.product_tmpl_id.default_code
+                            ET.SubElement(addl_charge_elem, "name").text = addl_charge_id.product_tmpl_id.name
+                            ET.SubElement(addl_charge_elem, "charge_type").text = addl_charge_id.charge_type
+                            ET.SubElement(addl_charge_elem, "charge_yuom").text = addl_charge_id.charge_yuom
                             # Build the price grid for standard catalog/net
                             ac_price_grid_dict = addl_charge_id.product_tmpl_id._build_price_grid()
                             if ac_price_grid_dict:
-                                ET.SubElement(addl_charge_elem, "min_quantity").text(
-                                    str(ac_price_grid_dict['quantities'][0]))
-                                ET.SubElement(addl_charge_elem, "catalog_price").text(
-                                    str(ac_price_grid_dict['catalog_prices'][0]))
-                                ET.SubElement(addl_charge_elem, "discount_code").text(
-                                    str(ac_price_grid_dict['discount_codes'][0]))
-                                ET.SubElement(addl_charge_elem, "net_price").text(
-                                    str(ac_price_grid_dict['net_prices'][0]))
-                                ET.SubElement(addl_charge_elem, "date_start").text(
-                                    str(ac_price_grid_dict['effective_dates'][0]))
-                                ET.SubElement(addl_charge_elem, "date_end").text(
-                                    str(ac_price_grid_dict['expiration_dates'][0]))
+                                ET.SubElement(addl_charge_elem, "min_quantity").text = str(ac_price_grid_dict['quantities'][0])
+                                ET.SubElement(addl_charge_elem, "catalog_price").text = str(ac_price_grid_dict['catalog_prices'][0])
+                                ET.SubElement(addl_charge_elem, "discount_code").text = str(ac_price_grid_dict['discount_codes'][0])
+                                ET.SubElement(addl_charge_elem, "net_price").text = str(ac_price_grid_dict['net_prices'][0])
+                                ET.SubElement(addl_charge_elem, "date_start").text = str(ac_price_grid_dict['effective_dates'][0])
+                                ET.SubElement(addl_charge_elem, "date_end").text = str(ac_price_grid_dict['expiration_dates'][0])
+        # Now write out all the attributes that do not create variants
+        if self.attribute_line_ids:
+            nc_attributes = self.attribute_line_ids.filtered(lambda r: r.attribute.create_variant == 'no_variant')
+            if nc_attributes:
+                attributes_elem = ET.SubElement(product, "attributes")
+                for nc_attribute in nc_attributes:
+                    attribute_elem = ET.SubElement(attributes_elem, "attribute")
+                    ET.SubElement(attribute_elem, "name").text = nc_attribute.attribute.name
+                    ET.SubElement(attribute_elem, "category").text = nc_attribute.attribute.category
+                    attr_values_elem = ET.SubElement(attribute_elem, "values")
+                    for attr in nc_attribute.attribute_id:
+                        ET.SubElement(attr_values_elem, "value").text = attr.name
+
+        # Now we dump the entire XML into a string
+        product_xml = product.text
+        print(product_xml)
 
 
 class ProductCategory(models.Model):

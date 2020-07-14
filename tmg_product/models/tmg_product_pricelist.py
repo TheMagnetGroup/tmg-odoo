@@ -30,11 +30,11 @@ class PriceList(models.Model):
                 # if there is a rule:
                 if result[pid][1]:
                     rule_id = self.env['product.pricelist.item'].browse(result[pid][1])
-                    # If there was a rule id then append the discount code, if any, to the result
-                    if rule_id:
-                        result[pid].append(rule_id.discount_code)
-                        result[pid].append(rule_id.date_start)
-                        result[pid].append(rule_id.date_end)
+                    # If there was a rule id then append the discount code, start date and end date to the result
+                    # if rule_id:
+                    #     result[pid].append(rule_id.discount_code)
+                    #     result[pid].append(rule_id.date_start)
+                    #     result[pid].append(rule_id.date_end)
 
                     # if the rule has extra ids:
                     if rule_id and rule_id.extra_ids:
@@ -163,11 +163,12 @@ class ProductTemplate(models.Model):
                     cat_prices.append(cat_price[0])
                     net_price = net.get_product_price_rule(self, qty, None)
                     net_prices.append(net_price[0])
-                    if len(net_price) > 3:
-                        discount_codes.append(net_price[3])
-                    if len(net_price) >= 6:
-                        effective_dates.append(net_price[4])
-                        expiration_dates.append(net_price[5])
+                    # Get the rule ID that generated this pricing
+                    pi = self.env['product.pricelist.item'].browse(net_price[1])
+                    if pi:
+                        discount_codes.append(pi.discount_code)
+                        effective_dates.append(pi.date_start)
+                        expiration_dates.append(pi.date_end)
 
                 price_grid_dict['catalog_prices'] = cat_prices
                 price_grid_dict['net_prices'] = net_prices
