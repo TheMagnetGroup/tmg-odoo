@@ -16,7 +16,7 @@ class Product(models.Model):
 
     def _compute_quantities_dict(self, lot_id, owner_id, package_id, from_date=False, to_date=False):
         """
-            Inherited to update quantity fields for manufacturable products
+            Inherited to update quantity fields for manufacturable products7
         """
         res = super(Product, self)._compute_quantities_dict(lot_id=lot_id, owner_id=owner_id, package_id=package_id,
                                                             from_date=from_date, to_date=to_date)
@@ -24,8 +24,11 @@ class Product(models.Model):
             res[product.id]['virtual_available_qty'] = res[product.id]['qty_available'] - res[product.id]['outgoing_qty']
             if product.bom_id:
                 components = product._get_bom_component_qty(product.bom_id)
-                res[product.id]['virtual_available_qty'] = product._get_possible_assembled_kit(components, res, 'qty_available') - res[product.id]['outgoing_qty']
+                res[product.id]['virtual_available_qty'] = product._get_possible_assembled_kit(components, res, 'virtual_available_qty')
+
         return res
+
+
 
     @api.multi
     def _get_bom_component_qty(self, bom):
@@ -59,7 +62,8 @@ class Product(models.Model):
         qty_available = []
         for product_id in components:
             product = self.with_context(prefetch_fields=False).browse(product_id)
-            qty = res_data.get(product_id, 0) and res_data[product_id][field] or getattr(product, field)
+            qty = res_data.get(product_id, 0) and (res_data[product_id].get(field) and res_data[product_id][field]) or \
+                  getattr(product, field)
             if not qty:
                 qty_available = []
                 break
@@ -157,6 +161,7 @@ class ProductTemplate(models.Model):
             if template.bom_id:
                 manufacturable_qty = [sum(template.product_variant_ids.mapped('virtual_available_qty'))]
                 shared_lines = template.bom_id.bom_line_ids.filtered(lambda bol: bol.is_shared())
+                print(shared_lines)
                 if shared_lines:
                     manufacturable_qty.append(min(shared_lines.mapped('product_id').mapped('virtual_available_qty')))
                 qty_dict[template.id]['virtual_available_qty'] = min(manufacturable_qty)
