@@ -162,10 +162,18 @@
                                 </tree>
                             </field>
                         </group>
+                    </page>
+                    <page string="Data Errors" attrs="{'invisible': [('data_errors', '=', False)]}">
                         <group>
                             <field name="data_errors"/>
                         </group>
                     </page>
+                </xpath>
+                <xpath expr="//group[@name='extra_images']" position="after">
+                    <group string="Website Description and Keywords">
+                        <field name="website_description"/>
+                        <field name="website_meta_keywords"/>
+                    </group>
                 </xpath>
             </field>
         </record>
