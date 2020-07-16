@@ -96,7 +96,6 @@ class promostandards(models.Model):
         if not self.check_call_cap(partner_id):
             data = [('Error', '=', "Call Cap")]
             return data
-
         inventory_obj = self.env['tmg_external_api.inventory']
         data = inventory_obj.Inventory(style_rqs, colors_rqs)
         self.log_transaction(partner_id, request, "Inventory")
@@ -107,10 +106,19 @@ class promostandards(models.Model):
         if not self.check_call_cap(partner_id):
             data = [('Error', '=', "Call Cap")]
             return data
-
         inventory_obj = self.env['tmg_external_api.inventory']
         data = inventory_obj.InventoryFilterValues(style_rqs)
         self.log_transaction(partner_id, request, "Inventory Filter Values")
+        return data
+
+    @api.model
+    def Invoice(self, partner_str, po, invoice_number, invoice_date_str, as_of_date_str, request):
+        if not self.check_call_cap(partner_str):
+            data = [('Error', '=', "Call Cap")]
+            return data
+        invoice_obj = self.env['tmg_external_api.invoice']
+        data = invoice_obj.Invoice(partner_str, po, invoice_number, invoice_date_str, as_of_date_str)
+        self.log_transaction(partner_str, request, "Invoice")
         return data
 
     # def OrderStatus(self, PONumber, SONumber, LastUpdate, Partner_id):
