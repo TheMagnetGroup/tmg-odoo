@@ -537,6 +537,7 @@ class ProductTemplate(models.Model):
             product = ET.Element('product')
             # TODO: reinstate style number
             # ET.SubElement(product, "product_style_number").text = self.product_style_number
+            ET.SubElement(product, "product_id").text = str(self.id)
             ET.SubElement(product, "product_name").text = self.name
             # The name of the product's category is the product category. The name of the top category in the path
             # is the brand
@@ -611,6 +612,7 @@ class ProductTemplate(models.Model):
                 # Loop through the product.products and add variant specific information
                 for variant in self.product_variant_ids:
                     pv_elem = ET.SubElement(pvs_elem, "product_variant")
+                    ET.SubElement(pv_elem, "product_variant_id").text = str(variant.id)
                     ET.SubElement(pv_elem, "product_variant_number").text = variant.default_code
                     ET.SubElement(pv_elem, "product_variant_name").text = variant.name
                     # Here we'll write the first attribute value that has a category of 'color' or 'thickness'
@@ -623,6 +625,7 @@ class ProductTemplate(models.Model):
                     # row
                     if variant.packaging_ids:
                         pkg_elem = ET.SubElement(pv_elem, "packaging")
+                        ET.SubElement(pkg_elem, "packaging_id").text = str(variant.packaging_ids[0].id)
                         ET.SubElement(pkg_elem, "name").text = variant.packaging_ids[0].name
                         ET.SubElement(pkg_elem, "qty").text = str(variant.packaging_ids[0].qty)
                         ET.SubElement(pkg_elem, "max_weight").text = str(variant.packaging_ids[0].max_weight)
@@ -643,11 +646,11 @@ class ProductTemplate(models.Model):
                 locations_elem = ET.SubElement(product, "decoration_locations")
                 for location in self.decoration_area_ids:
                     location_elem = ET.SubElement(locations_elem, "deocration_location")
-                    ET.SubElement(location_elem, "id").text = str(location.id)
+                    ET.SubElement(location_elem, "id").text = str(location.decoration_area_id.attribute_id.id)
                     ET.SubElement(location_elem, "name").text = location.name
                     methods_elem = ET.SubElement(location_elem, "decoration_methods")
                     method_elem = ET.SubElement(methods_elem, "decoration_method")
-                    ET.SubElement(method_elem, "id").text = str(location.decoration_method_id.id)
+                    ET.SubElement(method_elem, "id").text = str(location.decoration_method_id.decoration_method_id.attribute_id.id)
                     ET.SubElement(method_elem, "name").text = location.decoration_method_id.name
                     ET.SubElement(method_elem, "sequence").text = str(location.decoration_method_id.decoration_method_id.sequence)
                     ET.SubElement(method_elem, "height").text = str(location.height)
@@ -695,17 +698,18 @@ class ProductTemplate(models.Model):
                     if self.addl_charge_product_ids:
                         addl_charges_elem = ET.SubElement(method_elem, "additional_charges")
                         for addl_charge_id in self.addl_charge_product_ids:
-                            if not self.addl_charge_product_ids.decoration_method_ids or \
-                                    location.decoration_method_id.id in self.addl_charge_product_ids.decoration_method_ids.ids:
+                            if not addl_charge_id.decoration_method_ids or \
+                                    location.decoration_method_id.decoration_method_id.id in \
+                                    addl_charge_id.decoration_method_ids.ids:
                                 addl_charge_elem = ET.SubElement(addl_charges_elem, "additional_charge")
                                 ET.SubElement(addl_charge_elem, "id").text = str(addl_charge_id.id)
-                                ET.SubElement(addl_charge_elem, "uom").text = addl_charge_id.product_tmpl_id.uom_name
-                                ET.SubElement(addl_charge_elem, "item_number").text = addl_charge_id.product_tmpl_id.default_code
-                                ET.SubElement(addl_charge_elem, "name").text = addl_charge_id.product_tmpl_id.name
+                                ET.SubElement(addl_charge_elem, "uom").text = addl_charge_id.addl_charge_product_id.uom_name
+                                ET.SubElement(addl_charge_elem, "item_number").text = addl_charge_id.addl_charge_product_id.default_code
+                                ET.SubElement(addl_charge_elem, "name").text = addl_charge_id.addl_charge_product_id.name
                                 ET.SubElement(addl_charge_elem, "charge_type").text = addl_charge_id.charge_type
                                 ET.SubElement(addl_charge_elem, "charge_yuom").text = addl_charge_id.charge_yuom
                                 # Build the price grid for standard catalog/net
-                                ac_price_grid_dict = addl_charge_id.product_tmpl_id._build_price_grid()
+                                ac_price_grid_dict = addl_charge_id.addl_charge_product_id._build_price_grid()
                                 if ac_price_grid_dict:
                                     ET.SubElement(addl_charge_elem, "min_quantity").text = str(ac_price_grid_dict['quantities'][0])
                                     ET.SubElement(addl_charge_elem, "catalog_price").text = str(ac_price_grid_dict['catalog_prices'][0])
@@ -725,7 +729,7 @@ class ProductTemplate(models.Model):
                         ET.SubElement(attribute_elem, "category").text = nc_attribute.attribute_id.category
                         attr_values_elem = ET.SubElement(attribute_elem, "values")
                         for attr in nc_attribute.product_template_value_ids:
-                            ET.SubElement(attr_values_elem, "id").text = str(attr.id)
+                            ET.SubElement(attr_values_elem, "id").text = str(attr.product_attribute_value_id.id)
                             ET.SubElement(attr_values_elem, "value").text = attr.name
 
             # Now we dump the entire XML into a string
