@@ -96,6 +96,7 @@ class invoice(models.Model):
             bil_id = ("BILL TO", int(i['partner_id'][0]))
             sol_id = ("SOLD TO", int(so['partner_id'][0])) if so else tuple()
             list_partners = [bil_id, sol_id]
+            account_addresses = self._address_fmt(list_partners)
 
             # obtain line and tax info as lists formatted for the invoice dict() return value
             txs = (self._get_taxes(i['tax_line_ids']) if float(i['amount_tax']) != 0.0 else [])
@@ -107,7 +108,7 @@ class invoice(models.Model):
                 invoiceType=("CREDIT MEMO" if i['type'] == 'out_refund' else "INVOICE"),
                 invoiceDate=fields.Date.to_string(i['date_invoice']),
                 purchaseOrderNumber=so['client_order_ref'],
-                addresses=self._address_fmt(list_partners),
+                addresses=account_addresses,
                 paymentTerms=i['payment_term_id'][1],
                 paymentDueDate=fields.Date.to_string(i['date_due']),
                 currency=i['currency_id'][1],
