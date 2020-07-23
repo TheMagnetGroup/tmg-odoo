@@ -222,4 +222,35 @@ class S3Connection(models.Model):
                 raise e
             connection.write({'test_connected':True,'s3_enabled':True})#ok we are test connected!
         
-            
+
+    # This routine uploads file data to the public bucket with the given file name
+    @api.model
+    @api.multi
+    def _upload_to_public_bucket(self, data, file_name, mime_type, folder):
+        s3_bucket, s3_service = self.get_bucket()
+        upload = False
+
+        # Decode from base64 and get the md5 checksum value
+        bin_data = base64.b64decode(data)
+        # Get the MD5 checksum of the data
+        local_md5 = '"' + hashlib.md5(bin_data).hexdigest() + '"'
+
+        # Is the file already in S3?
+        obj = list(s3_bucket.objects.filter(Prefix=file_name))
+        if len(obj) == 0:
+            upload = True
+        else:
+            # Check the MD5 of the file in S3 and compare that against the current file.  If different, upload
+            s3_md5 = obj[0].e_tag
+            if s3_md5 != local_md5:
+                 upload = True
+
+        # Upload the file to the public bucket
+        if upload:
+            try:
+                s3_obj = s3_bucket.put_object(Key=folder + file_name, Body=bin_data, ACL='public-read', ContentType=mime_type)
+            except Exception as e:
+                raise e
+
+        # Return the path to the file in our public bucket.
+        return self.s3_api_url + "/" + self.s3_bucket_name + "/" + folder + file_name

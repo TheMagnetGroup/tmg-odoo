@@ -26,6 +26,21 @@ class tmg_sales_attachments(models.Model):
         attachment.write({'attachment_category':[attachment.attachment_category]})
 
 
+class ProductTemplate(models.Model):
+    _inherit = "product.template"
+
+    attachment_ids = fields.One2many('ir.attachment', compute='_compute_attachment_ids', inverse='_inverse_category_tags', string="Main Attachments")
+
+    def _compute_attachment_ids(self):
+        for product in self:
+            attachment_ids = self.env['ir.attachment'].search([('res_id', '=', product.id), ('res_model', '=', 'product.template')]).ids
+            message_attachment_ids = product.mapped('message_ids.attachment_ids').ids  # from mail_thread
+            product.attachment_ids = list(set(attachment_ids) - set(message_attachment_ids))
+
+    def _inverse_category_tags(self):
+        attachment = self.env['ir.attachment'].sudo()
+        attachment.write({'attachment_category':[attachment.attachment_category]})
+
 
 class tmg_attachment(models.Model):
     _inherit = 'ir.attachment'

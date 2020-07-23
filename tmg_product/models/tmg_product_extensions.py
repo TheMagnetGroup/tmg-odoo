@@ -2,6 +2,7 @@
 
 from odoo import models, fields, api
 from odoo.exceptions import ValidationError
+from odoo.addons import decimal_precision as dp
 from datetime import datetime
 import urllib.request
 import json
@@ -452,6 +453,8 @@ class ProductTemplate(models.Model):
                     messages.append("<li>Product Variant '{0}' missing internal reference</li>".format(variant.display_name))
                 if not variant.packaging_ids:
                     messages.append("<li>Product Variant '{0}' missing packaging ids</li>".format(variant.display_name))
+                if not variant.default_code:
+                    messages.append("<li>Product Variant '{0}' missing default code</li>".format(variant.display_name))
                 else:
                     if not variant.packaging_ids[0].name:
                         messages.append("<li>Product Variant '{0}' packaging missing name</li>".format(variant.display_name))
@@ -482,8 +485,8 @@ class ProductTemplate(models.Model):
                         messages.append("<li>Decoration method '{0}' flagged for quick ship but missing quick ship max quantity</li>".format(method.name))
                     if not method.quick_ship_prod_days:
                         messages.append("<li>Decoration method '{0}' flagged for quick ship but missing quick ship production days</li>".format(method.name))
-                if not method.number_sides:
-                    messages.append("<li>Decoration method '{0}' missing number of sides</li>".format(method.name))
+                # if not method.number_sides:
+                #     messages.append("<li>Decoration method '{0}' missing number of sides</li>".format(method.name))
                 # Set the variants that don't create attributes in the context
                 self = self.with_context(no_create_variant_attributes=[method.decoration_method_id.id])
                 # Build the price grid for standard catalog/net
@@ -533,6 +536,11 @@ class ProductTemplate(models.Model):
         if not self._check_xml_data():
             return
         try:
+            # Get Odoo's decimal accuracy for pricing
+            price_digits = self.env['decimal.precision'].precision_get('Product Price')
+            # Set the folder for uploading product documents to S3
+            # TODO: set prod_folder with style number
+            prod_folder = self.product_style_number + '/'
             # First we will build the standard XML for the product.
             product = ET.Element('product')
             # TODO: reinstate style number
@@ -606,8 +614,36 @@ class ProductTemplate(models.Model):
                 ET.SubElement(warehouse_elem, "state").text = warehouse.partner_id.state_id.code
                 ET.SubElement(warehouse_elem, "country").text = warehouse.partner_id.country_id.name
                 ET.SubElement(warehouse_elem, "code").text = warehouse.code
-            pvs_elem = ET.SubElement(product, "product_variants")
+            # Start images nodes
+            images_elem = ET.SubElement(product, "images")
+            # In order to upload products images we need to ensure we've established a public bucket
+            s3 = self.env['pr1_s3.s3_connection'].search([('name', '=', 'tmg-public')])
+            if s3:
+                # Upload the large image
+                if self.image:
+                    # TODO: use style number for the name of the file
+                    image_url = s3._upload_to_public_bucket(self.image, 'test.jpg', 'image/jpeg', prod_folder)
+                    ET.SubElement(images_elem, "image").text = image_url
+                # Upload the medium image
+                if self.image_medium:
+                    # TODO: use style number for the name of the file
+                    image_url = s3._upload_to_public_bucket(self.image_medium, 'test_medium.jpg', 'image/jpeg', prod_folder)
+                    ET.SubElement(images_elem, "image_medium").text = image_url
+                # Upload the small image
+                if self.image_small:
+                    # TODO: use style number for the name of the file
+                    image_url = s3._upload_to_public_bucket(self.image_small, 'test_small.jpg', 'image/jpeg', prod_folder)
+                    ET.SubElement(images_elem, "image_small").text = image_url
+
+                # If there are any additional product images upload those
+                if self.product_image_ids:
+                    extra_images_elem = ET.SubElement(images_elem, "additional_images")
+                    for image in self.product_image_ids:
+                        image_url = s3._upload_to_public_bucket(image.image, image.name + ".jpg", "image/jpeg", prod_folder)
+                        ET.SubElement(extra_images_elem, "additional_image").text = image_url
+
             # If the product has variants then add those.
+            pvs_elem = ET.SubElement(product, "product_variants")
             if self.product_variant_ids:
                 # Loop through the product.products and add variant specific information
                 for variant in self.product_variant_ids:
@@ -641,6 +677,16 @@ class ProductTemplate(models.Model):
                         ET.SubElement(attr_elem, "attribute_name").text = attribute_value.attribute_id.name
                         ET.SubElement(attr_elem, "attribute_value").text = attribute_value.name
                         ET.SubElement(attr_elem, "attribute_sequence").text = str(attribute_value.sequence)
+                    # Upload the variant's images to public storage
+                    if variant.image:
+                        image_url = s3._upload_to_public_bucket(variant.image, variant.default_code + '.jpg', 'image/jpeg', prod_folder)
+                        ET.SubElement(images_elem, "image").text = image_url
+                    if variant.image_medium:
+                        image_url = s3._upload_to_public_bucket(variant.image_medium, variant.default_code + '_medium.jpg', 'image/jpeg', prod_folder)
+                        ET.SubElement(images_elem, "image_medium").text = image_url
+                    if variant.image_small:
+                        image_url = s3._upload_to_public_bucket(variant.image_small, variant.default_code + '_small.jpg', 'image/jpeg', prod_folder)
+                        ET.SubElement(images_elem, "image_small").text = image_url
             # Write the decoration location
             if self.decoration_area_ids:
                 locations_elem = ET.SubElement(product, "decoration_locations")
@@ -674,9 +720,10 @@ class ProductTemplate(models.Model):
                     prices_elem = ET.SubElement(method_elem, "prices")
                     price_elem = ET.SubElement(prices_elem, "price")
                     # Set the variants that don't create attributes in the context
-                    # self = self.with_context(no_create_variant_attributes=[location.decoration_method_id.decoration_method.id])
+                    self = self.with_context(no_create_variant_attributes=[location.decoration_method_id.decoration_method_id.id])
                     # Build the price grid for standard catalog/net
                     price_grid_dict = self._build_price_grid()
+                    self = self.with_context(no_create_variant_attributes=None)
                     # Write the catalog price structure
                     ET.SubElement(price_elem, "name").text = price_grid_dict['catalog_pricelist']
                     ET.SubElement(price_elem, "currency_id").text = price_grid_dict['catalog_currency']
@@ -688,9 +735,9 @@ class ProductTemplate(models.Model):
                     for idx, qty in enumerate(price_grid_dict['quantities'], start=0):
                         quantity_elem = ET.SubElement(quantities_elem, "quantity")
                         ET.SubElement(quantity_elem, "min_quantity").text = str(qty)
-                        ET.SubElement(quantity_elem, "catalog_price").text = str(price_grid_dict['catalog_prices'][idx])
+                        ET.SubElement(quantity_elem, "catalog_price").text = "{price:.{dp}f}".format(price=price_grid_dict['catalog_prices'][idx], dp=price_digits)
                         ET.SubElement(quantity_elem, "discount_code").text = str(price_grid_dict['discount_codes'][idx])
-                        ET.SubElement(quantity_elem, "net_price").text = str(price_grid_dict['net_prices'][idx])
+                        ET.SubElement(quantity_elem, "net_price").text = "{price:.{dp}f}".format(price=price_grid_dict['net_prices'][idx], dp=price_digits)
                         ET.SubElement(quantity_elem, "date_start").text = str(price_grid_dict['effective_dates'][idx])
                         ET.SubElement(quantity_elem, "date_end").text = str(price_grid_dict['expiration_dates'][idx])
 
@@ -712,11 +759,44 @@ class ProductTemplate(models.Model):
                                 ac_price_grid_dict = addl_charge_id.addl_charge_product_id._build_price_grid()
                                 if ac_price_grid_dict:
                                     ET.SubElement(addl_charge_elem, "min_quantity").text = str(ac_price_grid_dict['quantities'][0])
-                                    ET.SubElement(addl_charge_elem, "catalog_price").text = str(ac_price_grid_dict['catalog_prices'][0])
+                                    ET.SubElement(addl_charge_elem, "catalog_price").text = "{price:.{dp}f}".format(price=ac_price_grid_dict['catalog_prices'][0], dp=price_digits)
                                     ET.SubElement(addl_charge_elem, "discount_code").text = str(ac_price_grid_dict['discount_codes'][0])
-                                    ET.SubElement(addl_charge_elem, "net_price").text = str(ac_price_grid_dict['net_prices'][0])
+                                    ET.SubElement(addl_charge_elem, "net_price").text = "{price:.{dp}f}".format(price=ac_price_grid_dict['net_prices'][0], dp=price_digits)
                                     ET.SubElement(addl_charge_elem, "date_start").text = str(ac_price_grid_dict['effective_dates'][0])
                                     ET.SubElement(addl_charge_elem, "date_end").text = str(ac_price_grid_dict['expiration_dates'][0])
+
+            # If "Blank" is included in the decoration method table then we need to write out blank pricing for this item
+            for method in self.decoration_method_ids:
+                if method.name == "Blank":
+                    blank_elem = ET.SubElement(product, "blank_pricing")
+                    ET.SubElement(blank_elem, "id").text = str(method.decoration_method_id.attribute_id.id)
+                    ET.SubElement(blank_elem, "name").text = method.name
+                    ET.SubElement(blank_elem, "sequence").text = str(method.decoration_method_id.sequence)
+                    ET.SubElement(blank_elem, "prod_time_lo").text = str(method.prod_time_lo)
+                    ET.SubElement(blank_elem, "prod_time_hi").text = str(method.prod_time_hi)
+                    ET.SubElement(blank_elem, "quick_ship").text = str(method.quick_ship)
+                    ET.SubElement(blank_elem, "quick_ship_max").text = str(method.quick_ship_max)
+                    ET.SubElement(blank_elem, "quick_ship_prod_days").text = str(method.quick_ship_prod_days)
+                    ET.SubElement(blank_elem, "number_sides").text = str(method.number_sides)
+                    ET.SubElement(blank_elem, "pms").text = str(method.pms)
+                    ET.SubElement(blank_elem, "full_color").text = str(method.full_color)
+                    ET.SubElement(blank_elem, "max_colors").text = str(method.max_colors)
+                    # Build the price grid for blank pricing
+                    price_grid_dict = self._build_price_grid(net_pricelist='Blank')
+                    if price_grid_dict:
+                        quantities_elem = ET.SubElement(blank_elem, "quantities")
+                        for idx, qty in enumerate(price_grid_dict['quantities'], start=0):
+                            quantity_elem = ET.SubElement(quantities_elem, "quantity")
+                            ET.SubElement(quantity_elem, "min_quantity").text = str(qty)
+                            ET.SubElement(quantity_elem, "catalog_price").text = "{price:.{dp}f}".format(price=price_grid_dict['catalog_prices'][idx], dp=price_digits)
+                            ET.SubElement(quantity_elem, "discount_code").text = str(
+                                price_grid_dict['discount_codes'][idx])
+                            ET.SubElement(quantity_elem, "net_price").text = "{price:.{dp}f}".format(price=price_grid_dict['net_prices'][idx], dp=price_digits)
+                            ET.SubElement(quantity_elem, "date_start").text = str(
+                                price_grid_dict['effective_dates'][idx])
+                            ET.SubElement(quantity_elem, "date_end").text = str(
+                                price_grid_dict['expiration_dates'][idx])
+
             # Now write out all the attributes that do not create variants
             if self.attribute_line_ids:
                 nc_attributes = self.attribute_line_ids.filtered(lambda r: r.attribute_id.create_variant == 'no_variant')
@@ -731,6 +811,13 @@ class ProductTemplate(models.Model):
                         for attr in nc_attribute.product_template_value_ids:
                             ET.SubElement(attr_values_elem, "id").text = str(attr.product_attribute_value_id.id)
                             ET.SubElement(attr_values_elem, "value").text = attr.name
+
+            # Upload any attachment that has a category
+            files_elem = ET.SubElement(product, "files")
+            for attach in self.attachment_ids:
+                if attach.attachment_category:
+                        attach_url = s3._upload_to_public_bucket(attach.datas, attach.name, attach.mimetype, prod_folder)
+                        file_elem = ET.SubElement(files_elem, "file", category=attach.attachment_category[0].name).text = attach_url
 
             # Now we dump the entire XML into a string
             product_xml = base64.b64encode(ET.tostring(product, encoding='utf-8', xml_declaration=True, pretty_print=True))
@@ -775,7 +862,7 @@ class ProductTemplate(models.Model):
         except Exception as e:
             error_text = '<p>Technical Errors, contact IT:' + '<p>' + str(e)
             self.write({
-                'data_errors': error_text
+                'data_errors': error_text + traceback.format_exc()
             })
             print(str(e))
 
