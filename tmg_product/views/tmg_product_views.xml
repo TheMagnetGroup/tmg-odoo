@@ -96,6 +96,7 @@
             <field name="arch" type="xml">
                 <field name="categ_id" position="after">
                     <field name="product_tags_ids" widget="many2many_tags" options="{'color_field': 'color', 'no_create_edit': True}"/>
+                    <field name="product_style_number" />
                 </field>
                 <xpath expr="//form[1]/sheet[1]/notebook[1]" position="inside">
                     <page name="additional_data" string="Additional Data" attrs="{'invisible': [('sale_ok', '=', False)]}">

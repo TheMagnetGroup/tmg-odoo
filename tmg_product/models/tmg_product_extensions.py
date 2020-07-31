@@ -135,7 +135,7 @@ class ProductExternalCategories(models.Model):
                 # Get the token and return
                 return asiresponsedict['AccessToken']
         except Exception as e:
-            self._send_error_email("An exception occurred during retrieval of the ASI access token: " % str(e))
+            self._send_error_email("An exception occurred during retrieval of the ASI access token: {0}".format(traceback.format_exc()))
 
     def load_sage_categories(self):
 
@@ -189,11 +189,11 @@ class ProductExternalCategories(models.Model):
                 orphaned_categories = self.env['product.external.categories'].search([('external_source', '=', 'sage'),
                                                                                       ('write_date', '<',
                                                                                        cur_date.strftime(
-                                                                                           "%Y-%m-%d %H:%M:%S"))])
+                                                                                           "%Y-%m-%d"))])
                 for oc in orphaned_categories:
                     oc.unlink()
         except Exception as err:
-            self._send_error_email("An exception occurred during the SAGE category import: " % str(err))
+            self._send_error_email("An exception occurred during the SAGE category import: {0}".format(traceback.format_exc()))
 
     def load_asi_categories(self):
 
@@ -245,12 +245,12 @@ class ProductExternalCategories(models.Model):
                 orphaned_categories = self.env['product.external.categories'].search([('external_source', '=', 'asi'),
                                                                                       ('write_date', '<',
                                                                                        cur_date.strftime(
-                                                                                           "%Y-%m-%d %H:%M:%S"))])
+                                                                                           "%Y-%m-%d"))])
                 for oc in orphaned_categories:
                     oc.unlink()
 
         except Exception as err:
-            self._send_error_email("An error occurred during the ASI category import: " % str(err))
+            self._send_error_email("An error occurred during the ASI category import: {0}".format(traceback.format_exc()))
 
 
 class ProductPublicCategory(models.Model):
@@ -396,9 +396,8 @@ class ProductTemplate(models.Model):
     def _check_xml_data(self):
         messages = []
 
-        # TODO: re-enable this check
-        # if not self.product_style_number:
-        #     messages.append("<li>Product Style Number missing</li>")
+        if not self.product_style_number:
+            messages.append("<li>Product Style Number missing</li>")
         if not self.name:
             messages.append("<li>Product Name missing</li>")
         if not self.categ_id:
@@ -451,10 +450,10 @@ class ProductTemplate(models.Model):
                     messages.append("<li>Product Variant '{0}' missing weight</li>".format(variant.weight))
                 if not variant.default_code:
                     messages.append("<li>Product Variant '{0}' missing internal reference</li>".format(variant.display_name))
-                if not variant.packaging_ids:
-                    messages.append("<li>Product Variant '{0}' missing packaging ids</li>".format(variant.display_name))
                 if not variant.default_code:
                     messages.append("<li>Product Variant '{0}' missing default code</li>".format(variant.display_name))
+                if not variant.packaging_ids:
+                    messages.append("<li>Product Variant '{0}' missing packaging ids</li>".format(variant.display_name))
                 else:
                     if not variant.packaging_ids[0].name:
                         messages.append("<li>Product Variant '{0}' packaging missing name</li>".format(variant.display_name))
@@ -539,12 +538,10 @@ class ProductTemplate(models.Model):
             # Get Odoo's decimal accuracy for pricing
             price_digits = self.env['decimal.precision'].precision_get('Product Price')
             # Set the folder for uploading product documents to S3
-            # TODO: set prod_folder with style number
             prod_folder = self.product_style_number + '/'
             # First we will build the standard XML for the product.
             product = ET.Element('product')
-            # TODO: reinstate style number
-            # ET.SubElement(product, "product_style_number").text = self.product_style_number
+            ET.SubElement(product, "product_style_number").text = self.product_style_number
             ET.SubElement(product, "product_id").text = str(self.id)
             ET.SubElement(product, "product_name").text = self.name
             # The name of the product's category is the product category. The name of the top category in the path
@@ -602,9 +599,7 @@ class ProductTemplate(models.Model):
                     ET.SubElement(website_cat_elem, "asi_category").text = category.asi_category_id.name
             alt_products_elem = ET.SubElement(product, "alternative_products")
             for alt_product in self.alternative_product_ids:
-                # TODO: reinstate product style number
-                # ET.SubElement(alt_products_elem, "alternative_product").text = alt_product.product_style_number
-                ET.SubElement(alt_products_elem, "alternative_product").text = 'stylenumberhere'
+                ET.SubElement(alt_products_elem, "alternative_product").text = alt_product.product_style_number
             warehouses_elem = ET.SubElement(product, "warehouses")
             for warehouse in self.warehouses:
                 warehouse_elem = ET.SubElement(warehouses_elem, "warehouse")
@@ -621,18 +616,15 @@ class ProductTemplate(models.Model):
             if s3:
                 # Upload the large image
                 if self.image:
-                    # TODO: use style number for the name of the file
-                    image_url = s3._upload_to_public_bucket(self.image, 'test.jpg', 'image/jpeg', prod_folder)
+                    image_url = s3._upload_to_public_bucket(self.image, self.product_style_number + '.jpg', 'image/jpeg', prod_folder)
                     ET.SubElement(images_elem, "image").text = image_url
                 # Upload the medium image
                 if self.image_medium:
-                    # TODO: use style number for the name of the file
-                    image_url = s3._upload_to_public_bucket(self.image_medium, 'test_medium.jpg', 'image/jpeg', prod_folder)
+                    image_url = s3._upload_to_public_bucket(self.image_medium, self.product_style_number + '_medium.jpg', 'image/jpeg', prod_folder)
                     ET.SubElement(images_elem, "image_medium").text = image_url
                 # Upload the small image
                 if self.image_small:
-                    # TODO: use style number for the name of the file
-                    image_url = s3._upload_to_public_bucket(self.image_small, 'test_small.jpg', 'image/jpeg', prod_folder)
+                    image_url = s3._upload_to_public_bucket(self.image_small, self.product_style_number + '_small.jpg', 'image/jpeg', prod_folder)
                     ET.SubElement(images_elem, "image_small").text = image_url
 
                 # If there are any additional product images upload those
@@ -669,24 +661,27 @@ class ProductTemplate(models.Model):
                         ET.SubElement(pkg_elem, "width").text = str(variant.packaging_ids[0].width)
                         ET.SubElement(pkg_elem, "height").text = str(variant.packaging_ids[0].height)
                     # Write the attributes that are specific to this variant (color, thickness, etc)
+                    # In order for attributes to appear in the standard XML they must have an attribute category
                     attrs_elem = ET.SubElement(pv_elem, "attributes")
                     for attribute_value in variant.attribute_value_ids:
-                        attr_elem = ET.SubElement(attrs_elem, "attribute")
-                        ET.SubElement(attr_elem, "attribute_category").text = attribute_value.attribute_id.category
-                        ET.SubElement(attr_elem, "attribute_id").text = str(attribute_value.id)
-                        ET.SubElement(attr_elem, "attribute_name").text = attribute_value.attribute_id.name
-                        ET.SubElement(attr_elem, "attribute_value").text = attribute_value.name
-                        ET.SubElement(attr_elem, "attribute_sequence").text = str(attribute_value.sequence)
+                        if attribute_value.attribute_id.category:
+                            attr_elem = ET.SubElement(attrs_elem, "attribute")
+                            ET.SubElement(attr_elem, "attribute_category").text = attribute_value.attribute_id.category
+                            ET.SubElement(attr_elem, "attribute_id").text = str(attribute_value.id)
+                            ET.SubElement(attr_elem, "attribute_name").text = attribute_value.attribute_id.name
+                            ET.SubElement(attr_elem, "attribute_value").text = attribute_value.name
+                            ET.SubElement(attr_elem, "attribute_sequence").text = str(attribute_value.sequence)
                     # Upload the variant's images to public storage
+                    pv_images_elem = ET.SubElement(pv_elem, "images")
                     if variant.image:
                         image_url = s3._upload_to_public_bucket(variant.image, variant.default_code + '.jpg', 'image/jpeg', prod_folder)
-                        ET.SubElement(images_elem, "image").text = image_url
+                        ET.SubElement(pv_images_elem, "image").text = image_url
                     if variant.image_medium:
                         image_url = s3._upload_to_public_bucket(variant.image_medium, variant.default_code + '_medium.jpg', 'image/jpeg', prod_folder)
-                        ET.SubElement(images_elem, "image_medium").text = image_url
+                        ET.SubElement(pv_images_elem, "image_medium").text = image_url
                     if variant.image_small:
                         image_url = s3._upload_to_public_bucket(variant.image_small, variant.default_code + '_small.jpg', 'image/jpeg', prod_folder)
-                        ET.SubElement(images_elem, "image_small").text = image_url
+                        ET.SubElement(pv_images_elem, "image_small").text = image_url
             # Write the decoration location
             if self.decoration_area_ids:
                 locations_elem = ET.SubElement(product, "decoration_locations")
@@ -860,7 +855,7 @@ class ProductTemplate(models.Model):
                 })
 
         except Exception as e:
-            error_text = '<p>Technical Errors, contact IT:' + '<p>' + str(e)
+            error_text = '<p>Technical Errors, contact IT:' + '<p>'
             self.write({
                 'data_errors': error_text + traceback.format_exc()
             })

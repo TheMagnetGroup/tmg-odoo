@@ -6,18 +6,29 @@ from odoo import fields, models, api, _
 class Product(models.Model):
     _inherit = 'product.product'
 
+    def _compute_quantities(self):
+        super(Product, self)._compute_quantities()
+        res = self._compute_quantities_dict(self._context.get('lot_id'), self._context.get('owner_id'),
+                                            self._context.get('package_id'), self._context.get('from_date'),
+                                            self._context.get('to_date'))
+        for product in self:
+            product.virtual_available_qty = res[product.id]['virtual_available_qty']
+
     def _compute_quantities_dict(self, lot_id, owner_id, package_id, from_date=False, to_date=False):
         """
-            Inherited to update quantity fields for manufacturable products
+            Inherited to update quantity fields for manufacturable products7
         """
-        res = super(Product, self)._compute_quantities_dict(lot_id=lot_id, owner_id=owner_id, package_id=package_id, from_date=from_date, to_date=to_date)
-        for product in self.filtered(lambda p: p.bom_id):
-            components = product._get_bom_component_qty(product.bom_id)
-            res[product.id]['qty_available'] = product._get_possible_assembled_kit(components, res, 'qty_available')
-            res[product.id]['incoming_qty'] = product._get_possible_assembled_kit(components, res, 'incoming_qty')
-            res[product.id]['outgoing_qty'] = product._get_possible_assembled_kit(components, res, 'outgoing_qty')
-            res[product.id]['virtual_available'] = product._get_possible_assembled_kit(components, res, 'virtual_available')
+        res = super(Product, self)._compute_quantities_dict(lot_id=lot_id, owner_id=owner_id, package_id=package_id,
+                                                            from_date=from_date, to_date=to_date)
+        for product in self:
+            res[product.id]['virtual_available_qty'] = res[product.id]['qty_available'] - res[product.id]['outgoing_qty']
+            if product.bom_id:
+                components = product._get_bom_component_qty(product.bom_id)
+                res[product.id]['virtual_available_qty'] = product._get_possible_assembled_kit(components, res, 'virtual_available_qty')
+
         return res
+
+
 
     @api.multi
     def _get_bom_component_qty(self, bom):
@@ -51,7 +62,8 @@ class Product(models.Model):
         qty_available = []
         for product_id in components:
             product = self.with_context(prefetch_fields=False).browse(product_id)
-            qty = res_data.get(product_id, 0) and res_data[product_id][field] or getattr(product, field)
+            qty = res_data.get(product_id, 0) and (res_data[product_id].get(field) and res_data[product_id][field]) or \
+                  getattr(product, field)
             if not qty:
                 qty_available = []
                 break
@@ -66,7 +78,8 @@ class Product(models.Model):
         action = self.env.ref('stock.stock_move_line_action').read()[0]
         action['domain'] = [('product_id', '=', self.id)]
         product_ids = [self.id]
-        bom = self.env['mrp.bom'].search(['|', ('product_id', '=', self.id), ('product_tmpl_id', '=', self.product_tmpl_id.id)], limit=1)
+        bom = self.env['mrp.bom'].search(
+            ['|', ('product_id', '=', self.id), ('product_tmpl_id', '=', self.product_tmpl_id.id)], limit=1)
         if bom:
             product_ids += bom.bom_line_ids.mapped('product_id').ids
             action['domain'] = [('product_id', 'in', product_ids)]
@@ -81,7 +94,8 @@ class Product(models.Model):
             'search_default_status': 1, 'search_default_order_month': 1,
             'graph_measure': 'unit_quantity'
         }
-        bom = self.env['mrp.bom'].search(['|', ('product_id', '=', self.id), ('product_tmpl_id', '=', self.product_tmpl_id.id)], limit=1)
+        bom = self.env['mrp.bom'].search(
+            ['|', ('product_id', '=', self.id), ('product_tmpl_id', '=', self.product_tmpl_id.id)], limit=1)
         if bom:
             action = self.env.ref('mrp_bom_stock.action_purchase_line_product_tree').read()[0]
             products = self.product_variant_ids + bom.bom_line_ids.mapped('product_id')
@@ -95,7 +109,8 @@ class Product(models.Model):
         """
         res = super(Product, self)._compute_purchased_product_qty()
         for product in self.filtered(lambda t: t.bom_id):
-            product.purchased_product_qty = sum([p.purchased_product_qty for p in (product.bom_id.bom_line_ids.mapped('product_id'))])
+            product.purchased_product_qty = sum(
+                [p.purchased_product_qty for p in (product.bom_id.bom_line_ids.mapped('product_id'))])
         return res
 
     @api.multi
@@ -105,8 +120,6 @@ class Product(models.Model):
         bom_quantity = self.uom_id._compute_quantity(1.0, self.bom_id.product_uom_id)
         boms, lines = self.bom_id.explode(self, bom_quantity)
         for line, line_data in lines:
-            if line.to_exclude:
-                continue
             products |= line.product_id
         action = self.env.ref('mrp_bom_stock.product_open_components').read()[0]
         action['domain'] = [('id', 'in', products.ids)]
@@ -120,19 +133,38 @@ class Product(models.Model):
         action['context'] = {}
         return action
 
+    def open_incoming_moves_todo(self):
+        action_data = self.action_view_stock_move_lines()
+        action_data['context'] = {}
+        action_data['context'].update({'search_default_todo': 1, 'search_default_done': 0})
+        action_data['domain'].append(('move_id.picking_code', '=', 'incoming'))
+        return action_data
+
 
 class ProductTemplate(models.Model):
     _inherit = "product.template"
 
-    bom_id = fields.Many2one('mrp.bom', string='Bill of Material', help="Bill of Material to compute manufacturable quantities.")
+    bom_id = fields.Many2one('mrp.bom', string='Bill of Material',
+                             help="Bill of Material to compute manufacturable quantities.")
+
+    def _compute_quantities(self):
+        super(ProductTemplate, self)._compute_quantities()
+        res = self._compute_quantities_dict()
+        for template in self:
+            template.virtual_available_qty = res[template.id]['virtual_available_qty']
 
     def _compute_quantities_dict(self):
         qty_dict = super(ProductTemplate, self)._compute_quantities_dict()
         for template in self:
-            if template.bom_id and any([bol.is_shared() for bol in template.bom_id.bom_line_ids]):
+            qty_dict[template.id]['virtual_available_qty'] = qty_dict[template.id]['qty_available'] - \
+                                                             qty_dict[template.id]['outgoing_qty']
+            if template.bom_id:
+                manufacturable_qty = [sum(template.product_variant_ids.mapped('virtual_available_qty'))]
                 shared_lines = template.bom_id.bom_line_ids.filtered(lambda bol: bol.is_shared())
-                manufacturable_qty = min(shared_lines.mapped('product_id').mapped('qty_available'))
-                qty_dict[template.id]['qty_available'] = manufacturable_qty
+                print(shared_lines)
+                if shared_lines:
+                    manufacturable_qty.append(min(shared_lines.mapped('product_id').mapped('virtual_available_qty')))
+                qty_dict[template.id]['virtual_available_qty'] = min(manufacturable_qty)
         return qty_dict
 
     def action_view_stock_move_lines(self):
@@ -174,15 +206,27 @@ class ProductTemplate(models.Model):
         action = self.env.ref('stock.product_open_quants').read()[0]
         action['context'] = {'search_default_internal_loc': 1}
         if self.bom_id:
-            products = []
-            for product in self.mapped('product_variant_ids'):
-                bom_quantity = product.uom_id._compute_quantity(1.0, self.bom_id.product_uom_id)
-                boms, lines = self.bom_id.explode(product, bom_quantity)
-                for line, line_data in lines:
-                    if line.product_id.id not in products and not line.to_exclude:
-                        products.append(line.product_id.id)
             action = self.env.ref('mrp_bom_stock.product_open_components').read()[0]
-            action['domain'] = [('id', 'in', products)]
+            if any([l.is_shared() for l in self.bom_id.bom_line_ids]):
+                products = []
+                for product in self.mapped('product_variant_ids'):
+                    bom_quantity = product.uom_id._compute_quantity(1.0, self.bom_id.product_uom_id)
+                    boms, lines = self.bom_id.explode(product, bom_quantity)
+                    for line, line_data in lines:
+                        if line.product_id.id not in products:
+                            products.append(line.product_id.id)
+                for line in self.bom_id.bom_line_ids.filtered(lambda l: l.attribute_value_ids and all([av.attribute_id.create_variant == 'never' for av in l.attribute_value_ids])):
+                    products.append(line.product_id.id)
+                action['domain'] = [('id', 'in', products)]
+            else:
+                action['domain'] = [('id', 'in', self.bom_id.bom_line_ids.mapped('product_id').ids)]
             return action
         action['domain'] = [('product_id', 'in', products.ids)]
         return action
+
+    def open_incoming_moves_todo(self):
+        action_data = self.action_view_stock_move_lines()
+        action_data['context'] = {}
+        action_data['context'].update({'search_default_todo': 1, 'search_default_done': 0})
+        action_data['domain'].append(('move_id.picking_code', '=', 'incoming'))
+        return action_data

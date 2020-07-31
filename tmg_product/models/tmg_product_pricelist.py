@@ -87,7 +87,15 @@ class ProductTemplate(models.Model):
     ala_catalog = fields.Float(string='As Low As Catalog', compute='_compute_ala')
     ala_net = fields.Float(string='As Low As Net', compute='_compute_ala')
     ala_code = fields.Char(string='As Low As Code', compute='_compute_ala')
-    
+    product_style_number = fields.Char(string='Product Style Number', copy=False)
+
+    _sql_constraints = [
+        ('product_style_number_uniq',
+         'UNIQUE (product_style_number)',
+         'This Product Style Number is already used for another product'
+         )
+    ]
+
     @api.multi
     def _get_combination_info(self, combination=False, product_id=False, add_qty=1, pricelist=False, parent_combination=False, only_template=False):
 
