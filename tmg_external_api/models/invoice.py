@@ -56,7 +56,7 @@ class invoice(models.Model):
 
     @api.model
     def _get_invoices(self):
-        so = []
+        so = dict()   # a/o initial release return dict() instead of list[]
         invoice_data = []
 
         # obtain the main invoice level data
@@ -68,8 +68,8 @@ class invoice(models.Model):
         elif invoice._inv_available:
             invoice_search.append(('date_invoice', '>=[bil_id, sol_id]', invoice._inv_available))
         elif invoice._po:
-            so = self._get_orders()
-            invoice_search.append(('origin', '=', so.name))
+            so = self._get_sale_orders()
+            invoice_search.append(('origin', '=', so['number']))
         invoices = self.env['account.invoice']\
             .search_read(invoice_search,
                          ['id',
@@ -89,40 +89,44 @@ class invoice(models.Model):
                          )
         # load the return list with a dict() for each invoice found
         for i in invoices:
-            so = dict()    # a/o initial release dict() instead of list[]
-            so = self._get_sale_orders(i['origin'])
+            if not so:
+                so = self._get_sale_orders(i['origin'])
 
             # create a list of address tuples for obtaining bill-to/sold-to account info
             bil_id = ("BILL TO", int(i['partner_id'][0]))
             sol_id = ("SOLD TO", int(so['partner_id'][0])) if so else tuple()
-            list_partners = [bil_id, sol_id]
-            account_addresses = self._address_fmt(list_partners)
+            list_contacts = [bil_id, sol_id]
+            account_addresses = self._address_fmt(list_contacts)
 
             # obtain line and tax info as lists formatted for the invoice dict() return value
             txs = (self._get_taxes(i['tax_line_ids']) if float(i['amount_tax']) != 0.0 else [])
             lns = self._get_lines(i['invoice_line_ids'])
 
             # populate the dict() of data for the invoice
-            data = dict(
-                invoiceNumber=i['number'],
-                invoiceType=("CREDIT MEMO" if i['type'] == 'out_refund' else "INVOICE"),
-                invoiceDate=fields.Date.to_string(i['date_invoice']),
-                purchaseOrderNumber=so['client_order_ref'],
-                addresses=account_addresses,
-                paymentTerms=i['payment_term_id'][1],
-                paymentDueDate=fields.Date.to_string(i['date_due']),
-                currency=i['currency_id'][1],
-                fob=so['warehouse_id'][1],
-                salesAmount=invoice._inv_sales_total,
-                shippingAmount=invoice._inv_ship_total,
-                handlingAmount=invoice._inv_handling,
-                taxAmount=float(i['amount_tax']),
-                invoiceAmount=float(i['amount_total']),
-                advancePaymentAmount=invoice._inv_payments_down,
-                invoiceAmountDue=float(i['amount_total']) - invoice._inv_payments_down,
-                lineItems=lns,
-                salesOrderNumbers=[i['origin']],
-                taxes=txs
+            if not lns:
+                dict(error=('Warning', 'Error returning invoice lines or lines not found'))
+            else:
+                data = dict(
+                    error=[],
+                    invoiceNumber=i['number'],
+                    invoiceType=("CREDIT MEMO" if i['type'] == 'out_refund' else "INVOICE"),
+                    invoiceDate=fields.Date.to_string(i['date_invoice']),
+                    purchaseOrderNumber=so['client_order_ref'],
+                    addresses=account_addresses,
+                    paymentTerms=i['payment_term_id'][1],
+                    paymentDueDate=fields.Date.to_string(i['date_due']),
+                    currency=i['currency_id'][1],
+                    fob=so['warehouse_id'][1],
+                    salesAmount=invoice._inv_sales_total,
+                    shippingAmount=invoice._inv_ship_total,
+                    handlingAmount=invoice._inv_handling,
+                    taxAmount=float(i['amount_tax']),
+                    invoiceAmount=float(i['amount_total']),
+                    advancePaymentAmount=invoice._inv_payments_down,
+                    invoiceAmountDue=float(i['amount_total']) - invoice._inv_payments_down,
+                    lineItems=lns,
+                    salesOrderNumbers=[i['origin']],
+                    taxes=txs
             )
             invoice_data.append(data)
 
@@ -137,14 +141,16 @@ class invoice(models.Model):
             'warehouse_id'
         ]
         order_data = []
-        if invoice._invoice and order_number and order_number.strip():
+        # lookup corresponding order info if order number was specified
+        if order_number and order_number.strip():
             order_data = self.env['sale.order']\
                 .search_read([('name', '=', order_number)], order_fields)
+        # ... otherwise, lookup corresponding order info by the original requested PO
         elif invoice._po and invoice._po.strip():
             order_data = self.env['sale.order']\
                 .search_read([('client_order_ref', '=', invoice._po)], order_fields)
-        # as of initial release, only one sales order per invoice is expected.
-        # if at some point one invoice can correspond to more than one order, return a list of order objects
+        # as of initial release, only one sales order per invoice is expected (hence element[0])
+        # if in the future one invoice can correspond to multiple orders, modify to return a list
         if order_data and len(order_data) > 0:
             return order_data[0]
         else:
