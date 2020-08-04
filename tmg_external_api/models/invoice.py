@@ -105,13 +105,14 @@ class invoice(models.Model):
             # populate the dict() of data for the invoice
             if not lns:
                 data = dict(
-                    error=dict(
-                        severity='Warning',
-                        message='Error returning invoice lines or lines not found')
+                            error=[dict(
+                                severity='Warning',
+                                message='Error returning invoice lines or lines not found')
+                                ]
                             )
             else:
                 data = dict(
-                    error=dict(),
+                    error=[],
                     invoiceNumber=i['number'],
                     invoiceType=("CREDIT MEMO" if i['type'] == 'out_refund' else "INVOICE"),
                     invoiceDate=fields.Date.to_string(i['date_invoice']),
