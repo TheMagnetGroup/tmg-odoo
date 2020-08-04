@@ -114,10 +114,20 @@ class promostandards(models.Model):
     @api.model
     def Invoice(self, partner_str, po, invoice_number, invoice_date_str, as_of_date_str, request):
         if not partner_str or not partner_str.strip():
-            data = [dict(error=("Error", "Invalid partner ID value: '" + partner_str + "'"))]
+            data = [dict(
+                error=dict(
+                    severity="Error",
+                    message="Invalid partner ID value: '" + partner_str + "'")
+                        )
+                    ]
             return data
         elif not self.check_call_cap(partner_str):
-            data = [dict(error=("Error", "Call Cap not found for partner ID " + partner_str))]
+            data = [dict(
+                error=dict(
+                    severity="Error",
+                    message="Call Cap not found for partner ID " + partner_str)
+                        )
+                    ]
             return data
         invoice_obj = self.env['tmg_external_api.invoice']
         data = invoice_obj.Invoice(partner_str, po, invoice_number, invoice_date_str, as_of_date_str)
