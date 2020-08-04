@@ -7,14 +7,14 @@ class invoice(models.Model):
     _name = 'tmg_external_api.invoice'
     _description = 'Serve customer invoice information'
 
-    # these facilitate common access to identifiers
+    # facilitate access to common identifiers
     _partner_id = fields.Integer(0)
     _invoice = fields.Char(None)
     _po = fields.Char(None)
     _inv_date = fields.Date(None)
     _inv_available = fields.Datetime(None)
 
-    # these provide common calculation components
+    # provide common calculation components
     _inv_sales_total = float(0.0)
     _inv_ship_total = float(0.0)
     _inv_handling = float(0.0)
@@ -106,8 +106,9 @@ class invoice(models.Model):
             if not lns:
                 data = dict(
                             errorList=[dict(
+                                code=999,
                                 severity='Warning',
-                                message='Error returning invoice lines or lines not found')
+                                message="Invoice " + i['number'] + " found but invoice lines failed or missing")
                                 ]
                             )
             else:
@@ -134,7 +135,15 @@ class invoice(models.Model):
                     taxes=txs
                     )
             invoice_data.append(data)
-
+            if len(invoice_data) == 0:
+                invoice_data = [dict(
+                                    errorList=[dict(
+                                        code=903,
+                                        severity="Information",
+                                        message="No Invoices found")
+                                        ]
+                                    )
+                                ]
         return invoice_data
 
     @api.model
