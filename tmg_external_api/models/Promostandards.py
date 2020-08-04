@@ -116,6 +116,7 @@ class promostandards(models.Model):
         if not partner_str or not partner_str.strip():
             data = [dict(
                         errorList=[dict(
+                            code=100,
                             severity="Error",
                             message="Invalid partner ID value: '" + partner_str + "'")
                             ]
@@ -125,6 +126,7 @@ class promostandards(models.Model):
         elif not self.check_call_cap(partner_str):
             data = [dict(
                         errorList=[dict(
+                            code=999,
                             severity="Error",
                             message="Call Cap not found for partner ID " + partner_str)
                             ]
