@@ -2,7 +2,7 @@
 
 from odoo import models, fields, api
 from odoo.exceptions import ValidationError
-from odoo.addons import decimal_precision as dp
+# from odoo.addons import decimal_precision as dp
 from datetime import datetime
 import urllib.request
 import json
@@ -387,7 +387,7 @@ class ProductTemplate(models.Model):
     def _build_all_xml(self):
         # Get a list of all active products that can be sold
         products = self.env['product.template'].search(
-            [('active', '=', True), ('sale_ok', '=', True), ('type', '=', 'product')])
+            [('active', '=', True), ('sale_ok', '=', True), ('website_published', '=', True), ('type', '=', 'product')])
         for product in products:
             product._build_std_xml()
 
@@ -596,6 +596,7 @@ class ProductTemplate(models.Model):
                     website_cat_elem = ET.SubElement(website_cats_elem, "product_category")
                     ET.SubElement(website_cat_elem, "name").text = category.name
                     ET.SubElement(website_cat_elem, "sage_category").text = category.sage_category_id.name
+                    ET.SubElement(website_cat_elem, "sage_category_id").text = category.sage_category_id.external_id
                     ET.SubElement(website_cat_elem, "asi_category").text = category.asi_category_id.name
             alt_products_elem = ET.SubElement(product, "alternative_products")
             for alt_product in self.alternative_product_ids:
@@ -686,7 +687,7 @@ class ProductTemplate(models.Model):
             if self.decoration_area_ids:
                 locations_elem = ET.SubElement(product, "decoration_locations")
                 for location in self.decoration_area_ids:
-                    location_elem = ET.SubElement(locations_elem, "deocration_location")
+                    location_elem = ET.SubElement(locations_elem, "decoration_location")
                     ET.SubElement(location_elem, "id").text = str(location.decoration_area_id.attribute_id.id)
                     ET.SubElement(location_elem, "name").text = location.name
                     methods_elem = ET.SubElement(location_elem, "decoration_methods")

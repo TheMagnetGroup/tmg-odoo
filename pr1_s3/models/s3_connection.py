@@ -23,6 +23,7 @@ _logger = logging.getLogger(__name__)
 public_acl_indicator = 'http://acs.amazonaws.com/groups/global/AllUsers'
 permissions_to_check = ['READ', 'WRITE']
 
+
 class S3Connection(models.Model):
     _name = 'pr1_s3.s3_connection'
     _description = 'S3 Connection'

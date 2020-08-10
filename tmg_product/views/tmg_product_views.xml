@@ -153,7 +153,7 @@
                                    modifiers="{'readonly':'false'}">
                                 <tree editable="bottom">
                                     <field name="addl_charge_product_id" options="{'no_create_edit':True}"
-                                            domain="[('type','=','service'),('id','!=',parent.id)]"/>
+                                            domain="[('type','in',['service','consu']),('id','!=',parent.id)]"/>
                                     <field name="decoration_method_ids" options="{'no_create_edit':True}"
                                             widget="many2many_tags"
                                             domain="[('product_tmpl_id.id','=',parent.id),('attribute_id.category','=','decoration')]"
