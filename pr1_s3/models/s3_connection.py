@@ -237,14 +237,20 @@ class S3Connection(models.Model):
         local_md5 = '"' + hashlib.md5(bin_data).hexdigest() + '"'
 
         # Is the file already in S3?
-        obj = list(s3_bucket.objects.filter(Prefix=file_name))
+        s3_md5 = None
+        s3_change_date = None
+        obj = list(s3_bucket.objects.filter(Prefix=folder + file_name))
         if len(obj) == 0:
             upload = True
+            s3_md5 = local_md5
+            s3_change_date = datetime.now()
         else:
             # Check the MD5 of the file in S3 and compare that against the current file.  If different, upload
             s3_md5 = obj[0].e_tag
+            s3_change_date = obj[0].last_modified
             if s3_md5 != local_md5:
-                 upload = True
+                upload = True
+                s3_change_date = datetime.now()
 
         # Upload the file to the public bucket
         if upload:
@@ -253,5 +259,8 @@ class S3Connection(models.Model):
             except Exception as e:
                 raise e
 
-        # Return the path to the file in our public bucket.
-        return self.s3_api_url + "/" + self.s3_bucket_name + "/" + folder + file_name
+        # Return the a dictionary of the url to the file in our public bucket along with the md5 signature
+        # and the change date
+        return {'url': self.s3_api_url + "/" + self.s3_bucket_name + "/" + folder + file_name,
+                'md5': s3_md5,
+                'change_date': s3_change_date}

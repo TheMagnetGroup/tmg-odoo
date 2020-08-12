@@ -375,6 +375,7 @@ class ProductTemplate(models.Model):
                                           inverse_name='product_tmpl_id')
     addl_charge_product_ids = fields.One2many(comodel_name='product.addl.charges', inverse_name='product_tmpl_id')
     data_errors = fields.Html(string='Required Data Errors')
+    sage_errors = fields.Html(string='SAGE Export Errors')
 
     @api.constrains('decoration_method_ids')
     def _check_deco_methods(self):
@@ -539,6 +540,8 @@ class ProductTemplate(models.Model):
             price_digits = self.env['decimal.precision'].precision_get('Product Price')
             # Set the folder for uploading product documents to S3
             prod_folder = self.product_style_number + '/'
+            # Snag the current date for comparison of changed images
+            current_date = datetime.now()
             # First we will build the standard XML for the product.
             product = ET.Element('product')
             ET.SubElement(product, "product_style_number").text = self.product_style_number
@@ -617,23 +620,39 @@ class ProductTemplate(models.Model):
             if s3:
                 # Upload the large image
                 if self.image:
-                    image_url = s3._upload_to_public_bucket(self.image, self.product_style_number + '.jpg', 'image/jpeg', prod_folder)
-                    ET.SubElement(images_elem, "image").text = image_url
+                    image_elem = ET.SubElement(images_elem, "image")
+                    results = s3._upload_to_public_bucket(self.image, self.product_style_number + '.jpg', 'image/jpeg', prod_folder)
+                    ET.SubElement(image_elem, "type").text = "image"
+                    ET.SubElement(image_elem, "url").text = results['url']
+                    ET.SubElement(image_elem, "md5").text = results['md5']
+                    ET.SubElement(image_elem, "change_date").text = datetime.strftime(results['change_date'], "%Y-%m-%d")
                 # Upload the medium image
                 if self.image_medium:
-                    image_url = s3._upload_to_public_bucket(self.image_medium, self.product_style_number + '_medium.jpg', 'image/jpeg', prod_folder)
-                    ET.SubElement(images_elem, "image_medium").text = image_url
+                    image_elem = ET.SubElement(images_elem, "image")
+                    results = s3._upload_to_public_bucket(self.image_medium, self.product_style_number + '_medium.jpg', 'image/jpeg', prod_folder)
+                    ET.SubElement(image_elem, "type").text = "image_medium"
+                    ET.SubElement(image_elem, "url").text = results['url']
+                    ET.SubElement(image_elem, "md5").text = results['md5']
+                    ET.SubElement(image_elem, "change_date").text = datetime.strftime(results['change_date'], "%Y-%m-%d")
                 # Upload the small image
                 if self.image_small:
-                    image_url = s3._upload_to_public_bucket(self.image_small, self.product_style_number + '_small.jpg', 'image/jpeg', prod_folder)
-                    ET.SubElement(images_elem, "image_small").text = image_url
+                    image_elem = ET.SubElement(images_elem, "image")
+                    results = s3._upload_to_public_bucket(self.image_small, self.product_style_number + '_small.jpg', 'image/jpeg', prod_folder)
+                    ET.SubElement(image_elem, "type").text = "image_small"
+                    ET.SubElement(images_elem, "url").text = results['url']
+                    ET.SubElement(image_elem, "md5").text = results['md5']
+                    ET.SubElement(image_elem, "change_date").text = datetime.strftime(results['change_date'], "%Y-%m-%d")
 
                 # If there are any additional product images upload those
                 if self.product_image_ids:
-                    extra_images_elem = ET.SubElement(images_elem, "additional_images")
+                    # extra_images_elem = ET.SubElement(images_elem, "additional_images")
                     for image in self.product_image_ids:
-                        image_url = s3._upload_to_public_bucket(image.image, image.name + ".jpg", "image/jpeg", prod_folder)
-                        ET.SubElement(extra_images_elem, "additional_image").text = image_url
+                        image_elem = ET.SubElement(images_elem, "image")
+                        results = s3._upload_to_public_bucket(image.image, image.name + ".jpg", "image/jpeg", prod_folder)
+                        ET.SubElement(image_elem, "type").text = "image_additional"
+                        ET.SubElement(images_elem, "url").text = results['url']
+                        ET.SubElement(image_elem, "md5").text = results['md5']
+                        ET.SubElement(image_elem, "change_date").text = datetime.strftime(results['change_date'], "%Y-%m-%d")
 
             # If the product has variants then add those.
             pvs_elem = ET.SubElement(product, "product_variants")
@@ -675,14 +694,26 @@ class ProductTemplate(models.Model):
                     # Upload the variant's images to public storage
                     pv_images_elem = ET.SubElement(pv_elem, "images")
                     if variant.image:
-                        image_url = s3._upload_to_public_bucket(variant.image, variant.default_code + '.jpg', 'image/jpeg', prod_folder)
-                        ET.SubElement(pv_images_elem, "image").text = image_url
+                        image_elem = ET.SubElement(pv_images_elem, "image")
+                        results = s3._upload_to_public_bucket(variant.image, variant.default_code + '.jpg', 'image/jpeg', prod_folder)
+                        ET.SubElement(image_elem, "type").text = "image"
+                        ET.SubElement(image_elem, "url").text = results['url']
+                        ET.SubElement(image_elem, "md5").text = results['md5']
+                        ET.SubElement(image_elem, "change_date").text = datetime.strftime(results['change_date'], "%Y-%m-%d")
                     if variant.image_medium:
-                        image_url = s3._upload_to_public_bucket(variant.image_medium, variant.default_code + '_medium.jpg', 'image/jpeg', prod_folder)
-                        ET.SubElement(pv_images_elem, "image_medium").text = image_url
+                        image_elem = ET.SubElement(pv_images_elem, "image")
+                        results = s3._upload_to_public_bucket(variant.image_medium, variant.default_code + '_medium.jpg', 'image/jpeg', prod_folder)
+                        ET.SubElement(image_elem, "type").text = "image_medium"
+                        ET.SubElement(image_elem, "url").text = results['url']
+                        ET.SubElement(image_elem, "md5").text = results['md5']
+                        ET.SubElement(image_elem, "change_date").text = datetime.strftime(results['change_date'], "%Y-%m-%d")
                     if variant.image_small:
-                        image_url = s3._upload_to_public_bucket(variant.image_small, variant.default_code + '_small.jpg', 'image/jpeg', prod_folder)
-                        ET.SubElement(pv_images_elem, "image_small").text = image_url
+                        image_elem = ET.SubElement(pv_images_elem, "image")
+                        results = s3._upload_to_public_bucket(variant.image_small, variant.default_code + '_small.jpg', 'image/jpeg', prod_folder)
+                        ET.SubElement(image_elem, "type").text = "image_small"
+                        ET.SubElement(image_elem, "url").text = results['url']
+                        ET.SubElement(image_elem, "md5").text = results['md5']
+                        ET.SubElement(image_elem, "change_date").text = datetime.strftime(results['change_date'], "%Y-%m-%d")
             # Write the decoration location
             if self.decoration_area_ids:
                 locations_elem = ET.SubElement(product, "decoration_locations")
@@ -754,6 +785,7 @@ class ProductTemplate(models.Model):
                                 # Build the price grid for standard catalog/net
                                 ac_price_grid_dict = addl_charge_id.addl_charge_product_id._build_price_grid()
                                 if ac_price_grid_dict:
+                                    ET.SubElement(addl_charge_elem, "currency_id").text = price_grid_dict['catalog_currency']
                                     ET.SubElement(addl_charge_elem, "min_quantity").text = str(ac_price_grid_dict['quantities'][0])
                                     ET.SubElement(addl_charge_elem, "catalog_price").text = "{price:.{dp}f}".format(price=ac_price_grid_dict['catalog_prices'][0], dp=price_digits)
                                     ET.SubElement(addl_charge_elem, "discount_code").text = str(ac_price_grid_dict['discount_codes'][0])
@@ -780,6 +812,7 @@ class ProductTemplate(models.Model):
                     # Build the price grid for blank pricing
                     price_grid_dict = self._build_price_grid(net_pricelist='Blank')
                     if price_grid_dict:
+                        ET.SubElement(blank_elem, "currency_id").text = price_grid_dict['catalog_currency']
                         quantities_elem = ET.SubElement(blank_elem, "quantities")
                         for idx, qty in enumerate(price_grid_dict['quantities'], start=0):
                             quantity_elem = ET.SubElement(quantities_elem, "quantity")
@@ -812,8 +845,8 @@ class ProductTemplate(models.Model):
             files_elem = ET.SubElement(product, "files")
             for attach in self.attachment_ids:
                 if attach.attachment_category:
-                        attach_url = s3._upload_to_public_bucket(attach.datas, attach.name, attach.mimetype, prod_folder)
-                        file_elem = ET.SubElement(files_elem, "file", category=attach.attachment_category[0].name).text = attach_url
+                        results = s3._upload_to_public_bucket(attach.datas, attach.name, attach.mimetype, prod_folder)
+                        file_elem = ET.SubElement(files_elem, "file", category=attach.attachment_category[0].name).text = results['url']
 
             # Now we dump the entire XML into a string
             product_xml = base64.b64encode(ET.tostring(product, encoding='utf-8', xml_declaration=True, pretty_print=True))
