@@ -7,13 +7,6 @@ class invoice(models.Model):
     _name = 'tmg_external_api.invoice'
     _description = 'Serve customer invoice information'
 
-    # facilitate access to common identifiers
-    _partner_id = fields.Integer(0)
-    _invoice = fields.Char(None)
-    _po = fields.Char(None)
-    _inv_date = fields.Date(None)
-    _inv_available = fields.Datetime(None)
-
     # provide common calculation components
     _inv_sales_total = float(0.0)
     _inv_ship_total = float(0.0)
@@ -27,26 +20,32 @@ class invoice(models.Model):
     @api.model
     def Invoice(self, partner_str, po, invoice_number, invoice_date_str, as_of_date_str):
         invoice_data = []
+        sales_order = dict()   # initial release expects only 1 order; return dict() instead of list[dict()]
 
         # a partner ID is required
-        if partner_str and partner_str.strip():
-            invoice._partner_id = int(partner_str)
-        else:
+        if not (partner_str and partner_str.strip()):
             return invoice_data
 
         # one query search value is required (1st value found is used, validated in the sequence below)
+        search = [('partner_id', '=', int(partner_str))]
         if invoice_number and invoice_number.strip():
-            invoice._invoice = invoice_number
+            search.append(('number', '=', invoice_number))
         elif po and po.strip():
-            invoice._po = po
+            sales_order = self._get_sale_orders(po, '')
+            if sales_order:
+                search.append(('origin', '=', sales_order['name']))
+            else:
+                return invoice_data
         elif invoice_date_str and invoice_date_str.strip():
-            invoice._inv_date = fields.Date.from_string(invoice_date_str)
+            inv_date = fields.Date.from_string(invoice_date_str)
+            search.append(('date_invoice', '=', inv_date))
         elif as_of_date_str and as_of_date_str.strip():
-            invoice._inv_available = fields.Datetime.from_string(as_of_date_str)
+            inv_available = fields.Datetime.from_string(as_of_date_str)
+            search.append(('date_invoice', '>=', inv_available))
         else:
             return invoice_data
 
-        invoice_data = self._get_invoices()
+        invoice_data = self._get_invoices(search, sales_order)
 
         return invoice_data
 
@@ -55,21 +54,10 @@ class invoice(models.Model):
 # -------------------
 
     @api.model
-    def _get_invoices(self):
-        so = dict()   # a/o initial release return dict() instead of list[]
+    def _get_invoices(self, invoice_search, so):
         invoice_data = []
 
         # obtain the main invoice level data
-        invoice_search = [('partner_id', '=', invoice._partner_id)]
-        if invoice._invoice:
-            invoice_search.append(('number', '=', invoice._invoice))
-        elif invoice._inv_date:
-            invoice_search.append(('date_invoice', '=', invoice._inv_date))
-        elif invoice._inv_available:
-            invoice_search.append(('date_invoice', '>=[bil_id, sol_id]', invoice._inv_available))
-        elif invoice._po:
-            so = self._get_sale_orders()
-            invoice_search.append(('origin', '=', so['number']))
         invoices = self.env['account.invoice']\
             .search_read(invoice_search,
                          ['id',
@@ -90,7 +78,7 @@ class invoice(models.Model):
         # load the return list with a dict() for each invoice found
         for i in invoices:
             if not so:
-                so = self._get_sale_orders(i['origin'])
+                so = self._get_sale_orders('', i['origin'])
 
             # create a list of address tuples for obtaining bill-to/sold-to account info
             bil_id = ("BILL TO", int(i['partner_id'][0]))
@@ -107,7 +95,7 @@ class invoice(models.Model):
                 data = dict(
                             errorList=[dict(
                                 code=999,
-                                severity='Warning',
+                                severity='Error',
                                 message="Invoice " + i['number'] + " found but invoice lines failed or missing")
                                 ]
                             )
@@ -119,10 +107,10 @@ class invoice(models.Model):
                     invoiceDate=fields.Date.to_string(i['date_invoice']),
                     purchaseOrderNumber=so['client_order_ref'],
                     addresses=account_addresses,
-                    paymentTerms=i['payment_term_id'][1],
+                    paymentTerms=(i['payment_term_id'][1] if i['payment_term_id'] else ''),
                     paymentDueDate=fields.Date.to_string(i['date_due']),
                     currency=i['currency_id'][1],
-                    fob=so['warehouse_id'][1],
+                    fob=(so['warehouse_id'][1] if so['warehouse_id'] else ''),
                     salesAmount=invoice._inv_sales_total,
                     shippingAmount=invoice._inv_ship_total,
                     handlingAmount=invoice._inv_handling,
@@ -139,7 +127,7 @@ class invoice(models.Model):
                 invoice_data = [dict(
                                     errorList=[dict(
                                         code=903,
-                                        severity="Information",
+                                        severity='Information',
                                         message="No Invoices found")
                                         ]
                                     )
@@ -147,9 +135,9 @@ class invoice(models.Model):
         return invoice_data
 
     @api.model
-    def _get_sale_orders(self, order_number):
+    def _get_sale_orders(self, po_number, order_number):
         order_fields = [
-            'number',
+            'name',
             'client_order_ref',
             'partner_id',
             'warehouse_id'
@@ -160,9 +148,9 @@ class invoice(models.Model):
             order_data = self.env['sale.order']\
                 .search_read([('name', '=', order_number)], order_fields)
         # ... otherwise, lookup corresponding order info by the original requested PO
-        elif invoice._po and invoice._po.strip():
+        elif po_number and po_number.strip():
             order_data = self.env['sale.order']\
-                .search_read([('client_order_ref', '=', invoice._po)], order_fields)
+                .search_read([('client_order_ref', '=', po_number)], order_fields)
         # as of initial release, only one sales order per invoice is expected (hence element[0])
         # if in the future one invoice can correspond to multiple orders, modify to return a list
         if order_data and len(order_data) > 0:
@@ -185,40 +173,51 @@ class invoice(models.Model):
                           'price_total']
                          )
         for li in lines:
+            line_product = ''
+            line_part = ''
+            line_charged = ''
             # obtain specific line item product info
-            pp = self.env['product.product']\
-                .search_read([('id', '=', int(li['product_id'][0]))],
-                             ['id',
-                              'product_tmpl_id',
-                              'product_style_number',
-                              'default_code']
-                             )
-            # advance payments are listed as a line item "product"; accumulate total if found
-            if pp[0]['default_code'] == "DOWN":
-                invoice._inv_payments_down += float(li['price_total'])
-            # some generic-template level product data is also required
-            pt = self.env['product.template']\
-                .search_read([('id', '=', int(pp[0]['product_tmpl_id'][0]))],
-                             ['id',
-                              'default_code',
-                              'categ_id',
-                              'type']
-                             )
-            # accumulate various invoice totals based on the line item category
-            category = self.env['product.category']\
-                .search_read([('id', '=', int(pt[0]['categ_id'][0]))], ['name'])
-            if category[0] == "Delivery":
-                invoice._inv_ship_total += float(li['price_total'])
+            if li['product_id']:
+                pp = self.env['product.product']\
+                    .search_read([('id', '=', int(li['product_id'][0]))],
+                                 ['id',
+                                  'product_tmpl_id',
+                                  'product_style_number',
+                                  'default_code']
+                                 )
+                # advance payments are listed as a line item "product"; accumulate total if found
+                if pp[0]['default_code'] == "DOWN":
+                    invoice._inv_payments_down += float(li['price_total'])
+                # some generic-template level product data is also required
+                pt = self.env['product.template']\
+                    .search_read([('id', '=', int(pp[0]['product_tmpl_id'][0]))],
+                                 ['id',
+                                  'default_code',
+                                  'categ_id',
+                                  'type']
+                                 )
+                # accumulate various invoice totals based on the line item category
+                category = self.env['product.category']\
+                    .search_read([('id', '=', int(pt[0]['categ_id'][0]))], ['name'])
+                if category[0] == "Delivery":
+                    invoice._inv_ship_total += float(li['price_total'])
+                else:
+                    invoice._inv_sales_total += float(li['price_total'])
+                line_product = (pp[0]['product_style_number'] if pt[0]['type'] in ['product', 'consu'] else '')
+                line_part = (pp[0]['default_code'] if pt[0]['type'] in ['product', 'consu'] else '')
+                line_charged = (pt[0]['default_code'] if pt[0]['type'] == 'service' else '')
             else:
-                invoice._inv_sales_total += float(li['price_total'])
+                line_product = ''
+                line_part = ''
+                line_charged = ''
             data = dict(
                 lineItemNumber=int(li['id']),
-                productId=(pp[0]['product_style_number'] if pt[0]['type'] in ['product', 'consu'] else ''),
-                partId=(pp[0]['default_code'] if pt[0]['type'] in ['product', 'consu'] else ''),
-                charged=(pt[0]['default_code'] if pt[0]['type'] == 'service' else ''),
+                productId=line_product,
+                partId=line_part,
+                charged=line_charged,
                 orderedQty=float(li['quantity']),
                 invoiceQty=float(li['quantity']),
-                qtyUOM=li['uom_id'][1],
+                qtyUOM=(li['uom_id'][1] if li['uom_id'] else ''),
                 lineItemDescription=str(li['name'].replace('\n', ' ')),
                 unitPrice=float(li['price_unit']),
                 extendedPrice=float(li['price_subtotal'])
