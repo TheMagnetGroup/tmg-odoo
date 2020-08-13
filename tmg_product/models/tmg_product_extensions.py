@@ -49,22 +49,6 @@ class ProductExternalCategories(models.Model):
     ], string='External Category Source', help='The external category source', required=True)
     external_id = fields.Char(string='External ID', help='The id of the category as defined by the external source')
 
-    SAGERequest = {
-        'Request': '',
-        'APIVer': '210',
-        'Auth': {
-            'AcctID': '',
-            'Token': '',
-            'SAGENum': ''
-        }
-    }
-
-    ASIAuth = {
-        'Asi': '',
-        'Username': '',
-        'Password': ''
-    }
-
     def _send_error_email(self, message):
 
         Mail = self.env['mail.mail']
@@ -80,35 +64,15 @@ class ProductExternalCategories(models.Model):
         }
         Mail.create(values).send()
 
-    def set_sage_credentials(self):
-        # Get the account and credentials needed for the SAGE request
-        acctid = self.env['tmg_external_api.tmg_reference'].search(
-            [('category', '=', 'SAGEAuth'), ('name', '=', 'AcctId')])
-        token = self.env['tmg_external_api.tmg_reference'].search(
-            [('category', '=', 'SAGEAuth'), ('name', '=', 'Token')])
-        sagenum = self.env['tmg_external_api.tmg_reference'].search(
-            [('category', '=', 'SAGEAuth'), ('name', '=', 'SAGENum')])
-
-        # Set the values in the credentials dictionary
-        self.SAGERequest['Request'] = 'CategoryList'
-        self.SAGERequest['Auth']['AcctID'] = acctid.value
-        self.SAGERequest['Auth']['Token'] = token.value
-        self.SAGERequest['Auth']['SAGENum'] = sagenum.value
-
     def get_asi_auth_token(self):
-        # Get the account and credentials needed for the SAGE request
-        asi = self.env['tmg_external_api.tmg_reference'].search([('category', '=', 'ASIAuth'), ('name', '=', 'Asi')])
-        username = self.env['tmg_external_api.tmg_reference'].search(
-            [('category', '=', 'ASIAuth'), ('name', '=', 'Username')])
-        password = self.env['tmg_external_api.tmg_reference'].search(
-            [('category', '=', 'ASIAuth'), ('name', '=', 'Password')])
+        # Get the account and credentials needed for the ASI authorization token request
+        asi = self.env['tmg_external_api.tmg_export_account'].search([('category', '=', 'ASI'),
+                                                             ('name', '=', 'MagnetAuthToken')])
 
-        self.ASIAuth['Asi'] = asi.value
-        self.ASIAuth['Username'] = username.value
-        self.ASIAuth['Password'] = password.value
+        asi_cred = asi.get_asi_credentials()
 
-        asirequest = urllib.request.Request("https://productservice.asicentral.com/api/v4/Login",
-                                            data=json.dumps(self.ASIAuth).encode('utf-8'),
+        asirequest = urllib.request.Request(asi.url,
+                                            data=json.dumps(asi_cred).encode('utf-8'),
                                             headers={'Content-type': 'application/json'},
                                             method='POST')
         try:
@@ -139,13 +103,16 @@ class ProductExternalCategories(models.Model):
 
     def load_sage_categories(self):
 
-        self.set_sage_credentials()
+        # Get the export account row for the SAGE credentials
+        sage = self.env['tmg_external_api.tmg_export_account'].search([('category', '=', 'SAGE'),
+                                                             ('name', '=', 'Magnet')])
+        sage_cred = sage.get_sage_credentials("CategoryList")
 
         # Capture the current date/time so we can do a reverse check of any category that is no longer in SAGE
         cur_date = datetime.now()
 
-        sagerequest = urllib.request.Request("https://www.promoplace.com/ws/ws.dll/SITK",
-                                             data=json.dumps(self.SAGERequest).encode('utf-8'),
+        sagerequest = urllib.request.Request(sage.url,
+                                             data=json.dumps(sage_cred).encode('utf-8'),
                                              method='POST')
         # General catch all
         try:
@@ -197,6 +164,10 @@ class ProductExternalCategories(models.Model):
 
     def load_asi_categories(self):
 
+        # Get the account and credentials needed for the SAGE request
+        asi = self.env['tmg_external_api.tmg_export_account'].search([('category', '=', 'ASI'),
+                                                             ('name', '=', 'MagnetCategories')])
+
         # Capture the current date/time so we can do a reverse check of any category that is no longer in ASI
         cur_date = datetime.now()
 
@@ -205,7 +176,7 @@ class ProductExternalCategories(models.Model):
         if not asitoken:
             return
 
-        asirequest = urllib.request.Request("https://productservice.asicentral.com/api/v4/lookup/categoriesList",
+        asirequest = urllib.request.Request(asi.url,
                                             method='GET',
                                             headers={"Authorization": "Bearer %s" % asitoken,
                                                      "Content-type": "application/json"})
@@ -344,7 +315,7 @@ class ProductDecorationArea(models.Model):
 
 class ProductAdditonalCharges(models.Model):
     _name = 'product.addl.charges'
-    _description = 'Product Addtional Charges'
+    _description = 'Product Additional Charges'
 
     product_tmpl_id = fields.Many2one(comodel_name='product.template', string='Product Template', ondelete='restrict',
                                       required=True)
@@ -366,6 +337,19 @@ class ProductAdditonalCharges(models.Model):
     ], string='Charge Secondary UOM', required=True)
 
 
+class ProductExportAccount(models.Model):
+    _name = 'product.export.account'
+    _description = 'Product Export Account'
+
+    product_tmpl_id = fields.Many2one(comodel_name='product.template', string='Product Template', ondelete='restrict',
+                                      required=True)
+    export_account_id = fields.Many2one(comodel_name='tmg_external_api.tmg_export_account', string='Export Account',
+                                        ondelete='restrict', required=True)
+    last_export_date = fields.Date(string='Last Export Date')
+    last_export_error = fields.Boolean(string='Last Export Error')
+    last_export_message = fields.Char(string='Last Export Error Message')
+
+
 class ProductTemplate(models.Model):
     _inherit = 'product.template'
 
@@ -376,6 +360,7 @@ class ProductTemplate(models.Model):
     addl_charge_product_ids = fields.One2many(comodel_name='product.addl.charges', inverse_name='product_tmpl_id')
     data_errors = fields.Html(string='Required Data Errors')
     sage_errors = fields.Html(string='SAGE Export Errors')
+    export_account_ids = fields.One2many(comodel_name='product.export.account', inverse_name='product_tmpl_id')
 
     @api.constrains('decoration_method_ids')
     def _check_deco_methods(self):
