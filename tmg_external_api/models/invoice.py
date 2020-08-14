@@ -77,14 +77,31 @@ class invoice(models.Model):
                          )
         # load the return list with a dict() for each invoice found
         for i in invoices:
+            invoice_so_number = i['origin']
+            invoice_type = ("CREDIT MEMO" if i['type'] == 'out_refund' else "INVOICE")
             if not so:
-                so = self._get_sale_orders('', i['origin'])
+                # credit memo "origin" doc is actually the related invoice; use to override with correct sales order
+                if invoice_type == "CREDIT MEMO":
+                    rel_invoice_search = [('partner_id', '=', i['partner_id'][0]),
+                                          ('number', '=', i['origin'])]
+                    rel_i = self.env['account.invoice'] \
+                        .search_read(rel_invoice_search,
+                                     ['id',
+                                      'number',
+                                      'type',
+                                      'date_invoice',
+                                      'partner_id',
+                                      'origin']
+                                     )
+                    invoice_so_number = rel_i[0]['origin']
+                so = self._get_sale_orders('', invoice_so_number)
 
             # create a list of address tuples for obtaining bill-to/sold-to account info
             bil_id = ("BILL TO", int(i['partner_id'][0]))
             sol_id = ("SOLD TO", int(so['partner_id'][0])) if so else tuple()
             list_contacts = [bil_id, sol_id]
             account_addresses = self._address_fmt(list_contacts)
+            invoice_comments = (("Related Invoice: " + i['origin']) if invoice_type == "CREDIT MEMO" else '')
 
             # obtain line and tax info as lists formatted for the invoice dict() return value
             txs = (self._get_taxes(i['tax_line_ids']) if float(i['amount_tax']) != 0.0 else [])
@@ -103,10 +120,11 @@ class invoice(models.Model):
                 data = dict(
                     errorList=[],
                     invoiceNumber=i['number'],
-                    invoiceType=("CREDIT MEMO" if i['type'] == 'out_refund' else "INVOICE"),
+                    invoiceType=invoice_type,
                     invoiceDate=fields.Date.to_string(i['date_invoice']),
                     purchaseOrderNumber=so['client_order_ref'],
                     addresses=account_addresses,
+                    comments=invoice_comments,
                     paymentTerms=(i['payment_term_id'][1] if i['payment_term_id'] else ''),
                     paymentDueDate=fields.Date.to_string(i['date_due']),
                     currency=i['currency_id'][1],
@@ -119,19 +137,21 @@ class invoice(models.Model):
                     advancePaymentAmount=invoice._inv_payments_down,
                     invoiceAmountDue=float(i['amount_total']) - invoice._inv_payments_down,
                     lineItems=lns,
-                    salesOrderNumbers=[i['origin']],
+                    salesOrderNumbers=[invoice_so_number],
                     taxes=txs
                     )
             invoice_data.append(data)
-            if len(invoice_data) == 0:
-                invoice_data = [dict(
-                                    errorList=[dict(
-                                        code=903,
-                                        severity='Information',
-                                        message="No Invoices found")
-                                        ]
-                                    )
-                                ]
+            # force fresh retrieval of the sales order for the next invoice
+            so = dict()
+        if len(invoice_data) == 0:
+            invoice_data = [dict(
+                                errorList=[dict(
+                                    code=903,
+                                    severity='Information',
+                                    message="No Invoices found")
+                                    ]
+                                )
+                            ]
         return invoice_data
 
     @api.model
@@ -229,24 +249,25 @@ class invoice(models.Model):
     def _address_fmt(self, list_partner):
         address_info = []
         for p in list_partner:
-            ad = self.env['res.partner'].search_read([('id', '=', p[1])])
-            if ad:
-                data = dict(
-                    addressCode=p[0],
-                    accountName=str(ad[0]['name'].replace('\n', ' ')),
-                    accountNumber=int(ad[0]['id']),
-                    attentionTo="",
-                    address1=ad[0]['street'],
-                    address2=ad[0]['street2'],
-                    address3="",
-                    city=ad[0]['city'],
-                    region=ad[0]['state_id'][1],
-                    postalCode=ad[0]['zip'],
-                    country=ad[0]['country_id'][1],
-                    email=ad[0]['email'],
-                    phone=ad[0]['phone']
-                )
-                address_info.append(data)
+            if p != tuple():
+                ad = self.env['res.partner'].search_read([('id', '=', p[1])])
+                if ad:
+                    data = dict(
+                        addressCode=p[0],
+                        accountName=str(ad[0]['name'].replace('\n', ' ')),
+                        accountNumber=int(ad[0]['id']),
+                        attentionTo="",
+                        address1=ad[0]['street'],
+                        address2=ad[0]['street2'],
+                        address3="",
+                        city=ad[0]['city'],
+                        region=ad[0]['state_id'][1],
+                        postalCode=ad[0]['zip'],
+                        country=ad[0]['country_id'][1],
+                        email=ad[0]['email'],
+                        phone=ad[0]['phone']
+                    )
+                    address_info.append(data)
         return address_info
 
     @api.model
