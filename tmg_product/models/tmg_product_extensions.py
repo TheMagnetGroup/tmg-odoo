@@ -337,19 +337,6 @@ class ProductAdditonalCharges(models.Model):
     ], string='Charge Secondary UOM', required=True)
 
 
-class ProductExportAccount(models.Model):
-    _name = 'product.export.account'
-    _description = 'Product Export Account'
-
-    product_tmpl_id = fields.Many2one(comodel_name='product.template', string='Product Template', ondelete='restrict',
-                                      required=True)
-    export_account_id = fields.Many2one(comodel_name='tmg_external_api.tmg_export_account', string='Export Account',
-                                        ondelete='restrict', required=True)
-    last_export_date = fields.Date(string='Last Export Date')
-    last_export_error = fields.Boolean(string='Last Export Error')
-    last_export_message = fields.Char(string='Last Export Error Message')
-
-
 class ProductTemplate(models.Model):
     _inherit = 'product.template'
 
@@ -359,8 +346,6 @@ class ProductTemplate(models.Model):
                                           inverse_name='product_tmpl_id')
     addl_charge_product_ids = fields.One2many(comodel_name='product.addl.charges', inverse_name='product_tmpl_id')
     data_errors = fields.Html(string='Required Data Errors')
-    sage_errors = fields.Html(string='SAGE Export Errors')
-    export_account_ids = fields.One2many(comodel_name='product.export.account', inverse_name='product_tmpl_id')
 
     @api.constrains('decoration_method_ids')
     def _check_deco_methods(self):
