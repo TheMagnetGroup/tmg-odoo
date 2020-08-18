@@ -93,7 +93,7 @@ class invoice(models.Model):
                                       'partner_id',
                                       'origin']
                                      )
-                    invoice_so_number = rel_i[0]['origin']
+                    invoice_so_number = rel_i[0]['origin'] if rel_i else ''
                 so = self._get_sale_orders('', invoice_so_number)
 
             # create a list of address tuples for obtaining bill-to/sold-to account info
@@ -101,7 +101,7 @@ class invoice(models.Model):
             sol_id = ("SOLD TO", int(so['partner_id'][0])) if so else tuple()
             list_contacts = [bil_id, sol_id]
             account_addresses = self._address_fmt(list_contacts)
-            invoice_comments = (("Related Invoice: " + i['origin']) if invoice_type == "CREDIT MEMO" else '')
+            invoice_comments = (("Related Document: " + i['origin']) if invoice_type == "CREDIT MEMO" else '')
 
             # obtain line and tax info as lists formatted for the invoice dict() return value
             txs = (self._get_taxes(i['tax_line_ids']) if float(i['amount_tax']) != 0.0 else [])
@@ -122,20 +122,23 @@ class invoice(models.Model):
                     invoiceNumber=i['number'],
                     invoiceType=invoice_type,
                     invoiceDate=fields.Date.to_string(i['date_invoice']),
-                    purchaseOrderNumber=so['client_order_ref'],
+                    purchaseOrderNumber=(so['client_order_ref'] if so else ''),
                     addresses=account_addresses,
                     comments=invoice_comments,
                     paymentTerms=(i['payment_term_id'][1] if i['payment_term_id'] else ''),
                     paymentDueDate=fields.Date.to_string(i['date_due']),
                     currency=i['currency_id'][1],
-                    fob=(so['warehouse_id'][1] if so['warehouse_id'] else ''),
+                    fob=(so['warehouse_id'][1] if so else ''),
                     salesAmount=invoice._inv_sales_total,
                     shippingAmount=invoice._inv_ship_total,
                     handlingAmount=invoice._inv_handling,
                     taxAmount=float(i['amount_tax']),
-                    invoiceAmount=float(i['amount_total']),
+                    invoiceAmount=(invoice._inv_sales_total
+                                   + invoice._inv_ship_total
+                                   + invoice._inv_handling
+                                   + float(i['amount_tax'])),
                     advancePaymentAmount=invoice._inv_payments_down,
-                    invoiceAmountDue=float(i['amount_total']) - invoice._inv_payments_down,
+                    invoiceAmountDue=float(i['amount_total']),
                     lineItems=lns,
                     salesOrderNumbers=[invoice_so_number],
                     taxes=txs
@@ -205,27 +208,30 @@ class invoice(models.Model):
                                   'product_style_number',
                                   'default_code']
                                  )
-                # advance payments are listed as a line item "product"; accumulate total if found
-                if pp[0]['default_code'] == "DOWN":
-                    invoice._inv_payments_down += float(li['price_total'])
                 # some generic-template level product data is also required
-                pt = self.env['product.template']\
+                pt = self.env['product.template'] \
                     .search_read([('id', '=', int(pp[0]['product_tmpl_id'][0]))],
                                  ['id',
                                   'default_code',
                                   'categ_id',
                                   'type']
                                  )
-                # accumulate various invoice totals based on the line item category
-                category = self.env['product.category']\
+                # line item category determines various accumulation totals
+                category = self.env['product.category'] \
                     .search_read([('id', '=', int(pt[0]['categ_id'][0]))], ['name'])
-                if category[0] == "Delivery":
+                # advance/"down" payments are listed as a line item "product"; reverse sign and accumulate
+                if pp and pp[0]['default_code'] == "DOWN":
+                    invoice._inv_payments_down += (0 - float(li['price_total']))
+                # shipping and sales items are distinguished by category
+                elif category[0]['name'] == "Delivery":
                     invoice._inv_ship_total += float(li['price_total'])
                 else:
                     invoice._inv_sales_total += float(li['price_total'])
-                line_product = (pp[0]['product_style_number'] if pt[0]['type'] in ['product', 'consu'] else '')
-                line_part = (pp[0]['default_code'] if pt[0]['type'] in ['product', 'consu'] else '')
-                line_charged = (pt[0]['default_code'] if pt[0]['type'] == 'service' else '')
+                line_product = (pp[0]['product_style_number']
+                                if pp and pt and pt[0]['type'] in ['product', 'consu'] else '')
+                line_part = (pp[0]['default_code']
+                             if pp and pt and pt[0]['type'] in ['product', 'consu'] else '')
+                line_charged = (pt[0]['default_code'] if pt and pt[0]['type'] == 'service' else '')
             else:
                 line_product = ''
                 line_part = ''
