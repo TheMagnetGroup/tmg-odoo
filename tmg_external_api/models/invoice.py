@@ -77,8 +77,14 @@ class invoice(models.Model):
                          )
         # load the return list with a dict() for each invoice found
         for i in invoices:
+            invoice._inv_ship_total = 0.0
+            invoice._inv_handling = 0.0
+            invoice._inv_sales_total = 0.0
+            invoice._inv_payments_down = 0.0
+
             invoice_so_number = i['origin']
             invoice_type = ("CREDIT MEMO" if i['type'] == 'out_refund' else "INVOICE")
+
             if not so:
                 # credit memo "origin" doc is actually the related invoice; use to override with correct sales order
                 if invoice_type == "CREDIT MEMO":
@@ -196,6 +202,8 @@ class invoice(models.Model):
                           'price_total']
                          )
         for li in lines:
+            _isDownPmt = False
+            _isForShipping = False
             line_product = ''
             line_part = ''
             line_charged = ''
@@ -208,30 +216,35 @@ class invoice(models.Model):
                                   'product_style_number',
                                   'default_code']
                                  )
-                # some generic-template level product data is also required
-                pt = self.env['product.template'] \
-                    .search_read([('id', '=', int(pp[0]['product_tmpl_id'][0]))],
-                                 ['id',
-                                  'default_code',
-                                  'categ_id',
-                                  'type']
-                                 )
-                # line item category determines various accumulation totals
-                category = self.env['product.category'] \
-                    .search_read([('id', '=', int(pt[0]['categ_id'][0]))], ['name'])
+                if pp:
+                    _isDownPmt = True if (pp[0]['default_code'] == "DOWN") else False
+                    # some generic-template level product data is also required
+                    pt = self.env['product.template'] \
+                        .search_read([('id', '=', int(pp[0]['product_tmpl_id'][0]))],
+                                     ['id',
+                                      'default_code',
+                                      'categ_id',
+                                      'type']
+                                     )
+                    category = []
+                    if pt:
+                        line_product = pp[0]['product_style_number'] \
+                            if (pt[0]['type'] in ['product', 'consu']) and pp[0]['product_style_number'] else ''
+                        line_charged = pt[0]['default_code'] \
+                            if (pt[0]['type'] == 'service') and pt[0]['default_code'] else ''
+                        line_part = pp[0]['default_code'] \
+                            if (pt[0]['type'] in ['product', 'consu']) and pp[0]['default_code'] else ''
+                        category = self.env['product.category'] \
+                            .search_read([('id', '=', int(pt[0]['categ_id'][0]))], ['name'])
+                        _isForShipping = True if (category and category[0]['name'] == "Delivery") else False
                 # advance/"down" payments are listed as a line item "product"; reverse sign and accumulate
-                if pp and pp[0]['default_code'] == "DOWN":
+                if _isDownPmt:
                     invoice._inv_payments_down += (0 - float(li['price_total']))
                 # shipping and sales items are distinguished by category
-                elif category[0]['name'] == "Delivery":
+                elif _isForShipping:
                     invoice._inv_ship_total += float(li['price_total'])
                 else:
                     invoice._inv_sales_total += float(li['price_total'])
-                line_product = (pp[0]['product_style_number']
-                                if pp and pt and pt[0]['type'] in ['product', 'consu'] else '')
-                line_part = (pp[0]['default_code']
-                             if pp and pt and pt[0]['type'] in ['product', 'consu'] else '')
-                line_charged = (pt[0]['default_code'] if pt and pt[0]['type'] == 'service' else '')
             else:
                 line_product = ''
                 line_part = ''
@@ -263,15 +276,15 @@ class invoice(models.Model):
                         accountName=str(ad[0]['name'].replace('\n', ' ')),
                         accountNumber=int(ad[0]['id']),
                         attentionTo="",
-                        address1=ad[0]['street'],
-                        address2=ad[0]['street2'],
+                        address1=ad[0]['street'] if ad[0]['street'] else '',
+                        address2=ad[0]['street2'] if ad[0]['street2'] else '',
                         address3="",
                         city=ad[0]['city'],
                         region=ad[0]['state_id'][1],
                         postalCode=ad[0]['zip'],
                         country=ad[0]['country_id'][1],
-                        email=ad[0]['email'],
-                        phone=ad[0]['phone']
+                        email=ad[0]['email'] if ad[0]['email'] else '',
+                        phone=ad[0]['phone'] if ad[0]['phone'] else ''
                     )
                     address_info.append(data)
         return address_info
