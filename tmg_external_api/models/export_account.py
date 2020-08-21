@@ -15,6 +15,7 @@ class ExportAccount(models.Model):
     pwd = fields.Char(string="Password")
     url = fields.Char(string="Url")
     xslt_file = fields.Many2one(comodel_name="ir.attachment", string="XSLT File", ondelete="restrict")
+    file_extension = fields.Char(string="File Extension")
     product_tmpl_ids = fields.One2many(comodel_name='product.export.account',
                                           inverse_name='product_tmpl_id')
 
@@ -65,6 +66,7 @@ class ProductExportAccount(models.Model):
     last_export_date = fields.Date(string='Last Export Date')
     last_export_error = fields.Boolean(string='Last Export Error')
     last_export_message = fields.Char(string='Last Export Error Message')
+
 
 class ProductTemplate(models.Model):
     _inherit = 'product.template'

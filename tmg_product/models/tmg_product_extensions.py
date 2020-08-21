@@ -8,6 +8,8 @@ import urllib.request
 import json
 import base64
 import traceback
+import xmltodict
+from io import BytesIO
 # import xml.etree.ElementTree as ET
 from lxml import etree as ET
 
@@ -821,23 +823,14 @@ class ProductTemplate(models.Model):
             # Now we dump the entire XML into a string
             product_xml = base64.b64encode(ET.tostring(product, encoding='utf-8', xml_declaration=True, pretty_print=True))
 
-            # Get attachments for this product that are not attached to a message
-            attachment_ids = self.env['ir.attachment'].search([('res_id', '=', self.id),
-                                                               ('name', '=', 'product_data.xml'),
-                                                               ('res_model', '=', 'product.template')]).ids
-            message_attachment_ids = self.mapped('message_ids.attachment_ids').ids  # from mail_thread
-            attachment_ids = list(set(attachment_ids) - set(message_attachment_ids))
-            # Now delete any file with that name since we will regenerate
-            old_product_xml = ''
+            # Get the currently stored data for this file
+            attach = self._get_stored_file('product_data.xml')
             write_new_file = False
-            if len(attachment_ids) > 0:
-                for attach_id in attachment_ids:
-                    attach = self.env['ir.attachment'].browse(attach_id)
-                    if attach.name == 'product_data.xml':
-                        old_product_xml = attach.datas
-                        if product_xml != old_product_xml:
-                            attach.unlink()
-                            write_new_file = True
+            if attach:
+                old_product_xml = base64.b64decode(attach.datas)
+                if product_xml != old_product_xml:
+                    attach.unlink()
+                    write_new_file = True
             else:
                 write_new_file = True
 
@@ -858,6 +851,9 @@ class ProductTemplate(models.Model):
                     'data_last_change_date': datetime.now()
                 })
 
+                # Build the standard export files
+                self._build_export_files()
+
         except Exception as e:
             error_text = '<p>Technical Errors, contact IT:' + '<p>'
             self.write({
@@ -865,6 +861,94 @@ class ProductTemplate(models.Model):
             })
             print(str(e))
 
+    def _get_stored_file(self, file_name):
+
+        # Get attachments for this product that are not attached to a message
+        attachment_ids = self.env['ir.attachment'].search([('res_id', '=', self.id),
+                                                           ('name', '=', file_name),
+                                                           ('res_model', '=', 'product.template')]).ids
+        message_attachment_ids = self.mapped('message_ids.attachment_ids').ids  # from mail_thread
+        attachment_ids = list(set(attachment_ids) - set(message_attachment_ids))
+        # Get the attachment id based on the passed name
+        return_attach = None
+        if len(attachment_ids) > 0:
+            for attach_id in attachment_ids:
+                attach = self.env['ir.attachment'].browse(attach_id)
+                if attach.name == 'product_data.xml':
+                    return_attach = attach
+
+        return return_attach
+
+    def _delete_stored_file(self, file_name):
+
+        # Get attachments for this product that are not attached to a message
+        attachment_ids = self.env['ir.attachment'].search([('res_id', '=', self.id),
+                                                           ('name', '=', file_name),
+                                                           ('res_model', '=', 'product.template')]).ids
+        message_attachment_ids = self.mapped('message_ids.attachment_ids').ids  # from mail_thread
+        attachment_ids = list(set(attachment_ids) - set(message_attachment_ids))
+        # Now delete any file with the passed name
+        if len(attachment_ids) > 0:
+            for attach_id in attachment_ids:
+                attach = self.env['ir.attachment'].browse(attach_id)
+                if attach.name == file_name:
+                    attach.unlink()
+
+    def _build_export_files(self):
+
+        # Get the attachment id for a file named product_data.xml, which is the standard product data file
+        attach = self._get_stored_file('product_data.xml')
+
+        if attach:
+            # Decode the standard xml data from base64
+            std_xml = base64.b64decode(attach.datas)
+            for export_account in self.export_account_ids:
+                # If the export account has an XSLT file then build it now
+                if export_account.export_account_id.xslt_file:
+                    # Set the file name
+                    file_name = "product_data_{}_{}.{}".format(export_account.export_account_id.category,
+                                                                      export_account.export_account_id.name,
+                                                                      export_account.export_account_id.file_extension)
+
+                    # Decode the XSLT file
+                    xslt = base64.b64decode(export_account.export_account_id.xslt_file.datas)
+
+                    # Delete the existing file name if found
+                    self._delete_stored_file(file_name)
+
+                    # Generate the new file content
+                    std_xml_dom = ET.parse(BytesIO(std_xml))
+                    xslt_dom = ET.parse(BytesIO(xslt))
+                    transform = ET.XSLT(xslt_dom)
+                    xslt_result = transform(std_xml_dom)
+
+                    # If the output is Json then we will do an additional step to convert the result to Json
+                    if export_account.export_account_id.file_extension == "json":
+                        # remove all lines from XML
+                        xslt_split = ET.tostring(xslt_result).splitlines()
+                        # Create Python Dict from XML w/o lines
+                        data_dict = xmltodict.parse(xslt_split)
+
+                        # generate the object using json.dumps()
+                        # corresponding to json data
+                        json_data = json.dumps(data_dict)
+                        # Remove root element.
+                        # Resulting json_data contains well formatted JSON
+                        xslt_result = json_data.replace('{"root": ', '')[:-1]
+
+                    # Base 64 encode the translated data
+                    xslt_result = base64.b64encode(ET.tostring(xslt_result, pretty_print=True))
+
+                    # Create the translated document attachment
+                    self.env['ir.attachment'].create({
+                        'name': file_name,
+                        'datas_fname': file_name,
+                        'type': 'binary',
+                        'datas': xslt_result,
+                        'res_model': 'product.template',
+                        'res_id': self.id,
+                        'mimetype': 'text/plain'
+                    })
 
 class ProductCategory(models.Model):
     _inherit = 'product.category'

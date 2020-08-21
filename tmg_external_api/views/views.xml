@@ -79,6 +79,7 @@
 					<field name="pwd"/>
 					<field name="url"/>
                     <field name="xslt_file"/>
+                    <field name="file_extension"/>
 				</tree>
 	   		</field>
 	    </record>
