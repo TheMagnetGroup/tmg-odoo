@@ -33,7 +33,6 @@ class invoice(models.Model):
         elif po and po.strip():
             sales_order = self._get_sale_orders(po, '')
             if sales_order:
-
                 # A PO search must search a 2 level hierarchy to find --
                 #   1) invoices - having the sales order number in the 'origin' field
                 #   2) credit memos - having the invoice number in the 'origin' field, where that invoice in turn
@@ -46,7 +45,6 @@ class invoice(models.Model):
                 search.append('|')
                 search.append(('number', 'in', list_invoices))
                 search.append(('origin', 'in', list_invoices))
-                # --------------
             else:
                 return invoice_data
         elif invoice_date_str and invoice_date_str.strip():
@@ -68,6 +66,7 @@ class invoice(models.Model):
 
     @api.model
     def _get_invoices(self, invoice_search, so):
+        invoice_comments = ''
         invoice_data = []
 
         # obtain the main invoice level data
@@ -98,7 +97,6 @@ class invoice(models.Model):
             invoice_type = ("CREDIT MEMO" if i['type'] == 'out_refund' else "INVOICE")
 
             if not so:
-                invoice_comments = ''
                 invoice_so = ''
 
                 # credit memo "origin" doc is USUALLY the related invoice; occasionally it is sales order
@@ -126,6 +124,8 @@ class invoice(models.Model):
                 else:
                     invoice_so = i['origin']
                 so = self._get_sale_orders('', invoice_so)
+            else:
+                invoice_comments = ("Related Document: " + i['origin']) if invoice_type == 'CREDIT MEMO' else ''
             so_number = so['name'] if so else ''
 
             # create a list of address tuples for obtaining bill-to/sold-to account info
