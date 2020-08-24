@@ -33,7 +33,20 @@ class invoice(models.Model):
         elif po and po.strip():
             sales_order = self._get_sale_orders(po, '')
             if sales_order:
-                search.append(('origin', '=', sales_order['name']))
+
+                # A PO search must search a 2 level hierarchy to find --
+                #   1) invoices - having the sales order number in the 'origin' field
+                #   2) credit memos - having the invoice number in the 'origin' field, where that invoice in turn
+                #                     has the sales order number in its 'origin' field
+                search_by_po_so = [('origin', '=', sales_order['name']), ('partner_id', '=', int(partner_str))]
+                invoices_for_po_so = self.env['account.invoice'].search_read(search_by_po_so, ['number'])
+                list_invoices = []
+                for iposo in invoices_for_po_so:
+                    list_invoices.append(iposo['number'])
+                search.append('|')
+                search.append(('number', 'in', list_invoices))
+                search.append(('origin', 'in', list_invoices))
+                # --------------
             else:
                 return invoice_data
         elif invoice_date_str and invoice_date_str.strip():
@@ -82,11 +95,13 @@ class invoice(models.Model):
             invoice._inv_sales_total = 0.0
             invoice._inv_payments_down = 0.0
 
-            invoice_so_number = i['origin']
             invoice_type = ("CREDIT MEMO" if i['type'] == 'out_refund' else "INVOICE")
 
             if not so:
-                # credit memo "origin" doc is actually the related invoice; use to override with correct sales order
+                invoice_comments = ''
+                invoice_so = ''
+
+                # credit memo "origin" doc is USUALLY the related invoice; occasionally it is sales order
                 if invoice_type == "CREDIT MEMO":
                     rel_invoice_search = [('partner_id', '=', i['partner_id'][0]),
                                           ('number', '=', i['origin'])]
@@ -99,15 +114,25 @@ class invoice(models.Model):
                                       'partner_id',
                                       'origin']
                                      )
-                    invoice_so_number = rel_i[0]['origin'] if rel_i else ''
-                so = self._get_sale_orders('', invoice_so_number)
+                    if rel_i:
+                        invoice_so = rel_i[0]['origin']
+                        invoice_comments = "Related Document: " + i['origin']
+                    elif i['origin']:
+                        invoice_so = i['origin']
+                        invoice_comments = ''
+                    else:
+                        invoice_so = ''
+                # otherwise... for type "invoice" the 'origin' is the sales order
+                else:
+                    invoice_so = i['origin']
+                so = self._get_sale_orders('', invoice_so)
+            so_number = so['name'] if so else ''
 
             # create a list of address tuples for obtaining bill-to/sold-to account info
             bil_id = ("BILL TO", int(i['partner_id'][0]))
             sol_id = ("SOLD TO", int(so['partner_id'][0])) if so else tuple()
             list_contacts = [bil_id, sol_id]
             account_addresses = self._address_fmt(list_contacts)
-            invoice_comments = (("Related Document: " + i['origin']) if invoice_type == "CREDIT MEMO" else '')
 
             # obtain line and tax info as lists formatted for the invoice dict() return value
             txs = (self._get_taxes(i['tax_line_ids']) if float(i['amount_tax']) != 0.0 else [])
@@ -150,7 +175,7 @@ class invoice(models.Model):
                     advancePaymentAmount=invoice._inv_payments_down,
                     invoiceAmountDue=float(i['amount_total']),
                     lineItems=lns,
-                    salesOrderNumbers=[invoice_so_number],
+                    salesOrderNumbers=[so_number],
                     taxes=txs
                     )
             invoice_data.append(data)
@@ -184,8 +209,8 @@ class invoice(models.Model):
         elif po_number and po_number.strip():
             order_data = self.env['sale.order']\
                 .search_read([('client_order_ref', '=', po_number)], order_fields)
-        # as of initial release, only one sales order per invoice is expected (hence element[0])
-        # if in the future one invoice can correspond to multiple orders, modify to return a list
+        # as of initial release, only 1 sales order per invoice is expected (hence element order_data[0] is spec'd)
+        # if in the future a single invoice can correspond to multiple orders, return a list instead
         if order_data and len(order_data) > 0:
             return order_data[0]
         else:
