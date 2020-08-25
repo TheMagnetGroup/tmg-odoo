@@ -39,6 +39,32 @@
             </xpath>
             <!-- Hide the "Reference:" at the top of the invoice -->
             <xpath expr="//div[@name='reference']" position="replace"/>
+
+            <xpath expr="//div[@name='origin']" position='after'>
+                <div  class="col-auto mw-100 mb-2">
+                    <t t-set="i" t-value="1"/>
+                    <t t-foreach="request.env['stock.picking'].search([('origin', '=', o.origin),('state','=','done')])" t-as="obj">
+                        <t t-if="i == 1">
+                            <div  t-if="obj" id="shipment_id">
+                                <strong>Tracking Number:</strong>
+                                <t t-set="trackingNumber" t-value="obj['carrier_tracking_ref']"/>
+                                <t t-set="uniquetrackingNumber" t-value="trackingNumber.split(',')"/>
+                                <t t-set="j" t-value="1"/>
+                                <t t-foreach='uniquetrackingNumber' t-as='ps'>
+                                    <t t-if="j == 1">
+                                        <p t-esc='ps'/>
+                                        <t t-set="j" t-value="2"/>
+                                    </t>
+                                </t>
+            <!--                    <t t-set='prod_serv' t-value="customer.comment.split(',')"/>-->
+            <!--                    <p t-esc="obj['your required field from the delivery order']"/>-->
+            <!--                    <p t-esc="obj['your required field from the delivery order']"/>-->
+                            </div>
+                            <t t-set="i" t-value="2"/>
+                        </t>
+                    </t>
+                </div>
+            </xpath>
             <!-- Replace the "Description:" heading with "PO #:" -->
             <xpath expr="//div[@name='description']//child::strong" position="replace">
                 <strong>PO #:</strong>
