@@ -24,6 +24,11 @@ class invoice(models.Model):
 
         # a partner ID is required
         if not (partner_str and partner_str.strip()):
+            invoice_data = [dict(errorList=[
+                                    dict(code=100,
+                                         severity="Error",
+                                         message="Invalid partner ID value: '" + partner_str + "'")
+                                    ])]
             return invoice_data
 
         # one query search value is required (1st value found is used, validated in the sequence below)
@@ -46,6 +51,11 @@ class invoice(models.Model):
                 search.append(('number', 'in', list_invoices))
                 search.append(('origin', 'in', list_invoices))
             else:
+                invoice_data = [dict(errorList=[
+                                        dict(code=903,
+                                             severity='Information',
+                                             message="No Invoices found")
+                                        ])]
                 return invoice_data
         elif invoice_date_str and invoice_date_str.strip():
             inv_date = fields.Date.from_string(invoice_date_str)
@@ -54,6 +64,12 @@ class invoice(models.Model):
             inv_available = fields.Datetime.from_string(as_of_date_str)
             search.append(('date_invoice', '>=', inv_available))
         else:
+            invoice_data = [dict(errorList=[
+                                    dict(code=120,
+                                         severity="Error",
+                                         message="No usable parameter values for specified query type; " +
+                                                 "please review query requirements and your search values")
+                                    ])]
             return invoice_data
 
         invoice_data = self._get_invoices(search, sales_order)
