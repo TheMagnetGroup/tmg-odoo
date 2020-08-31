@@ -31,8 +31,16 @@ class invoice(models.Model):
                                     ])]
             return invoice_data
 
+        # scope of customer accounts includes hierarchy if applicable
+        search_hierarchy = [('active', '=', True),
+                            '|',
+                                ('parent_id', '=', int(partner_str)),
+                                ('id', '=', int(partner_str))
+                            ]
+        child_hierarchy = self.env['res.partner'].search(search_hierarchy)
+        search = [('partner_id', 'in', child_hierarchy.ids)]
+
         # one query search value is required (1st value found is used, validated in the sequence below)
-        search = [('partner_id', '=', int(partner_str))]
         if invoice_number and invoice_number.strip():
             search.append(('number', '=', invoice_number))
         elif po and po.strip():
@@ -42,9 +50,9 @@ class invoice(models.Model):
                 #   1) invoices - having the sales order number in the 'origin' field
                 #   2) credit memos - having the invoice number in the 'origin' field, where that invoice in turn
                 #                     has the sales order number in its 'origin' field
-                search_by_po_so = [('origin', '=', sales_order['name']), ('partner_id', '=', int(partner_str))]
-                invoices_for_po_so = self.env['account.invoice'].search_read(search_by_po_so, ['number'])
                 list_invoices = []
+                search_by_po_so = [('origin', '=', sales_order['name']), search[0]]
+                invoices_for_po_so = self.env['account.invoice'].search_read(search_by_po_so, ['number'])
                 for iposo in invoices_for_po_so:
                     list_invoices.append(iposo['number'])
                 search.append('|')
