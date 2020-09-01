@@ -12,6 +12,7 @@
                                         Add Decoration Method to the sale.report model
         * Christian Dunn - 2020/01/27 -   Adds wizard to allow user to change ship date on MO, SO, and
         * Jonas Temple - 2020/01/23 -   Add On Hold and On Production Hold to the sale.report model.
+        * Christi Moses - 2020/09/01    Add delivery method to sale order report
     """,
 
     'author': "The Magnet Group",
@@ -31,8 +32,7 @@
         # 'security/ir.model.access.csv',
         'wizard/ship_date_assign_wizard_view.xml',
         'views/sale_views.xml',
-
-
+        'report/tmg_sale_reports.xml',
     ],
     # only loaded in demonstration mode
     'demo': [
