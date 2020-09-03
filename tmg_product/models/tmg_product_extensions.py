@@ -1,14 +1,16 @@
 # -*- coding: utf-8 -*-
 
-from odoo import models, fields, api
+from odoo import models, fields, api, registry
+from odoo.tools.misc import split_every
 from odoo.exceptions import ValidationError
 # from odoo.addons import decimal_precision as dp
-from datetime import datetime
+from datetime import datetime, timedelta
 import urllib.request
 import json
 import base64
 import traceback
 import xmltodict
+import pytz
 from io import BytesIO
 # import xml.etree.ElementTree as ET
 from lxml import etree as ET
@@ -361,8 +363,88 @@ class ProductTemplate(models.Model):
         # Get a list of all active products that can be sold
         products = self.env['product.template'].search(
             [('active', '=', True), ('sale_ok', '=', True), ('website_published', '=', True), ('type', '=', 'product')])
-        for product in products:
+        # Since a single change the in the system could cause every product's standard XML to be rebuilt, we will
+        # break up the products into chunks of 100 to avoid the task being timed out.
+        cr = registry(self._cr.dbname).cursor()
+        self = self.with_env(self.env(cr=cr))
+        for product in split_every(100, products):
             product._build_std_xml()
+            self._cr.commit()
+        self._cr.close()
+
+    def _send_product_updates(self):
+        # Get a list of all active products that can be sold where the standard xml data has changed within the
+        # last 24 hours
+        products = self.env['product.template'].search(
+            [('active', '=', True), ('sale_ok', '=', True), ('website_published', '=', True), ('type', '=', 'product'),
+             ('data_last_change_date', '>=', datetime.now - timedelta(days=1))]
+        )
+        # Since a single change in the system could cause every product to be update on external systems, we
+        # will break up the products into chunks of 100 to avoid the task being timed out.
+        cr = registry(self._cr.dbname).cursor()
+        self = self.with_env(self.env(cr=cr))
+        for product in split_every(100, products):
+            product._export_data()
+            self._cr.commit()
+        self._cr.close()
+
+    def _export_data(self):
+        # Loop through the export accounts for this product
+        for export_account in self.export_account_ids:
+            # At this point we only export to SAGE
+            if export_account.export_account_id.category == 'SAGE':
+                self._export_sage(export_account)
+
+    def _export_sage(self, export_account):
+
+        export_error = False
+        export_date = datetime.now()
+        export_message = "Ok"
+
+        # Build the SAGE structure
+        SAGEAuth = export_account.export_account_id.get_sage_credentials("ProductDataUpdate")
+        # Get the SAGE Json pre-built product data file
+        file_name = "product_data_{}_{}.{}".format(export_account.export_account_id.category,
+                                                   export_account.export_account_id.name,
+                                                   export_account.export_account_id.file_extension)
+        attach = self._get_stored_file(file_name)
+        if attach:
+            # Decode from base64
+            datas_str = base64.b64decode(attach.datas)
+            # Serialize the attachment data to Json in order to set the credentials and the supplier number
+            sage_json_data = json.loads(datas_str)
+            sage_json = {}
+            sage_json.update(SAGEAuth)
+            sage_json.update(sage_json_data)
+            for i in range(len(sage_json['Products'])):
+                sage_json['Products'][i]['SuppID'] = export_account.export_account_id.account_number
+            # sage_json['SuppID'] = export_account.export_account_id.account_number
+            # Send the product update to SAGE
+            sagerequest = urllib.request.Request(export_account.export_account_id.url,
+                                                 data=json.dumps(sage_json).encode('utf-8'),
+                                                 method='POST')
+            # General catch all
+            try:
+                with urllib.request.urlopen(sagerequest) as sageresponse:
+                    # Read the entire response
+                    sageresponsestr = sageresponse.read().decode('utf-8')
+                    # Serialize the response into python. If unable to serialize then break out of the function
+                    try:
+                        sageresponsedict = json.loads(sageresponsestr)
+                    except:
+                        export_error = True
+                        export_message = 'Error serializing SAGE response: ' + sageresponsestr
+            except Exception as e:
+                export_error = True
+                export_message = "An exception occurred updating the SAGE product date: {0}".format(traceback.format_exc())
+
+            # If the response was NOT ok then set an error
+                        
+            export_account.write({
+                'last_export_date': export_date,
+                'last_export_error': export_message,
+                'last_export_error': export_error
+            })
 
     # In this routine we will check all required data elements to build the product XML and if any are missing
     # we'll update the data error messages field on this product and return false
@@ -510,6 +592,8 @@ class ProductTemplate(models.Model):
         try:
             # Get Odoo's decimal accuracy for pricing
             price_digits = self.env['decimal.precision'].precision_get('Product Price')
+            # We'll keep track of the latest change date of any of the images used for this product
+            last_image_change_date = datetime.min.replace(tzinfo=pytz.UTC)
             # Set the folder for uploading product documents to S3
             prod_folder = self.product_style_number + '/'
             # Snag the current date for comparison of changed images
@@ -598,6 +682,8 @@ class ProductTemplate(models.Model):
                     ET.SubElement(image_elem, "url").text = results['url']
                     ET.SubElement(image_elem, "md5").text = results['md5']
                     ET.SubElement(image_elem, "change_date").text = datetime.strftime(results['change_date'], "%Y-%m-%d")
+                    if results['change_date'] > last_image_change_date:
+                        last_image_change_date = results['change_date']
                 # Upload the medium image
                 if self.image_medium:
                     image_elem = ET.SubElement(images_elem, "image")
@@ -606,6 +692,8 @@ class ProductTemplate(models.Model):
                     ET.SubElement(image_elem, "url").text = results['url']
                     ET.SubElement(image_elem, "md5").text = results['md5']
                     ET.SubElement(image_elem, "change_date").text = datetime.strftime(results['change_date'], "%Y-%m-%d")
+                    if results['change_date'] > last_image_change_date:
+                        last_image_change_date = results['change_date']
                 # Upload the small image
                 if self.image_small:
                     image_elem = ET.SubElement(images_elem, "image")
@@ -614,7 +702,8 @@ class ProductTemplate(models.Model):
                     ET.SubElement(images_elem, "url").text = results['url']
                     ET.SubElement(image_elem, "md5").text = results['md5']
                     ET.SubElement(image_elem, "change_date").text = datetime.strftime(results['change_date'], "%Y-%m-%d")
-
+                    if results['change_date'] > last_image_change_date:
+                        last_image_change_date = results['change_date']
                 # If there are any additional product images upload those
                 if self.product_image_ids:
                     # extra_images_elem = ET.SubElement(images_elem, "additional_images")
@@ -625,7 +714,8 @@ class ProductTemplate(models.Model):
                         ET.SubElement(images_elem, "url").text = results['url']
                         ET.SubElement(image_elem, "md5").text = results['md5']
                         ET.SubElement(image_elem, "change_date").text = datetime.strftime(results['change_date'], "%Y-%m-%d")
-
+                        if results['change_date'] > last_image_change_date:
+                            last_image_change_date = results['change_date']
             # If the product has variants then add those.
             pvs_elem = ET.SubElement(product, "product_variants")
             if self.product_variant_ids:
@@ -672,6 +762,8 @@ class ProductTemplate(models.Model):
                         ET.SubElement(image_elem, "url").text = results['url']
                         ET.SubElement(image_elem, "md5").text = results['md5']
                         ET.SubElement(image_elem, "change_date").text = datetime.strftime(results['change_date'], "%Y-%m-%d")
+                        if results['change_date'] > last_image_change_date:
+                            last_image_change_date = results['change_date']
                     if variant.image_medium:
                         image_elem = ET.SubElement(pv_images_elem, "image")
                         results = s3._upload_to_public_bucket(variant.image_medium, variant.default_code + '_medium.jpg', 'image/jpeg', prod_folder)
@@ -679,6 +771,8 @@ class ProductTemplate(models.Model):
                         ET.SubElement(image_elem, "url").text = results['url']
                         ET.SubElement(image_elem, "md5").text = results['md5']
                         ET.SubElement(image_elem, "change_date").text = datetime.strftime(results['change_date'], "%Y-%m-%d")
+                        if results['change_date'] > last_image_change_date:
+                            last_image_change_date = results['change_date']
                     if variant.image_small:
                         image_elem = ET.SubElement(pv_images_elem, "image")
                         results = s3._upload_to_public_bucket(variant.image_small, variant.default_code + '_small.jpg', 'image/jpeg', prod_folder)
@@ -686,6 +780,8 @@ class ProductTemplate(models.Model):
                         ET.SubElement(image_elem, "url").text = results['url']
                         ET.SubElement(image_elem, "md5").text = results['md5']
                         ET.SubElement(image_elem, "change_date").text = datetime.strftime(results['change_date'], "%Y-%m-%d")
+                        if results['change_date'] > last_image_change_date:
+                            last_image_change_date = results['change_date']
             # Write the decoration location
             if self.decoration_area_ids:
                 locations_elem = ET.SubElement(product, "decoration_locations")
@@ -820,6 +916,9 @@ class ProductTemplate(models.Model):
                         results = s3._upload_to_public_bucket(attach.datas, attach.name, attach.mimetype, prod_folder)
                         file_elem = ET.SubElement(files_elem, "file", category=attach.attachment_category[0].name).text = results['url']
 
+            # Write the latest date that an image attached to this product has changed
+            ET.SubElement(product, "last_iamge_change_date").text = datetime.strftime(last_image_change_date, "%Y-%m-%d")
+
             # Now we dump the entire XML into a string
             product_xml = base64.b64encode(ET.tostring(product, encoding='utf-8', xml_declaration=True, pretty_print=True))
 
@@ -872,10 +971,8 @@ class ProductTemplate(models.Model):
         # Get the attachment id based on the passed name
         return_attach = None
         if len(attachment_ids) > 0:
-            for attach_id in attachment_ids:
-                attach = self.env['ir.attachment'].browse(attach_id)
-                if attach.name == 'product_data.xml':
-                    return_attach = attach
+            attach = self.env['ir.attachment'].browse(attachment_ids[0])
+            return_attach = attach
 
         return return_attach
 
@@ -922,12 +1019,21 @@ class ProductTemplate(models.Model):
                     transform = ET.XSLT(xslt_dom)
                     xslt_result = transform(std_xml_dom)
 
+                    xslt_text = ''
+
                     # If the output is Json then we will do an additional step to convert the result to Json
                     if export_account.export_account_id.file_extension == "json":
-                        # remove all lines from XML
+                        # remove all line feeds from XML
                         xslt_split = ET.tostring(xslt_result).splitlines()
+                        # Join back together into a single string
+                        xslt_text = b"".join(xslt_split)
                         # Create Python Dict from XML w/o lines
-                        data_dict = xmltodict.parse(xslt_split)
+                        data_dict = xmltodict.parse(xslt_text)
+                        # Remove the first Products array entry
+                        for i in range(len(data_dict['root']['Products'])):
+                            if data_dict['root']['Products'][i] == 'DeleteMe':
+                                del data_dict['root']['Products'][i]
+                                break
 
                         # generate the object using json.dumps()
                         # corresponding to json data
@@ -935,9 +1041,12 @@ class ProductTemplate(models.Model):
                         # Remove root element.
                         # Resulting json_data contains well formatted JSON
                         xslt_result = json_data.replace('{"root": ', '')[:-1]
+                        # Now encode the result to base64
+                        xslt_result = base64.b64encode(xslt_result.encode())
 
-                    # Base 64 encode the translated data
-                    xslt_result = base64.b64encode(ET.tostring(xslt_result, pretty_print=True))
+                    else:
+                        # Base 64 encode the translated data
+                        xslt_result = base64.b64encode(ET.tostring(xslt_result, pretty_print=True))
 
                     # Create the translated document attachment
                     self.env['ir.attachment'].create({

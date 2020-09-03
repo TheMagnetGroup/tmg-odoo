@@ -21,12 +21,12 @@ class ExportAccount(models.Model):
 
     SAGERequest = {
         'Request': '',
-        'APIVer': '210',
+        'APIVer': 210,
         'Auth': {
             'AcctID': '',
             'Token': '',
-            'SAGENum': ''
-        }
+        },
+        'SAGENum': 0
     }
 
     ASIAuth = {
@@ -41,7 +41,7 @@ class ExportAccount(models.Model):
         request['Request'] = sage_request
         request['Auth']['AcctID'] = self.accounting_id
         request['Auth']['Token'] = self.pwd
-        request['Auth']['SAGENum'] = self.account_number
+        request['SAGENum'] = self.account_number
 
         return request
 
