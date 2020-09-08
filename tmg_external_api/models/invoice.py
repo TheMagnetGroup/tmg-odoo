@@ -31,14 +31,19 @@ class invoice(models.Model):
                                     ])]
             return invoice_data
 
-        # scope of customer accounts includes hierarchy if applicable
-        search_hierarchy = [('active', '=', True),
-                            '|',
-                                ('parent_id', '=', int(partner_str)),
-                                ('id', '=', int(partner_str))
-                            ]
-        child_hierarchy = self.env['res.partner'].search(search_hierarchy)
-        search = [('partner_id', 'in', child_hierarchy.ids)]
+        sql = """SELECT partner.id
+                    FROM res_partner partner
+                    WHERE CAST(partner.id AS VARCHAR(20)) = %(Partner_ID)s
+                      OR CAST(partner.parent_id AS VARCHAR(20)) = %(Partner_ID)s
+                      OR %(Partner_ID)s = ''
+                      OR %(Partner_ID)s =
+                        (SELECT parent_id
+                         FROM res_partner
+                         WHERE id = partner.parent_id);"""
+        params = {'Partner_ID': partner_str}
+        self.env.cr.execute(sql, params)
+        hierarchy = self.env.cr.fetchall()
+        search = [('partner_id', 'in', hierarchy)]
 
         # one query search value is required (1st value found is used, validated in the sequence below)
         if invoice_number and invoice_number.strip():
@@ -191,13 +196,13 @@ class invoice(models.Model):
                     paymentDueDate=fields.Date.to_string(i['date_due']),
                     currency=i['currency_id'][1],
                     fob=(so['warehouse_id'][1] if so else ''),
-                    salesAmount=invoice._inv_sales_total,
-                    shippingAmount=invoice._inv_ship_total,
-                    handlingAmount=invoice._inv_handling,
-                    taxAmount=float(i['amount_tax']),
-                    invoiceAmount=inv_amt_calc,
-                    advancePaymentAmount=invoice._inv_payments_down,
-                    invoiceAmountDue=float(i['amount_total']),
+                    salesAmount=format(invoice._inv_sales_total, '.2f'),
+                    shippingAmount=format(invoice._inv_ship_total, '.2f'),
+                    handlingAmount=format(invoice._inv_handling, '.2f'),
+                    taxAmount=format(float(i['amount_tax']), '.2f'),
+                    invoiceAmount=format(inv_amt_calc, '.2f'),
+                    advancePaymentAmount=format(invoice._inv_payments_down, '.2f'),
+                    invoiceAmountDue=format(float(i['residual']), '.2f'),
                     lineItems=lns,
                     salesOrderNumbers=[so_number],
                     taxes=txs
@@ -293,7 +298,7 @@ class invoice(models.Model):
                 # advance/"down" payments are listed as a line item "product"; reverse sign and accumulate
                 if _isDownPmt:
                     invoice._inv_payments_down += (0 - float(li['price_total']))
-                # shipping and sales items are distinguished by category
+                # shipping and sales items are distinguished by category (see above)
                 elif _isForShipping:
                     invoice._inv_ship_total += float(li['price_total'])
                 else:
@@ -307,12 +312,12 @@ class invoice(models.Model):
                 productId=line_product,
                 partId=line_part,
                 charged=line_charged,
-                orderedQty=float(li['quantity']),
-                invoiceQty=float(li['quantity']),
+                orderedQty=format(float(li['quantity']), '.1f'),
+                invoiceQty=format(float(li['quantity']), '.1f'),
                 qtyUOM=(li['uom_id'][1] if li['uom_id'] else ''),
-                lineItemDescription=str(li['name'].replace('\n', ' ')),
-                unitPrice=float(li['price_unit']),
-                extendedPrice=float(li['price_subtotal'])
+                lineItemDescription=str(li['name'].replace('\n', ' '))[0:1023],
+                unitPrice=format(float(li['price_unit']), '.2f'),
+                extendedPrice=format(float(li['price_subtotal']), '.2f')
             )
             lines_data.append(data)
         return lines_data
@@ -324,6 +329,10 @@ class invoice(models.Model):
             if p != tuple():
                 ad = self.env['res.partner'].search_read([('id', '=', p[1])])
                 if ad:
+                    stco_search = [('id', '=', ad[0]['state_id'][0]), ('country_id', '=', ad[0]['country_id'][0])]
+                    state = self.env['res.country.state'].search_read(stco_search, ['code'])
+                    country_code = self.env['res.country']\
+                        .search_read([('id', '=', ad[0]['country_id'][0])], ['code'])
                     data = dict(
                         addressCode=p[0],
                         accountName=str(ad[0]['name'].replace('\n', ' ')),
@@ -333,9 +342,9 @@ class invoice(models.Model):
                         address2=ad[0]['street2'] if ad[0]['street2'] else '',
                         address3="",
                         city=ad[0]['city'],
-                        region=ad[0]['state_id'][1],
+                        region=state[0]['code'] if state[0] else '',
                         postalCode=ad[0]['zip'],
-                        country=ad[0]['country_id'][1],
+                        country=country_code[0]['code'] if country_code[0] else '',
                         email=ad[0]['email'] if ad[0]['email'] else '',
                         phone=ad[0]['phone'] if ad[0]['phone'] else ''
                     )
@@ -350,7 +359,7 @@ class invoice(models.Model):
             tax_info = dict(
                 taxType="SALES",
                 taxJurisdiction=tl['name'],
-                taxAmount=float(tl['amount'])
+                taxAmount=format(float(tl['amount']), '.2f')
             )
             # taxType designation criteria may change if we ever start having to charge HST/GST, PST or VAT
             tax_line_data.append(tax_info)
