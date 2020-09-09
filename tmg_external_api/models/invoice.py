@@ -51,10 +51,11 @@ class invoice(models.Model):
         elif po and po.strip():
             sales_order = self._get_sale_orders(po, '')
             if sales_order:
-                # A PO search must search a 2 level hierarchy to find --
+                # A PO search must search a 2 level hierarchy to potentially find --
                 #   1) invoices - having the sales order number in the 'origin' field
-                #   2) credit memos - having the invoice number in the 'origin' field, where that invoice in turn
-                #                     has the sales order number in its 'origin' field
+                #      (oddly, some credit memos may also be found to have sales order# in the origin field)
+                #   2) credit memos - having the invoice number in the 'origin' field (in most cases), where
+                #                     that invoice in turn has the sales order number in its 'origin' field
                 list_invoices = []
                 search_by_po_so = [('origin', '=', sales_order['name']), search[0]]
                 invoices_for_po_so = self.env['account.invoice'].search_read(search_by_po_so, ['number'])
@@ -330,7 +331,7 @@ class invoice(models.Model):
                 ad = self.env['res.partner'].search_read([('id', '=', p[1])])
                 if ad:
                     stco_search = [('id', '=', ad[0]['state_id'][0]), ('country_id', '=', ad[0]['country_id'][0])]
-                    state = self.env['res.country.state'].search_read(stco_search, ['code'])
+                    state_code = self.env['res.country.state'].search_read(stco_search, ['code'])
                     country_code = self.env['res.country']\
                         .search_read([('id', '=', ad[0]['country_id'][0])], ['code'])
                     data = dict(
@@ -342,7 +343,7 @@ class invoice(models.Model):
                         address2=ad[0]['street2'] if ad[0]['street2'] else '',
                         address3="",
                         city=ad[0]['city'],
-                        region=state[0]['code'] if state[0] else '',
+                        region=state_code[0]['code'] if state_code[0] else '',
                         postalCode=ad[0]['zip'],
                         country=country_code[0]['code'] if country_code[0] else '',
                         email=ad[0]['email'] if ad[0]['email'] else '',
