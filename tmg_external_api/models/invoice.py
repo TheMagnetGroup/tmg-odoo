@@ -33,13 +33,14 @@ class invoice(models.Model):
 
         sql = """SELECT partner.id
                     FROM res_partner partner
-                    WHERE CAST(partner.id AS VARCHAR(20)) = %(Partner_ID)s
-                      OR CAST(partner.parent_id AS VARCHAR(20)) = %(Partner_ID)s
-                      OR %(Partner_ID)s = ''
-                      OR %(Partner_ID)s =
-                        (SELECT parent_id
-                         FROM res_partner
-                         WHERE id = partner.parent_id);"""
+                    WHERE Active = TRUE
+                      AND (CAST(partner.id AS VARCHAR(20)) = %(Partner_ID)s
+                          OR CAST(partner.parent_id AS VARCHAR(20)) = %(Partner_ID)s
+                          OR %(Partner_ID)s = ''
+                          OR %(Partner_ID)s =
+                                (SELECT parent_id
+                                 FROM res_partner
+                                 WHERE id = partner.parent_id));"""
         params = {'Partner_ID': partner_str}
         self.env.cr.execute(sql, params)
         hierarchy = self.env.cr.fetchall()
