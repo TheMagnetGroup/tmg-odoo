@@ -179,13 +179,15 @@ class invoice(models.Model):
                                 ]
                             )
             else:
-                inv_amt_calc = (invoice._inv_sales_total
-                                + invoice._inv_ship_total
-                                + invoice._inv_handling
+                # inv_amt_calc = (invoice._inv_sales_total
+                #                 + invoice._inv_ship_total
+                #                 + invoice._inv_handling
+                #                 + float(i['amount_tax']))
+                # if inv_amt_calc == 0:
+                #     # possibly no products actually sold/shipped, but a prior balance or adjustment is carried over
+                #     inv_amt_calc = float(i['amount_total'])
+                inv_amt_calc = (float(i['amount_total'])
                                 + float(i['amount_tax']))
-                if inv_amt_calc == 0:
-                    # possibly no products actually sold/shipped, but a prior balance or adjustment is carried over
-                    inv_amt_calc = float(i['amount_total'])
                 data = dict(
                     errorList=[],
                     invoiceNumber=i['number'],
