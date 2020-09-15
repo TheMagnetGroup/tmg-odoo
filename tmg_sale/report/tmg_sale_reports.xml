@@ -1,14 +1,12 @@
 <odoo>
     <data>
         <template id="tmg_sale_order_report_delivery" inherit_id="sale.report_saleorder_document">
-             <xpath expr="//div[@t-field='doc.partner_id']" position="attributes">
-                   <attribute name="style" add="padding-top: .5in" separator=" "/>
-
-            </xpath>
             <xpath expr="/t[1]/t[1]/t[3]/t[1]/strong[1]" position="before">
                     <div style="padding-top: .5in"/>
             </xpath>
-
+            <xpath expr="/t[1]/t[1]/t[2]/div[1]" position="before">
+                    <div style="padding-top: .5in"></div><strong>Customer:</strong>
+            </xpath>
             <!-- Add the delivery method and if 3rd party also show service level and account number -->
             <xpath expr="//div[@id='informations']" position="after">
                 <div class="row mt32 mb32" id="delivery_informations">
