@@ -11,6 +11,7 @@ import base64
 import traceback
 import xmltodict
 import pytz
+import re
 from io import BytesIO
 # import xml.etree.ElementTree as ET
 from lxml import etree as ET
@@ -607,7 +608,8 @@ class ProductTemplate(models.Model):
             # is the brand
             ET.SubElement(product, "brand_name").text = self.categ_id.get_parent_name()
             ET.SubElement(product, "category_name").text = self.categ_id.name
-            ET.SubElement(product, "website_description").text = self.website_description
+            ET.SubElement(product, "website_description").text = re.sub('<[^<]+?>', '', self.website_description)
+            ET.SubElement(product, "website_description_html").text = self.website_description
             ET.SubElement(product, "width").text = str(self.width)
             ET.SubElement(product, "height").text = str(self.height)
             ET.SubElement(product, "dimensions").text = self.dimensions
@@ -782,16 +784,20 @@ class ProductTemplate(models.Model):
                         ET.SubElement(image_elem, "change_date").text = datetime.strftime(results['change_date'], "%Y-%m-%d")
                         if results['change_date'] > last_image_change_date:
                             last_image_change_date = results['change_date']
+            save_location = None
             # Write the decoration location
             if self.decoration_area_ids:
                 locations_elem = ET.SubElement(product, "decoration_locations")
+                methods_elem = None
                 for location in self.decoration_area_ids:
-                    location_elem = ET.SubElement(locations_elem, "decoration_location")
-                    ET.SubElement(location_elem, "id").text = str(location.decoration_area_id.attribute_id.id)
-                    ET.SubElement(location_elem, "name").text = location.name
-                    methods_elem = ET.SubElement(location_elem, "decoration_methods")
+                    if location.decoration_area_id.id != save_location:
+                        location_elem = ET.SubElement(locations_elem, "decoration_location")
+                        ET.SubElement(location_elem, "id").text = str(location.decoration_area_id.id)
+                        ET.SubElement(location_elem, "name").text = location.name
+                        methods_elem = ET.SubElement(location_elem, "decoration_methods")
+                        save_location = location.decoration_area_id.id
                     method_elem = ET.SubElement(methods_elem, "decoration_method")
-                    ET.SubElement(method_elem, "id").text = str(location.decoration_method_id.decoration_method_id.attribute_id.id)
+                    ET.SubElement(method_elem, "id").text = str(location.decoration_method_id.id)
                     ET.SubElement(method_elem, "name").text = location.decoration_method_id.name
                     ET.SubElement(method_elem, "sequence").text = str(location.decoration_method_id.decoration_method_id.sequence)
                     ET.SubElement(method_elem, "height").text = str(location.height)
@@ -1028,12 +1034,7 @@ class ProductTemplate(models.Model):
                         # Join back together into a single string
                         xslt_text = b"".join(xslt_split)
                         # Create Python Dict from XML w/o lines
-                        data_dict = xmltodict.parse(xslt_text)
-                        # Remove the first Products array entry
-                        for i in range(len(data_dict['root']['Products'])):
-                            if data_dict['root']['Products'][i] == 'DeleteMe':
-                                del data_dict['root']['Products'][i]
-                                break
+                        data_dict = xmltodict.parse(xslt_text, force_list=('Products', 'Options', 'Values'))
 
                         # generate the object using json.dumps()
                         # corresponding to json data
