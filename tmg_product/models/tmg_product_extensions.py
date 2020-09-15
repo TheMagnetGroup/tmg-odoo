@@ -399,8 +399,8 @@ class ProductTemplate(models.Model):
     def _export_sage(self, export_account):
 
         export_error = False
-        export_date = datetime.now()
-        export_message = "Ok"
+        export_date = None
+        export_message = None
 
         # Build the SAGE structure
         SAGEAuth = export_account.export_account_id.get_sage_credentials("ProductDataUpdate")
@@ -417,6 +417,11 @@ class ProductTemplate(models.Model):
             sage_json = {}
             sage_json.update(SAGEAuth)
             sage_json.update(sage_json_data)
+            # If the images have not changed since the last export then delete that node
+            image_change_date = datetime.strptime(sage_json['Products'][0]['ImageChangeDate'], '%Y-%m-%d')
+            if export_account.last_export_date and image_change_date.date() < export_account.last_export_date:
+                del sage_json['Products'][0]['Pics']
+            # Set the supplier ID
             for i in range(len(sage_json['Products'])):
                 sage_json['Products'][i]['SuppID'] = export_account.export_account_id.account_number
             # sage_json['SuppID'] = export_account.export_account_id.account_number
@@ -440,10 +445,15 @@ class ProductTemplate(models.Model):
                 export_message = "An exception occurred updating the SAGE product date: {0}".format(traceback.format_exc())
 
             # If the response was NOT ok then set an error
-                        
+            if sageresponsedict['Responses'][0]['OK'] == "0":
+                export_error = True
+                export_message = sageresponsedict['Responses'][0]['Errors']
+            else:
+                export_date = datetime.today()
+
             export_account.write({
                 'last_export_date': export_date,
-                'last_export_error': export_message,
+                'last_export_message': export_message,
                 'last_export_error': export_error
             })
 
@@ -701,7 +711,7 @@ class ProductTemplate(models.Model):
                     image_elem = ET.SubElement(images_elem, "image")
                     results = s3._upload_to_public_bucket(self.image_small, self.product_style_number + '_small.jpg', 'image/jpeg', prod_folder)
                     ET.SubElement(image_elem, "type").text = "image_small"
-                    ET.SubElement(images_elem, "url").text = results['url']
+                    ET.SubElement(image_elem, "url").text = results['url']
                     ET.SubElement(image_elem, "md5").text = results['md5']
                     ET.SubElement(image_elem, "change_date").text = datetime.strftime(results['change_date'], "%Y-%m-%d")
                     if results['change_date'] > last_image_change_date:
@@ -713,7 +723,7 @@ class ProductTemplate(models.Model):
                         image_elem = ET.SubElement(images_elem, "image")
                         results = s3._upload_to_public_bucket(image.image, image.name + ".jpg", "image/jpeg", prod_folder)
                         ET.SubElement(image_elem, "type").text = "image_additional"
-                        ET.SubElement(images_elem, "url").text = results['url']
+                        ET.SubElement(image_elem, "url").text = results['url']
                         ET.SubElement(image_elem, "md5").text = results['md5']
                         ET.SubElement(image_elem, "change_date").text = datetime.strftime(results['change_date'], "%Y-%m-%d")
                         if results['change_date'] > last_image_change_date:
@@ -923,7 +933,7 @@ class ProductTemplate(models.Model):
                         file_elem = ET.SubElement(files_elem, "file", category=attach.attachment_category[0].name).text = results['url']
 
             # Write the latest date that an image attached to this product has changed
-            ET.SubElement(product, "last_iamge_change_date").text = datetime.strftime(last_image_change_date, "%Y-%m-%d")
+            ET.SubElement(product, "last_image_change_date").text = datetime.strftime(last_image_change_date, "%Y-%m-%d")
 
             # Now we dump the entire XML into a string
             product_xml = base64.b64encode(ET.tostring(product, encoding='utf-8', xml_declaration=True, pretty_print=True))
