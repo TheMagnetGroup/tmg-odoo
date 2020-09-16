@@ -694,7 +694,7 @@ class ProductTemplate(models.Model):
                     ET.SubElement(image_elem, "url").text = results['url']
                     ET.SubElement(image_elem, "md5").text = results['md5']
                     ET.SubElement(image_elem, "change_date").text = datetime.strftime(results['change_date'], "%Y-%m-%d")
-                    if results['change_date'] > last_image_change_date:
+                    if results['change_date'].replace(tzinfo=pytz.UTC) > last_image_change_date:
                         last_image_change_date = results['change_date']
                 # Upload the medium image
                 if self.image_medium:
@@ -704,7 +704,7 @@ class ProductTemplate(models.Model):
                     ET.SubElement(image_elem, "url").text = results['url']
                     ET.SubElement(image_elem, "md5").text = results['md5']
                     ET.SubElement(image_elem, "change_date").text = datetime.strftime(results['change_date'], "%Y-%m-%d")
-                    if results['change_date'] > last_image_change_date:
+                    if results['change_date'].replace(tzinfo=pytz.UTC) > last_image_change_date:
                         last_image_change_date = results['change_date']
                 # Upload the small image
                 if self.image_small:
@@ -714,7 +714,7 @@ class ProductTemplate(models.Model):
                     ET.SubElement(image_elem, "url").text = results['url']
                     ET.SubElement(image_elem, "md5").text = results['md5']
                     ET.SubElement(image_elem, "change_date").text = datetime.strftime(results['change_date'], "%Y-%m-%d")
-                    if results['change_date'] > last_image_change_date:
+                    if results['change_date'].replace(tzinfo=pytz.UTC) > last_image_change_date:
                         last_image_change_date = results['change_date']
                 # If there are any additional product images upload those
                 if self.product_image_ids:
@@ -726,7 +726,7 @@ class ProductTemplate(models.Model):
                         ET.SubElement(image_elem, "url").text = results['url']
                         ET.SubElement(image_elem, "md5").text = results['md5']
                         ET.SubElement(image_elem, "change_date").text = datetime.strftime(results['change_date'], "%Y-%m-%d")
-                        if results['change_date'] > last_image_change_date:
+                        if results['change_date'].replace(tzinfo=pytz.UTC) > last_image_change_date:
                             last_image_change_date = results['change_date']
             # If the product has variants then add those.
             pvs_elem = ET.SubElement(product, "product_variants")
@@ -774,7 +774,7 @@ class ProductTemplate(models.Model):
                         ET.SubElement(image_elem, "url").text = results['url']
                         ET.SubElement(image_elem, "md5").text = results['md5']
                         ET.SubElement(image_elem, "change_date").text = datetime.strftime(results['change_date'], "%Y-%m-%d")
-                        if results['change_date'] > last_image_change_date:
+                        if results['change_date'].replace(tzinfo=pytz.UTC) > last_image_change_date:
                             last_image_change_date = results['change_date']
                     if variant.image_medium:
                         image_elem = ET.SubElement(pv_images_elem, "image")
@@ -783,7 +783,7 @@ class ProductTemplate(models.Model):
                         ET.SubElement(image_elem, "url").text = results['url']
                         ET.SubElement(image_elem, "md5").text = results['md5']
                         ET.SubElement(image_elem, "change_date").text = datetime.strftime(results['change_date'], "%Y-%m-%d")
-                        if results['change_date'] > last_image_change_date:
+                        if results['change_date'].replace(tzinfo=pytz.UTC) > last_image_change_date:
                             last_image_change_date = results['change_date']
                     if variant.image_small:
                         image_elem = ET.SubElement(pv_images_elem, "image")
@@ -792,7 +792,7 @@ class ProductTemplate(models.Model):
                         ET.SubElement(image_elem, "url").text = results['url']
                         ET.SubElement(image_elem, "md5").text = results['md5']
                         ET.SubElement(image_elem, "change_date").text = datetime.strftime(results['change_date'], "%Y-%m-%d")
-                        if results['change_date'] > last_image_change_date:
+                        if results['change_date'].replace(tzinfo=pytz.UTC) > last_image_change_date:
                             last_image_change_date = results['change_date']
             save_location = None
             # Write the decoration location
@@ -1044,7 +1044,8 @@ class ProductTemplate(models.Model):
                         # Join back together into a single string
                         xslt_text = b"".join(xslt_split)
                         # Create Python Dict from XML w/o lines
-                        data_dict = xmltodict.parse(xslt_text, force_list=('Products', 'Options', 'Values'))
+                        data_dict = xmltodict.parse(xslt_text)
+                        # data_dict = xmltodict.parse(xslt_text, force_list=('Products', 'Options', 'Values'))
 
                         # generate the object using json.dumps()
                         # corresponding to json data
@@ -1052,6 +1053,9 @@ class ProductTemplate(models.Model):
                         # Remove root element.
                         # Resulting json_data contains well formatted JSON
                         xslt_result = json_data.replace('{"root": ', '')[:-1]
+                        # Also remove any "DeleteMe" markers in the Json data. We do this to force sections of the
+                        # Json data to array types.
+                        xslt_result = xslt_result.replace('"DeleteMe", ', '')
                         # Now encode the result to base64
                         xslt_result = base64.b64encode(xslt_result.encode())
 
