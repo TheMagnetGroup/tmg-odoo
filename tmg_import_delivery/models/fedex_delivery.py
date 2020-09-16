@@ -41,7 +41,12 @@ class Delivery_Fedex(models.Model):
                                            ('FEDEX_3_DAY_FREIGHT', 'FEDEX_3_DAY_FREIGHT'),
                                            ('FIRST_OVERNIGHT', 'FIRST_OVERNIGHT'),
                                            ('PRIORITY_OVERNIGHT', 'PRIORITY_OVERNIGHT'),
-                                           ('STANDARD_OVERNIGHT', 'STANDARD_OVERNIGHT')]
+                                           ('STANDARD_OVERNIGHT', 'STANDARD_OVERNIGHT'),
+                                           ('FEDEX_NEXT_DAY_EARLY_MORNING', 'FEDEX_NEXT_DAY_EARLY_MORNING'),
+                                           ('FEDEX_NEXT_DAY_MID_MORNING', 'FEDEX_NEXT_DAY_MID_MORNING'),
+                                           ('FEDEX_NEXT_DAY_AFTERNOON', 'FEDEX_NEXT_DAY_AFTERNOON'),
+                                           ('FEDEX_NEXT_DAY_END_OF_DAY', 'FEDEX_NEXT_DAY_END_OF_DAY'),
+                                           ('FEDEX_EXPRESS_SAVER', 'FEDEX_EXPRESS_SAVER')]
 
     fedex_bill_my_account = fields.Boolean(string='Bill My Account',
                                          help="If checked, ecommerce users will be prompted their FedEx account number\n"
