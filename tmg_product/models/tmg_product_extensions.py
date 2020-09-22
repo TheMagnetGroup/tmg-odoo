@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from odoo import models, fields, api, registry
+from odoo import models, fields, api, registry, _
 from odoo.tools.misc import split_every
 from odoo.exceptions import ValidationError
 # from odoo.addons import decimal_precision as dp
@@ -351,6 +351,7 @@ class ProductTemplate(models.Model):
                                           inverse_name='product_tmpl_id')
     addl_charge_product_ids = fields.One2many(comodel_name='product.addl.charges', inverse_name='product_tmpl_id')
     data_errors = fields.Html(string='Required Data Errors')
+    user_data_error = fields.Boolean(string='Data Error Resolved by User')
 
     @api.constrains('decoration_method_ids')
     def _check_deco_methods(self):
@@ -360,29 +361,45 @@ class ProductTemplate(models.Model):
             raise ValidationError('You cannot have the same decoration method on multiple lines!')
         return True
 
+    @api.model
     def _build_all_xml(self):
         # Get a list of all active products that can be sold
-        products = self.env['product.template'].search(
+        products = self.search(
             [('active', '=', True), ('sale_ok', '=', True), ('website_published', '=', True), ('type', '=', 'product')])
         # Since a single change the in the system could cause every product's standard XML to be rebuilt, we will
         # break up the products into chunks of 100 to avoid the task being timed out.
         cr = registry(self._cr.dbname).cursor()
         self = self.with_env(self.env(cr=cr))
-        for product in split_every(100, products):
-            product._build_std_xml()
+        for product_split in split_every(100, products):
+            for product in product_split:
+                product._build_std_xml()
             self._cr.commit()
-        self._cr.close()
 
         # Now check if there were any products that have additional user data errors and if so send a message
         # to the product data group.
-        prod_errors = self.env['product.template'].search(
-            [('active', '=', True), ('sale_ok', '=', True), ('website_published', '=', True), ('type', '=', 'product'),
-             ('data_errors')])
+        prod_errors = products.filtered(lambda r: r.data_errors and r.user_data_error)
+        if prod_errors:
+            user_channel = self.env['mail.channel'].search([('name', '=', 'productdatauser')])
+            if user_channel:
+                user_channel.message_post(body=_('One or more products have data errors that need to be reviewed'),
+                                        message_type='comment', subtype='mail.mt_comment')
 
+        # Also check if any build caused a technical error to occur
+        prod_errors = products.filtered(lambda r: r.data_errors and not r.user_data_error)
+        if prod_errors:
+            it_channel = self.env['mail.channel'].search([('name', '=', 'it')])
+            if it_channel:
+                it_channel.message_post(body=_('One or more products have technical errors that need to be reviewed'),
+                                        message_type='comment', subtype='mail.mt_comment')
+
+        self._cr.commit()
+        self._cr.close()
+
+    @api.model
     def _send_product_updates(self):
         # Get a list of all active products that can be sold where the standard xml data has changed within the
         # last 24 hours
-        products = self.env['product.template'].search(
+        products = self.search(
             [('active', '=', True), ('sale_ok', '=', True), ('website_published', '=', True), ('type', '=', 'product'),
              ('data_last_change_date', '>=', datetime.now - timedelta(days=1))]
         )
@@ -390,9 +407,20 @@ class ProductTemplate(models.Model):
         # will break up the products into chunks of 100 to avoid the task being timed out.
         cr = registry(self._cr.dbname).cursor()
         self = self.with_env(self.env(cr=cr))
-        for product in split_every(100, products):
-            product._export_data()
+        for product_split in split_every(100, products):
+            for product in product_split:
+                product._export_data()
             self._cr.commit()
+
+        # If there are any product export accounts that have an error then broadcast a group message now
+        prod_errors = self.env['product.export.account'].search(['last_export_error', '=', True])
+        if prod_errors:
+            user_channel = self.env['mail.channel'].search([('name', '=', 'productdatauser')])
+            if user_channel:
+                user_channel.message_post(body=_('One or more products have export errors that need to be reviewed'),
+                                        message_type='comment', subtype='mail.mt_comment')
+
+        self._cr.commit()
         self._cr.close()
 
     def _export_data(self):
@@ -592,12 +620,14 @@ class ProductTemplate(models.Model):
         if len(messages):
             error_text = '<ul>' + ''.join(messages) + '</ul>'
             self.write({
-                'data_errors': error_text
+                'data_errors': error_text,
+                'user_data_error': True
             })
             return False
         else:
             self.write({
-                'data_errors': None
+                'data_errors': None,
+                'user_data_error': False
             })
             return True
 
@@ -985,7 +1015,8 @@ class ProductTemplate(models.Model):
         except Exception as e:
             error_text = '<p>Technical Errors, contact IT:' + '<p>'
             self.write({
-                'data_errors': error_text + traceback.format_exc()
+                'data_errors': error_text + traceback.format_exc(),
+                'user_data_error': False
             })
             print(str(e))
 
