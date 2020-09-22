@@ -191,5 +191,36 @@
 <!--                  string="Logging"-->
 <!--                  parent="menu_tmg_external_api_root"-->
 <!--                  sequence="1"/>-->
+
+        <record id="tmg_product_export_accounts_tree" model="ir.ui.view">
+            <field name="name">tmg.export.accounts.tree</field>
+            <field name="model">product.export.account</field>
+            <field name="arch" type="xml">
+                <tree name="Export Accounts">
+                    <field name="product_tmpl_id"/>
+                    <field name="export_account_id"/>
+                    <field name="last_export_date"/>
+                    <field name="last_export_error"/>
+                    <field name="last_export_message"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="action_tmg_product_export_accounts" model="ir.actions.act_window">
+            <field name="name">Product Export Accounts</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">product.export.account</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+
+        <record id="tmg_product_export_accounts_menu" model="ir.ui.menu">
+	        <field name="action" ref="action_tmg_product_export_accounts"/>
+            <field name="active" eval="True"/>
+            <field name="name">Product Export Accounts</field>
+            <field name="parent_id" ref="sale.product_menu_catalog"/>
+            <field name="sequence">3</field>
+        </record>
+
     </data>
 </odoo>

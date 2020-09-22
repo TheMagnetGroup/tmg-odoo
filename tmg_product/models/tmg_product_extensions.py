@@ -65,7 +65,7 @@ class ProductExternalCategories(models.Model):
             'body': message,
             'body_html': message,
             'email_from': 'noreply@themagnetgroup.com',
-            'email_to': 'jtemple@themagnetgroup.com'
+            'email_to': 'ithelp@magnetllc.com'
         }
         Mail.create(values).send()
 
@@ -372,6 +372,12 @@ class ProductTemplate(models.Model):
             product._build_std_xml()
             self._cr.commit()
         self._cr.close()
+
+        # Now check if there were any products that have additional user data errors and if so send a message
+        # to the product data group.
+        prod_errors = self.env['product.template'].search(
+            [('active', '=', True), ('sale_ok', '=', True), ('website_published', '=', True), ('type', '=', 'product'),
+             ('data_errors')])
 
     def _send_product_updates(self):
         # Get a list of all active products that can be sold where the standard xml data has changed within the
@@ -930,7 +936,14 @@ class ProductTemplate(models.Model):
             for attach in self.attachment_ids:
                 if attach.attachment_category:
                         results = s3._upload_to_public_bucket(attach.datas, attach.name, attach.mimetype, prod_folder)
-                        file_elem = ET.SubElement(files_elem, "file", category=attach.attachment_category[0].name).text = results['url']
+                        file_elem = ET.SubElement(files_elem, "file")
+                        ET.SubElement(file_elem, "category").text = attach.attachment_category[0].name
+                        ET.SubElement(file_elem, "url").text = results['url']
+                        ET.SubElement(file_elem, "md5").text = results['md5']
+                        ET.SubElement(file_elem, "change_date").text = datetime.strftime(results['change_date'], "%Y-%m-%d")
+                        if attach.attachment_category[0].name == 'Blank' and \
+                            results['change_date'].replace(tzinfo=pytz.UTC) > last_image_change_date:
+                            last_image_change_date = results['change_date']
 
             # Write the latest date that an image attached to this product has changed
             ET.SubElement(product, "last_image_change_date").text = datetime.strftime(last_image_change_date, "%Y-%m-%d")

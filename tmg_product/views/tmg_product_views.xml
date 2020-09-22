@@ -131,7 +131,7 @@
                                 </tree>
                             </field>
                         </group>
-                        <group string="Decoration Locations">
+                        <group string="Decoration Areas">
                             <field name="decoration_area_ids" widget="one2many_list" context="{'show_attribute': False}"
                                    modifiers="{'readonly':'false'}">
                                 <tree editable="bottom">
@@ -270,5 +270,75 @@
                 </xpath>
             </field>
         </record>
+
+        <record id="tmg_product_deco_methods_tree" model="ir.ui.view">
+            <field name="name">tmg.product.deco.method.tree</field>
+            <field name="model">product.template.decorationmethod</field>
+            <field name="arch" type="xml">
+                <tree name="Product Template Decoration Methods">
+                    <field name="product_tmpl_id"/>
+                    <field name="decoration_method_id"/>
+                    <field name="prod_time_lo"/>
+                    <field name="prod_time_hi"/>
+                    <field name="quick_ship"/>
+                    <field name="quick_ship_prod_days"/>
+                    <field name="quick_ship_max"/>
+                    <field name="number_sides"/>
+                    <field name="pms"/>
+                    <field name="full_color"/>
+                    <field name="max_colors"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="action_tmg_product_template_deco_methods" model="ir.actions.act_window">
+            <field name="name">Product Decoration Methods</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">product.template.decorationmethod</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+
+        <record id="tmg_product_template_deco_methods" model="ir.ui.menu">
+	        <field name="action" ref="action_tmg_product_template_deco_methods"/>
+            <field name="active" eval="True"/>
+            <field name="name">Product Decoration Methods</field>
+            <field name="parent_id" ref="sale.product_menu_catalog"/>
+            <field name="sequence">3</field>
+        </record>
+
+        <record id="tmg_product_deco_areas_tree" model="ir.ui.view">
+            <field name="name">tmg.product.deco.area.tree</field>
+            <field name="model">product.template.decorationarea</field>
+            <field name="arch" type="xml">
+                <tree name="Product Template Decoration Areas">
+                    <field name="product_tmpl_id"/>
+                    <field name="decoration_area_id"/>
+                    <field name="decoration_method_id"/>
+                    <field name="height"/>
+                    <field name="width"/>
+                    <field name="shape"/>
+                    <field name="diameter"/>
+                    <field name="dimensions"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="action_tmg_product_template_deco_areas" model="ir.actions.act_window">
+            <field name="name">Product Decoration Areas</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">product.template.decorationarea</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+
+        <record id="tmg_product_template_deco_areas" model="ir.ui.menu">
+	        <field name="action" ref="action_tmg_product_template_deco_areas"/>
+            <field name="active" eval="True"/>
+            <field name="name">Product Decoration Areas</field>
+            <field name="parent_id" ref="sale.product_menu_catalog"/>
+            <field name="sequence">3</field>
+        </record>
+
     </data>
 </odoo>
