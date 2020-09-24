@@ -455,6 +455,7 @@ class ProductTemplate(models.Model):
             image_change_date = datetime.strptime(sage_json['Products'][0]['ImageChangeDate'], '%Y-%m-%d')
             if export_account.last_export_date and image_change_date.date() < export_account.last_export_date:
                 del sage_json['Products'][0]['Pics']
+                sage_json['Products'][0]['DeletePics'] = 0
             # Set the supplier ID
             for i in range(len(sage_json['Products'])):
                 sage_json['Products'][i]['SuppID'] = export_account.export_account_id.account_number
@@ -716,6 +717,7 @@ class ProductTemplate(models.Model):
                 ET.SubElement(warehouse_elem, "city").text = warehouse.partner_id.city
                 ET.SubElement(warehouse_elem, "state").text = warehouse.partner_id.state_id.code
                 ET.SubElement(warehouse_elem, "country").text = warehouse.partner_id.country_id.name
+                ET.SubElement(warehouse_elem, "country_code").text = warehouse.partner_id.country_id.code
                 ET.SubElement(warehouse_elem, "code").text = warehouse.code
             # Start images nodes
             images_elem = ET.SubElement(product, "images")
@@ -785,7 +787,7 @@ class ProductTemplate(models.Model):
                         pkg_elem = ET.SubElement(pv_elem, "packaging")
                         ET.SubElement(pkg_elem, "packaging_id").text = str(variant.packaging_ids[0].id)
                         ET.SubElement(pkg_elem, "name").text = variant.packaging_ids[0].name
-                        ET.SubElement(pkg_elem, "qty").text = str(variant.packaging_ids[0].qty)
+                        ET.SubElement(pkg_elem, "qty").text = str(int(variant.packaging_ids[0].qty))
                         ET.SubElement(pkg_elem, "max_weight").text = str(variant.packaging_ids[0].max_weight)
                         ET.SubElement(pkg_elem, "length").text = str(variant.packaging_ids[0].length)
                         ET.SubElement(pkg_elem, "width").text = str(variant.packaging_ids[0].width)
