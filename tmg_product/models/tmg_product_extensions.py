@@ -110,7 +110,11 @@ class ProductExternalCategories(models.Model):
 
         # Get the export account row for the SAGE credentials
         sage = self.env['tmg_external_api.tmg_export_account'].search([('category', '=', 'SAGE'),
-                                                             ('name', '=', 'Magnet')])
+                                                             ('name', '=', 'SAGEMagnet')])
+        if not sage:
+            self._send_error_email('Export account SAGE/SAGEMagnet not found for loading categories!')
+            return
+
         sage_cred = sage.get_sage_credentials("CategoryList")
 
         # Capture the current date/time so we can do a reverse check of any category that is no longer in SAGE
@@ -361,11 +365,16 @@ class ProductTemplate(models.Model):
             raise ValidationError('You cannot have the same decoration method on multiple lines!')
         return True
 
+    def get_product_saleable(self):
+        return self.search(
+            [('active', '=', True), ('sale_ok', '=', True), ('website_published', '=', True), ('type', '=', 'product')]
+        )
+
     @api.model
     def _build_all_xml(self):
         # Get a list of all active products that can be sold
-        products = self.search(
-            [('active', '=', True), ('sale_ok', '=', True), ('website_published', '=', True), ('type', '=', 'product')])
+        products = self.get_product_saleable()
+
         # Since a single change the in the system could cause every product's standard XML to be rebuilt, we will
         # break up the products into chunks of 100 to avoid the task being timed out.
         cr = registry(self._cr.dbname).cursor()
@@ -399,10 +408,12 @@ class ProductTemplate(models.Model):
     def _send_product_updates(self):
         # Get a list of all active products that can be sold where the standard xml data has changed within the
         # last 24 hours
-        products = self.search(
+        products = self.get_product_saleable()
+        return self.search(
             [('active', '=', True), ('sale_ok', '=', True), ('website_published', '=', True), ('type', '=', 'product'),
              ('data_last_change_date', '>=', datetime.now - timedelta(days=1))]
         )
+
         # Since a single change in the system could cause every product to be update on external systems, we
         # will break up the products into chunks of 100 to avoid the task being timed out.
         cr = registry(self._cr.dbname).cursor()
@@ -452,15 +463,16 @@ class ProductTemplate(models.Model):
             sage_json.update(SAGEAuth)
             sage_json.update(sage_json_data)
             # If the images have not changed since the last export then delete that node
-            image_change_date = datetime.strptime(sage_json['Products'][0]['ImageChangeDate'], '%Y-%m-%d')
-            if export_account.last_export_date and image_change_date.date() < export_account.last_export_date:
-                del sage_json['Products'][0]['Pics']
-                sage_json['Products'][0]['DeletePics'] = 0
+            # image_change_date = datetime.strptime(sage_json['Products'][0]['ImageChangeDate'], '%Y-%m-%d')
+            # if export_account.last_export_date and image_change_date.date() < export_account.last_export_date:
+            #     del sage_json['Products'][0]['Pics']
+            #     sage_json['Products'][0]['DeletePics'] = 0
             # Set the supplier ID
             for i in range(len(sage_json['Products'])):
                 sage_json['Products'][i]['SuppID'] = export_account.export_account_id.account_number
             # sage_json['SuppID'] = export_account.export_account_id.account_number
-            # Send the product update to SAGE
+            # Send the product update to SAGE. NOTE: you must be VERY careful sending any product updates to SAGE
+            # They do not have a test environment so any product updates will hit their LIVE database.
             sagerequest = urllib.request.Request(export_account.export_account_id.url,
                                                  data=json.dumps(sage_json).encode('utf-8'),
                                                  method='POST')
@@ -987,8 +999,8 @@ class ProductTemplate(models.Model):
             attach = self._get_stored_file('product_data.xml')
             write_new_file = False
             if attach:
-                old_product_xml = base64.b64decode(attach.datas)
-                if product_xml != old_product_xml:
+                # Comparing both files in base64 encoded form
+                if product_xml != attach.datas:
                     attach.unlink()
                     write_new_file = True
             else:

@@ -69,4 +69,4 @@ class Binary(fields.Binary):
             super(Binary, self).write(records, vals)
 
 
-fields.Binary = Binary
+# fields.Binary = Binary
