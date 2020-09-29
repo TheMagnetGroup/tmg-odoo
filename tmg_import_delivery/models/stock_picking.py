@@ -15,12 +15,12 @@ class StockPicking(models.Model):
     shipping_reference_1 = fields.Char(string="Shipping Reference 1")
     shipping_reference_2 = fields.Char(string="Shipping Reference")
     carrier_id = fields.Many2one('delivery.carrier', string="Carrier")
-    fedex_bill_my_account = fields.Boolean(related='carrier_id.fedex_bill_my_account', readonly=False)
+    fedex_bill_my_account = fields.Boolean(related='carrier_id.fedex_bill_my_account', readonly=True)
     fedex_carrier_account = fields.Char(string='Fedex Carrier Account', readonly=False)
     ups_carrier_account = fields.Char(string='UPS Carrier Account', readonly=False)
     ups_service_type = fields.Selection(_get_ups_service_types, string="UPS Service Type")
     fedex_service_type = fields.Selection(get_fedex_service_types, string="Fedex Service Type")
-    ups_bill_my_account = fields.Boolean(related='carrier_id.ups_bill_my_account', readonly=False)
+    ups_bill_my_account = fields.Boolean(related='carrier_id.ups_bill_my_account', readonly=True)
 
 
     # @api.multi
