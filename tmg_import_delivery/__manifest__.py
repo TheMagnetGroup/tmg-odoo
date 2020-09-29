@@ -11,6 +11,7 @@
         * Christian Dunn - 2020/02/07 -   Added attention to flag to the delivery order.
         * Christian Dunn - 2020/02/07 -   Fixed bug with fedex information not pulling over.
         * Jonas Temple   - 2020/06/08 -   Added attention to to the sale order report
+        * Christian Dunn - 2020/09/29 -   Fixed bug causing the Bill_My_Account to have issues.
     """,
 
     "author": "The Magnet Group",

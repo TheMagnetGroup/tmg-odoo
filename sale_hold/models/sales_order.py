@@ -11,10 +11,10 @@ class SaleOrderLine(models.Model):
     @api.multi
     def _action_launch_stock_rule(self):
         res = super(SaleOrderLine, self)._action_launch_stock_rule()
-        orders = list(set(x.order_id for x in self))
-        for order in orders:
-            order.CheckHolds()
+        orders = self.filtered(lambda line: line.product_id and line.product_id.type != 'service').mapped('order_id')
+        orders.CheckHolds()
         return res
+
 
 class SaleOrder(models.Model):
 
