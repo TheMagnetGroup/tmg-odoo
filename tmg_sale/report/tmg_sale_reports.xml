@@ -1,0 +1,48 @@
+<odoo>
+    <data>
+        <template id="tmg_sale_order_report_delivery" inherit_id="sale.report_saleorder_document">
+            <xpath expr="/t[1]/t[1]/t[3]/t[1]/strong[1]" position="before">
+                    <div style="padding-top: .5in"/>
+            </xpath>
+            <xpath expr="/t[1]/t[1]/t[2]/div[1]" position="before">
+                    <div style="padding-top: .5in"></div><strong>Customer:</strong>
+            </xpath>
+            <!-- Add the delivery method and if 3rd party also show service level and account number -->
+            <xpath expr="//div[@id='informations']" position="after">
+                <div class="row mt32 mb32" id="delivery_informations">
+                    <div t-if="doc.carrier_id" class="col-auto mw-100 mb-2">
+                        <strong>Delivery Method:</strong>
+                        <p class="m-0" t-field="doc.carrier_id"/>
+                    </div>
+                    <div t-if="doc.fedex_bill_my_account" class="col-auto mw-100 mb-2">
+                        <strong>FedEx Carrier Account:</strong>
+                        <p class="m-0" t-field="doc.fedex_carrier_account"/>
+                    </div>
+                    <div t-if="doc.fedex_bill_my_account" class="col-auto mw-100 mb-2">
+                        <strong>FedEx Service Type:</strong>
+                        <p class="m-0" t-field="doc.fedex_service_type"/>
+                    </div>
+                    <div t-if="doc.ups_bill_my_account" class="col-auto mw-100 mb-2">
+                        <strong>Carrier Account:</strong>
+                        <p class="m-0" t-field="doc.ups_carrier_account"/>
+                    </div>
+                    <div t-if="doc.ups_bill_my_account" class="col-auto mw-100 mb-2">
+                        <strong>UPS Service Type:</strong>
+                        <p class="m-0" t-field="doc.ups_service_type"/>
+                    </div>
+ <!-- Add In Hands Date (field in_hands from sale.order) -->
+                    <div t-if="doc.in_hands" class="col-auto mw-100 mb-2">
+                        <strong>In-Hands Date:</strong>
+                        <p class="m-0"><span t-field="doc.in_hands" t-options='{"widget": "date"}'/></p>
+                    </div>
+                </div>
+            </xpath>
+            <xpath expr="/t[1]/t[1]/div[1]/table[1]/thead[1]/tr[1]/th[1]" position="after">
+                <th class="text-left">Art Ref</th>
+            </xpath>
+            <xpath expr="/t[1]/t[1]/div[1]/table[1]/tbody[1]/t[2]/tr[1]/t[1]/td[1]" position="after">
+                <td><span t-field="line.art_ref"/></td>
+            </xpath>
+        </template>
+    </data>
+</odoo>

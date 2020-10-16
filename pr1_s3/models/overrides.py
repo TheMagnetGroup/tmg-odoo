@@ -70,3 +70,4 @@ class Binary(fields.Binary):
 
 
 # fields.Binary = Binary
+# fields.Binary.write = Binary.writef
