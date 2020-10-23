@@ -22,6 +22,15 @@ class StockPicking(models.Model):
     fedex_service_type = fields.Selection(get_fedex_service_types, string="Fedex Service Type")
     ups_bill_my_account = fields.Boolean(related='carrier_id.ups_bill_my_account', readonly=True)
 
+    @api.multi
+    def _add_delivery_cost_to_so(self):
+        self.ensure_one()
+        sale_order = self.sale_id
+        if sale_order.invoice_shipping_on_delivery:
+            original_price = self.carrier_price
+            carrier_price = self.carrier_price * (1.0 + (float(self.carrier_id.margin) / 100.0))
+            lin = sale_order._create_delivery_line(self.carrier_id, carrier_price)
+            lin.write({'qty_delivered': 1}, {'purchase_price': original_price})
 
     # @api.multi
     # @api.onchange('carrier_id')
