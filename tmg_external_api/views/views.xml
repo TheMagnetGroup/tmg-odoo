@@ -169,6 +169,7 @@
                                    modifiers="{'readonly':'false'}">
                                 <tree editable="bottom">
                                     <field name="export_account_id" options="{'no_create_edit':True}"/>
+                                    <field name="export_data"/>
                                     <field name="last_export_date" readonly="True"/>
                                     <field name="last_export_error" readonly="True"/>
                                     <field name="last_export_message" readonly="True"/>
@@ -199,6 +200,7 @@
                 <tree name="Export Accounts">
                     <field name="product_tmpl_id"/>
                     <field name="export_account_id"/>
+                    <field name="export_data"/>
                     <field name="last_export_date"/>
                     <field name="last_export_error"/>
                     <field name="last_export_message"/>
