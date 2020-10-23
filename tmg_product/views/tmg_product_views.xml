@@ -340,5 +340,19 @@
             <field name="sequence">3</field>
         </record>
 
+        <record id="tmg_product_action_build_xml" model="ir.actions.server">
+            <field name="name">Build Standard XML</field>
+            <field name="model_id" ref="model_product_template"/>
+            <field name="state">code</field>
+            <field name="code">record._build_std_xml()</field>
+        </record>
+
+        <record id="tmg_product_action_export_product_data" model="ir.actions.server">
+            <field name="name">Export Product Data</field>
+            <field name="model_id" ref="model_product_template"/>
+            <field name="state">code</field>
+            <field name="code">record._export_data()</field>
+        </record>
+
     </data>
 </odoo>

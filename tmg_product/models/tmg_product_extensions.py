@@ -349,6 +349,7 @@ class ProductAdditonalCharges(models.Model):
 class ProductTemplate(models.Model):
     _inherit = 'product.template'
 
+    data_last_change_date = fields.Date(string='Data Last Change Date')
     decoration_method_ids = fields.One2many(comodel_name='product.template.decorationmethod',
                                             inverse_name='product_tmpl_id')
     decoration_area_ids = fields.One2many(comodel_name='product.template.decorationarea',
@@ -406,13 +407,9 @@ class ProductTemplate(models.Model):
 
     @api.model
     def _send_product_updates(self):
-        # Get a list of all active products that can be sold where the standard xml data has changed within the
-        # last 24 hours
+        # Get a list of all active products that can be sold where one or more export accounts
+        # are flagged to be exported.
         products = self.get_product_saleable()
-        return self.search(
-            [('active', '=', True), ('sale_ok', '=', True), ('website_published', '=', True), ('type', '=', 'product'),
-             ('data_last_change_date', '>=', datetime.now - timedelta(days=1))]
-        )
 
         # Since a single change in the system could cause every product to be update on external systems, we
         # will break up the products into chunks of 100 to avoid the task being timed out.
@@ -420,11 +417,14 @@ class ProductTemplate(models.Model):
         self = self.with_env(self.env(cr=cr))
         for product_split in split_every(100, products):
             for product in product_split:
-                product._export_data()
+                for export_account in product.export_account_ids:
+                    if export_account.export_data:
+                        product._export_product_data()
+                        break
             self._cr.commit()
 
         # If there are any product export accounts that have an error then broadcast a group message now
-        prod_errors = self.env['product.export.account'].search(['last_export_error', '=', True])
+        prod_errors = self.env['product.export.account'].search([('last_export_error', '=', True)])
         if prod_errors:
             user_channel = self.env['mail.channel'].search([('name', '=', 'productdatauser')])
             if user_channel:
@@ -434,16 +434,24 @@ class ProductTemplate(models.Model):
         self._cr.commit()
         self._cr.close()
 
-    def _export_data(self):
+    def _export_product_data(self):
         # Loop through the export accounts for this product
         for export_account in self.export_account_ids:
-            # At this point we only export to SAGE
-            if export_account.export_account_id.category == 'SAGE':
-                self._export_sage(export_account)
+            # If the account should be exported
+            if export_account.export_data:
+                # At this point we only export to SAGE
+                if export_account.export_account_id.category == 'SAGE':
+                    self._export_sage(export_account)
+                # For all others just set the export_data flag to False
+                else:
+                    export_account.write({
+                        'export_data': False
+                    })
 
     def _export_sage(self, export_account):
 
         export_error = False
+        export_data_required = True
         export_date = None
         export_message = None
 
@@ -496,9 +504,11 @@ class ProductTemplate(models.Model):
                 export_error = True
                 export_message = sageresponsedict['Responses'][0]['Errors']
             else:
+                export_data_required = False
                 export_date = datetime.today()
 
             export_account.write({
+                'export_data': export_data_required,
                 'last_export_date': export_date,
                 'last_export_message': export_message,
                 'last_export_error': export_error
@@ -512,6 +522,7 @@ class ProductTemplate(models.Model):
         if not self.product_style_number:
             messages.append("<li>Product Style Number missing</li>")
         if not self.name:
+
             messages.append("<li>Product Name missing</li>")
         if not self.categ_id:
             messages.append("<li>Product Category missing</li>")
@@ -1022,6 +1033,12 @@ class ProductTemplate(models.Model):
                 self.write({
                     'data_last_change_date': datetime.now()
                 })
+
+                # Now flag all current export accounts for this product to export
+                for ea in self.export_account_ids:
+                    ea.write({
+                        'export_data': True
+                    })
 
                 # Build the standard export files
                 self._build_export_files()

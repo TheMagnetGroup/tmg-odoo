@@ -83,7 +83,6 @@ class ProductTemplate(models.Model):
     primary_material = fields.Char(string='Primary Material')
     market_introduction_date = fields.Date(string='Market Introduction Date')
     warehouses = fields.Many2many('stock.warehouse', string='Warehouses')
-    data_last_change_date = fields.Date(string='Data Last Change Date')
     ala_catalog = fields.Float(string='As Low As Catalog', compute='_compute_ala')
     ala_net = fields.Float(string='As Low As Net', compute='_compute_ala')
     ala_code = fields.Char(string='As Low As Code', compute='_compute_ala')

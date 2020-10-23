@@ -26,6 +26,7 @@
     'data': [
         'security/ir.model.access.csv',
         'views/tmg_product_views.xml',
+        'data/cron.xml',
     ],
     # only loaded in demonstration mode
     'demo': [

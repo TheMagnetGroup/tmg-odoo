@@ -172,6 +172,7 @@ class ProductExportAccount(models.Model):
                                       required=True)
     export_account_id = fields.Many2one(comodel_name='tmg_external_api.tmg_export_account', string='Export Account',
                                         ondelete='restrict', required=True)
+    export_data = fields.Boolean(string='Export Data', default=True)
     last_export_date = fields.Date(string='Last Export Date')
     last_export_error = fields.Boolean(string='Last Export Error')
     last_export_message = fields.Char(string='Last Export Error Message')
