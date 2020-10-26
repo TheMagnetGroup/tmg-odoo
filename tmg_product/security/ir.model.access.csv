@@ -3,3 +3,7 @@ access_product_pricelist_item_extras_user,product.pricelist.item.user,model_prod
 access_product_pricelist_item_extras_manager,product.pricelist.item.manager,model_product_pricelist_item_extras,base.group_system,1,1,1,1
 access_product_template_tags_user,product.template.tags.user,model_product_template_tags,base.group_user,1,0,0,0
 access_product_template_tags_manager,product.template.tags.manager,model_product_template_tags,base.group_system,1,1,1,1
+access_product_external_categories,product.external.categories,model_product_external_categories,base.group_system,1,1,1,1
+access_product_template_decorationmethods,product.template.decorationmethod,model_product_template_decorationmethod,base.group_system,1,1,1,1
+access_product_template_decorationarea,product.template.decorationarea,model_product_template_decorationarea,base.group_system,1,1,1,1
+access_product_addl_charges,product.addl.charges,model_product_addl_charges,base.group_system,1,1,1,1

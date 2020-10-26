@@ -1,41 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-<data>
-   <record model="ir.ui.view" id="view_tmg_logging_tree">
-	   		<field name="name">view_tmg_api_tree</field>
-			<field name="model">tmg_external_api.api_logging</field>
-			<field name="arch" type="xml">
-				<tree name="API Logs">
-					<field name="api_name"/>
-					<field name="partner_id"/>
+    <data>
+        <record model="ir.ui.view" id="view_tmg_logging_tree">
+            <field name="name">view_tmg_api_tree</field>
+            <field name="model">tmg_external_api.api_logging</field>
+            <field name="arch" type="xml">
+                <tree name="API Logs">
+                    <field name="api_name"/>
+                    <field name="partner_id"/>
 
-				</tree>
-	   		</field>
-	    </record>
+                </tree>
+            </field>
+        </record>
 
-       <record model="ir.ui.view" id="view_tmg_api_tree">
-	   		<field name="name">view_tmg_promostandards_tree</field>
-			<field name="model">tmg_external_api.promostandards</field>
-			<field name="arch" type="xml">
-				<tree name="API Logs">
-					<field name="name"/>
-					<field name="debug"/>
+        <record model="ir.ui.view" id="view_tmg_api_tree">
+            <field name="name">view_tmg_promostandards_tree</field>
+            <field name="model">tmg_external_api.promostandards</field>
+            <field name="arch" type="xml">
+                <tree name="API Logs">
+                    <field name="name"/>
+                    <field name="debug"/>
 
-				</tree>
-	   		</field>
-	    </record>
+                </tree>
+            </field>
+        </record>
 
-    <record model="ir.ui.view" id="view_tmg_reference_tree">
-	   		<field name="name">view_tmg_reference_tree</field>
-			<field name="model">tmg_external_api.tmg_reference</field>
-			<field name="arch" type="xml">
-				<tree name="Reference Fields" editable="top">
-					<field name="name"/>
-					<field name="value"/>
+        <record model="ir.ui.view" id="view_tmg_reference_tree">
+            <field name="name">view_tmg_reference_tree</field>
+            <field name="model">tmg_external_api.tmg_reference</field>
+            <field name="arch" type="xml">
+                <tree name="Reference Fields" editable="top">
+                    <field name="name"/>
+                    <field name="value"/>
                     <field name="category"/>
-				</tree>
-	   		</field>
-	    </record>
+                </tree>
+            </field>
+        </record>
 
 <!--       <record model="ir.ui.view" id="view_tmg_api_form">-->
 <!--	   		<field name="name">view_tmg_api_form</field>-->
@@ -49,7 +49,7 @@
 <!--	   		</field>-->
 <!--	    </record>-->
 
-    <record model="ir.ui.view" id="view_tmg_api_promostandards_form">
+        <record model="ir.ui.view" id="view_tmg_api_promostandards_form">
 	   		<field name="name">view_tmg_api_promostandards_form</field>
 			<field name="model">tmg_external_api.promostandards</field>
 			<field name="arch" type="xml">
@@ -66,7 +66,25 @@
 	   		</field>
 	    </record>
 
-<record id="action_tmg_external_api" model="ir.actions.act_window">
+        <record model="ir.ui.view" id="view_tmg_export_accounts_tree">
+	   		<field name="name">view_tmg_export_accounts_tree</field>
+			<field name="model">tmg_external_api.tmg_export_account</field>
+			<field name="arch" type="xml">
+				<tree name="Export Account Fields" editable="top">
+                    <field name="category"/>
+					<field name="name"/>
+                    <field name="accounting_id"/>
+                    <field name="account_number"/>
+					<field name="login"/>
+					<field name="pwd"/>
+					<field name="url"/>
+                    <field name="xslt_file"/>
+                    <field name="file_extension"/>
+				</tree>
+	   		</field>
+	    </record>
+
+        <record id="action_tmg_external_api" model="ir.actions.act_window">
             <field name="name">External API</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">tmg_external_api.api_logging</field>
@@ -74,7 +92,7 @@
             <field name="view_mode">tree,form,pivot</field>
         </record>
 
-    <record id="action_tmg_external_api_promostandards" model="ir.actions.act_window">
+        <record id="action_tmg_external_api_promostandards" model="ir.actions.act_window">
             <field name="name">Promostandards</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">tmg_external_api.promostandards</field>
@@ -82,7 +100,7 @@
             <field name="view_mode">tree,form</field>
         </record>
 
-    <record id="action_tmg_external_api_reference" model="ir.actions.act_window">
+        <record id="action_tmg_external_api_reference" model="ir.actions.act_window">
             <field name="name">Reference</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">tmg_external_api.tmg_reference</field>
@@ -90,46 +108,78 @@
             <field name="view_mode">tree,form</field>
         </record>
 
+        <record id="action_tmg_export_accounts" model="ir.actions.act_window">
+            <field name="name">Export Accounts</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tmg_external_api.tmg_export_account</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+        </record>
 
+        <record id="tmg_external_api_menu_root" model="ir.ui.menu">
+            <field name="active" eval="True"/>
+            <field name="groups_id" eval="[(6, 0, [])]"/>
+            <field name="name">External APIs</field>
+            <field name="parent_id" eval="False"/>
+            <field name="sequence">11</field>
+            <field name="web_icon">fa fa-diamond,#f1c40f,#34495e</field>
+        </record>
 
-  <record id="tmg_external_api_menu_root" model="ir.ui.menu">
+	    <record id="tmg_external_api_menu" model="ir.ui.menu">
+            <field name="action" ref="action_tmg_external_api"/>
+            <field name="active" eval="True"/>
+            <field name="name">Logging</field>
+            <field name="parent_id" ref="tmg_external_api_menu_root"/>
+            <field name="sequence">2</field>
+        </record>
 
-    <field name="active" eval="True"/>
-    <field name="groups_id" eval="[(6, 0, [])]"/>
-    <field name="name">External APIs</field>
-    <field name="parent_id" eval="False"/>
-    <field name="sequence">11</field>
-    <field name="web_icon">fa fa-diamond,#f1c40f,#34495e</field>
-  </record>
-	<record id="tmg_external_api_menu" model="ir.ui.menu">
-	<field name="action" ref="action_tmg_external_api"/>
-    <field name="active" eval="True"/>
-    <field name="name">Logging</field>
-    <field name="parent_id" ref="tmg_external_api_menu_root"/>
-    <field name="sequence">2</field>
+        <record id="tmg_external_api_menu_promostandards" model="ir.ui.menu">
+            <field name="action" ref="action_tmg_external_api_promostandards"/>
+            <field name="active" eval="True"/>
+            <field name="name">Promostandards</field>
+            <field name="parent_id" ref="tmg_external_api_menu_root"/>
+            <field name="sequence">1</field>
+        </record>
 
-  </record>
+        <record id="tmg_external_api_menu_reference" model="ir.ui.menu">
+            <field name="action" ref="action_tmg_external_api_reference"/>
+            <field name="active" eval="True"/>
+            <field name="name">Reference</field>
+            <field name="parent_id" ref="tmg_external_api_menu_root"/>
+            <field name="sequence">1</field>
+        </record>
 
-    <record id="tmg_external_api_menu_promostandards" model="ir.ui.menu">
-	<field name="action" ref="action_tmg_external_api_promostandards"/>
-    <field name="active" eval="True"/>
-    <field name="name">Promostandards</field>
-    <field name="parent_id" ref="tmg_external_api_menu_root"/>
-    <field name="sequence">1</field>
+        <record id="tmg_external_api_menu_export" model="ir.ui.menu">
+            <field name="action" ref="action_tmg_export_accounts"/>
+            <field name="active" eval="True"/>
+            <field name="name">Export Accounts</field>
+            <field name="parent_id" ref="tmg_external_api_menu_root"/>
+            <field name="sequence">1</field>
+        </record>
 
-  </record>
-
-    <record id="tmg_external_api_menu_reference" model="ir.ui.menu">
-	<field name="action" ref="action_tmg_external_api_reference"/>
-    <field name="active" eval="True"/>
-    <field name="name">Reference</field>
-    <field name="parent_id" ref="tmg_external_api_menu_root"/>
-    <field name="sequence">1</field>
-
-  </record>
-
-
-
+       <record id="tmg_product_template_export_form_view" model="ir.ui.view">
+            <field name="name">tmg.product.template.export.form</field>
+            <field name="model">product.template</field>
+            <field name="inherit_id" ref="product.product_template_form_view"/>
+            <field name="arch" type="xml">
+                <xpath expr="//form[1]/sheet[1]/notebook[1]" position="inside">
+                    <page string="Export Accounts">
+                        <group string="Export Accounts">
+                            <field name="export_account_ids" widget="one2many_list" context="{'show_attribute': False}"
+                                   modifiers="{'readonly':'false'}">
+                                <tree editable="bottom">
+                                    <field name="export_account_id" options="{'no_create_edit':True}"/>
+                                    <field name="export_data"/>
+                                    <field name="last_export_date" readonly="True"/>
+                                    <field name="last_export_error" readonly="True"/>
+                                    <field name="last_export_message" readonly="True"/>
+                                </tree>
+                            </field>
+                        </group>
+                    </page>
+                </xpath>
+            </field>
+        </record>
 
 
 
@@ -142,5 +192,37 @@
 <!--                  string="Logging"-->
 <!--                  parent="menu_tmg_external_api_root"-->
 <!--                  sequence="1"/>-->
-</data>
+
+        <record id="tmg_product_export_accounts_tree" model="ir.ui.view">
+            <field name="name">tmg.export.accounts.tree</field>
+            <field name="model">product.export.account</field>
+            <field name="arch" type="xml">
+                <tree name="Export Accounts">
+                    <field name="product_tmpl_id"/>
+                    <field name="export_account_id"/>
+                    <field name="export_data"/>
+                    <field name="last_export_date"/>
+                    <field name="last_export_error"/>
+                    <field name="last_export_message"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="action_tmg_product_export_accounts" model="ir.actions.act_window">
+            <field name="name">Product Export Accounts</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">product.export.account</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+
+        <record id="tmg_product_export_accounts_menu" model="ir.ui.menu">
+	        <field name="action" ref="action_tmg_product_export_accounts"/>
+            <field name="active" eval="True"/>
+            <field name="name">Product Export Accounts</field>
+            <field name="parent_id" ref="sale.product_menu_catalog"/>
+            <field name="sequence">3</field>
+        </record>
+
+    </data>
 </odoo>

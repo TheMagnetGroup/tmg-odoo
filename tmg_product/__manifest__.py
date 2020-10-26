@@ -20,15 +20,13 @@
     'version': '0.1',
 
     # any module necessary for this one to work correctly
-    'depends': ['product',
-                'sale',
-                'mrp_job'
-                ],
+    'depends': ['product','sale','website_sale','mrp_job'],
 
     # always loaded
     'data': [
         'security/ir.model.access.csv',
         'views/tmg_product_views.xml',
+        'data/cron.xml',
     ],
     # only loaded in demonstration mode
     'demo': [

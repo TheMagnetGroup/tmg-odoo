@@ -2,3 +2,5 @@ id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_tmg_external_api_APILogging,tmg_external_api.api_logging,model_tmg_external_api_api_logging,base.group_system,1,1,1,1
 access_tmg_external_api_Promostandards,tmg_external_api.promostandards,model_tmg_external_api_promostandards,base.group_system,1,1,1,1
 access_tmg_external_api_reference,tmg_external_api.tmg_reference,model_tmg_external_api_tmg_reference,base.group_system,1,1,1,1
+access_tmg_external_api_export_account,tmg_external_api.tmg_export_account,model_tmg_external_api_tmg_export_account,base.group_system,1,1,1,1
+access_product_export_account,product.export.account,model_product_export_account,base.group_system,1,1,1,1
