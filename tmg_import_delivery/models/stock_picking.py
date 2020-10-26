@@ -27,10 +27,11 @@ class StockPicking(models.Model):
         self.ensure_one()
         sale_order = self.sale_id
         if sale_order.invoice_shipping_on_delivery:
-            original_price = self.carrier_price or 0
+            original_price = self.carrier_price
             carrier_price = self.carrier_price * (1.0 + (float(self.carrier_id.margin) / 100.0))
             lin = sale_order._create_delivery_line(self.carrier_id, carrier_price)
-            lin.write({'qty_delivered':1,'purchase_price':original_price})
+            if lin:
+                lin.write({'qty_delivered':1,'purchase_price':original_price})
 
     # @api.multi
     # @api.onchange('carrier_id')
