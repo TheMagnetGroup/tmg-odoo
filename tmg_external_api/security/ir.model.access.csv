@@ -4,3 +4,4 @@ access_tmg_external_api_Promostandards,tmg_external_api.promostandards,model_tmg
 access_tmg_external_api_reference,tmg_external_api.tmg_reference,model_tmg_external_api_tmg_reference,base.group_system,1,1,1,1
 access_tmg_external_api_export_account,tmg_external_api.tmg_export_account,model_tmg_external_api_tmg_export_account,base.group_system,1,1,1,1
 access_product_export_account,product.export.account,model_product_export_account,base.group_system,1,1,1,1
+access_product_export_account_user,product.export.account,model_product_export_account,base.group_user,1,0,0,0
