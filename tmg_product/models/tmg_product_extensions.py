@@ -614,8 +614,8 @@ class ProductTemplate(models.Model):
                 self = self.with_context(no_create_variant_attributes=[method.decoration_method_id.id])
                 # Build the price grid for standard catalog/net
                 price_grid_dict = self._build_price_grid()
-                if len(price_grid_dict) == 0:
-                    messages.append("<li>Pricing not returned for product</li>")
+                if not price_grid_dict:
+                    messages.append("<li>Pricing not returned for product with decoration method {0}</li>".format(method.decoration_method_id.name))
 
         if not self.decoration_area_ids:
             messages.append("<li>Product missing decoration locations</li>")
@@ -632,13 +632,13 @@ class ProductTemplate(models.Model):
         if self.addl_charge_product_ids:
             for ac in self.addl_charge_product_ids:
                 if not ac.charge_type:
-                    messages.append("<li>Additional Charge Item '{0}' missing charge type</li>".format(ac.product_tmpl_id.name))
+                    messages.append("<li>Additional Charge Item '{0}' missing charge type</li>".format(ac.addl_charge_product_id.name))
                 if not ac.charge_yuom:
-                    messages.append("<li>Additional Charge Item '{0}' missing other unit of measure</li>".format(ac.product_tmpl_id.name))
+                    messages.append("<li>Additional Charge Item '{0}' missing other unit of measure</li>".format(ac.addl_charge_product_id.name))
                 # Build the price grid for standard catalog/net
-                ac_price_grid_dict = ac.product_tmpl_id._build_price_grid()
-                if len(ac_price_grid_dict) == 0:
-                    messages.append("<li>No pricing found for additional charge item '{0}'</li>".format(ac.product_tmpl_id.name))
+                ac_price_grid_dict = ac.addl_charge_product_id._build_price_grid()
+                if not ac_price_grid_dict:
+                    messages.append("<li>No pricing found for additional charge item '{0}'</li>".format(ac.addl_charge_product_id.name))
 
         # Now if we wrote ANY messages to the messages list update the data error message field
         if len(messages):
