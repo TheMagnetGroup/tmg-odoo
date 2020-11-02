@@ -351,7 +351,7 @@
             <field name="name">Export Product Data</field>
             <field name="model_id" ref="model_product_template"/>
             <field name="state">code</field>
-            <field name="code">record._export_data()</field>
+            <field name="code">record._export_product_data()</field>
         </record>
 
     </data>
