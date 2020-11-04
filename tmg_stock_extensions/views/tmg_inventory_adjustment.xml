@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <data>
+
+    <record id="tmg_stock_inventory_form" model="ir.ui.view">
+      <field name="name">tmg.stock.inventory.form</field>
+      <field name="model">stock.inventory</field>
+      <field name="inherit_id" ref="stock.view_inventory_form"/>
+      <field name="arch" type="xml">
+        <xpath expr="//field[@name='product_qty']" position="after">
+            <field name="last_verified_uid" readonly="1"/>
+            <field name="last_verified_date" readonly="1"/>
+        </xpath>
+      </field>
+    </record>
+
+    <record id="tmg_stock_inventory_barcode_form" model="ir.ui.view">
+      <field name="name">tmg.stock.inventory.barcode.form</field>
+      <field name="model">stock.inventory.line</field>
+      <field name="inherit_id" ref="stock_barcode.stock_inventory_line_barcode"/>
+      <field name="arch" type="xml">
+        <xpath expr="//field[@name='package_id']" position="after">
+            <button name="verify" string="Verify" type="object" style="width: 200px !important;"/>
+            <field name="last_verified_uid" readonly="1"/>
+            <field name="last_verified_date" readonly="1"/>
+        </xpath>
+      </field>
+    </record>
+
+     <record id="tmg_stock_inventory_line_tree2" model="ir.ui.view">
+      <field name="name">tmg.stock.inventory.line.tree2</field>
+      <field name="model">stock.inventory.line</field>
+      <field name="inherit_id" ref="stock.stock_inventory_line_tree2"/>
+      <field name="arch" type="xml">
+        <xpath expr="//field[@name='product_qty']" position="after">
+            <field name="last_verified_uid" readonly="1"/>
+            <field name="last_verified_date" readonly="1"/>
+        </xpath>
+      </field>
+    </record>
+
+  </data>
+
+</odoo>
