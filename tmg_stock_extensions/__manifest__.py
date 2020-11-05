@@ -30,7 +30,8 @@
     'data': [
         # 'security/ir.model.access.csv',
         'views/tmg_delivery_templates.xml',
-        'views/tmg_inventory_adjustment.xml'
+        'views/tmg_inventory_adjustment.xml',
+        'report/tmg_stock_reports.xml',
     ],
     # only loaded in demonstration mode
     'demo': [
