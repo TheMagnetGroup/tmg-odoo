@@ -17,7 +17,13 @@ class PriceList(models.Model):
         if not no_create_variant_attribute_ids:
             no_create_variant_attribute_ids = self.env.context.get('default_product_no_variant_attribute_value_ids')
             if no_create_variant_attribute_ids:
-                no_create_variant_attribute_ids = [item[1] for item in no_create_variant_attribute_ids]
+                val_ids = []
+                for ncva in no_create_variant_attribute_ids:
+                    pta = self.env['product.template.attribute.value'].browse(ncva[1])
+                    if pta:
+                        val_ids.append(pta.product_attribute_value_id.id)
+                no_create_variant_attribute_ids = val_ids
+                # no_create_variant_attribute_ids = [item[1] for item in no_create_variant_attribute_ids]
 
         # First call Odoo's base _compute_price_rule to get the price without applying price extras
         result = super(PriceList, self)._compute_price_rule(products_qty_partner, date=date, uom_id=uom_id)
@@ -46,10 +52,14 @@ class PriceList(models.Model):
                                 d[(e.attribute_id,id.id)] = e.price_extra
 
                         for id in no_create_variant_attribute_ids:
-                            val = self.env['product.template.attribute.value'].browse(id)
+                            # val = self.env['product.template.attribute.value'].browse(id)
+                            val = self.env['product.attribute.value'].browse(id)
                             # if val.attribute_id in d and val in d[val.attribute_id][0]:
-                            if (val.attribute_id, val.product_attribute_value_id.id) in d:
-                                result[pid] = result[pid][0] + d[(val.attribute_id,val.product_attribute_value_id.id)], result[pid][1]
+                            # if (val.attribute_id, val.product_attribute_value_id.id) in d:
+                            #     result[pid] = result[pid][0] + d[(val.attribute_id,val.product_attribute_value_id.id)], result[pid][1]
+                            if (val.attribute_id, val.id) in d:
+                                result[pid] = result[pid][0] + d[(val.attribute_id,val.id)], result[pid][1]
+
 
         return result
 
@@ -101,7 +111,11 @@ class ProductTemplate(models.Model):
         # Store attributes with no variants in the context
         if combination:
             no_create_variant_attributes = combination - combination._without_no_variant_attributes()
-            self = self.with_context(no_create_variant_attributes=no_create_variant_attributes.ids)
+            val_ids = []
+            for ncva in no_create_variant_attributes:
+                val_ids.append(ncva.product_attribute_value_id.id)
+            # self = self.with_context(no_create_variant_attributes=no_create_variant_attributes.ids)
+            self = self.with_context(no_create_variant_attributes=val_ids)
 
         # Call the base method
         result = super(ProductTemplate, self)._get_combination_info(combination, product_id, add_qty, pricelist, parent_combination, only_template)
@@ -294,7 +308,11 @@ class SaleOrderLine(models.Model):
     def product_uom_change(self):
 
         # Set the variants that don't create attributes in the context
-        self = self.with_context(no_create_variant_attributes=self.product_no_variant_attribute_value_ids.ids)
+        val_ids = []
+        for nva_id in self.product_no_variant_attribute_value_ids:
+            val_ids.append(nva_id.product_attribute_value_id.id)
+        # self = self.with_context(no_create_variant_attributes=self.product_no_variant_attribute_value_ids.ids)
+        self = self.with_context(no_create_variant_attributes=val_ids)
         # Call the base routine
         #super(SaleOrderLine, self).product_uom_change()
 
