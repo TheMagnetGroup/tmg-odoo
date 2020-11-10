@@ -10,6 +10,8 @@
         * Bridgette Cowden - 1/1/2020 - Adds computed field labeled "Available Quantity" 
             (technical name virtual_available_qty) with the formula Quantity On Hand - Outgoing. 
             Replaces the "Forecasted" stat button on the product detail form.
+        * Jonas Temple - 11/10/2020 - Added virtual_available_qty to the product kanban and tree view,
+            removed the on hand quantity which was only the finished good availability.
     """,
 
     'author': "The Magnet Group",

@@ -382,6 +382,18 @@ class ProductTemplate(models.Model):
 
     @api.model
     def _build_all_xml(self):
+
+        # Get the IT message channel
+        it_channel = self.env['mail.channel'].search([('name', '=', 'it')])
+
+        # Now ensure that the tmg-public S3 bucket exists. If not, we'll send a message to the IT channel
+        # and not process any builds
+        s3_public = self.env['pr1_s3.s3_connection'].search([('name', '=', 'tmg-public')])
+        if not s3_public:
+            it_channel.message_post(body=_('The tmg-public S3 bucket required for product XML builds was not found'),
+                                    message_type='comment', subtype='mail.mt_comment')
+            return
+
         # Get a list of all active products that can be sold
         products = self.get_product_saleable()
 
@@ -406,7 +418,6 @@ class ProductTemplate(models.Model):
         # Also check if any build caused a technical error to occur
         prod_errors = products.filtered(lambda r: r.data_errors and not r.user_data_error)
         if prod_errors:
-            it_channel = self.env['mail.channel'].search([('name', '=', 'it')])
             if it_channel:
                 it_channel.message_post(body=_('One or more products have technical errors that need to be reviewed'),
                                         message_type='comment', subtype='mail.mt_comment')
@@ -625,6 +636,10 @@ class ProductTemplate(models.Model):
                 price_grid_dict = self._build_price_grid()
                 if not price_grid_dict:
                     messages.append("<li>Pricing not returned for product with decoration method {0}</li>".format(method.decoration_method_id.name))
+                else:
+                    # Ensure discount code were supplied
+                    if not price_grid_dict['discount_codes'] or not price_grid_dict['discount_codes'][0]:
+                        messages.append("<li>Discount codes not set for product</li>")
 
         if not self.decoration_area_ids:
             messages.append("<li>Product missing decoration locations</li>")
@@ -648,6 +663,10 @@ class ProductTemplate(models.Model):
                 ac_price_grid_dict = ac.addl_charge_product_id._build_price_grid()
                 if not ac_price_grid_dict:
                     messages.append("<li>No pricing found for additional charge item '{0}'</li>".format(ac.addl_charge_product_id.name))
+                else:
+                    # Ensure discount code were supplied
+                    if not price_grid_dict['discount_codes'] or not price_grid_dict['discount_codes'][0]:
+                        messages.append("<li>Discount codes not set for additional charge item '{0}'</li>".format(ac.addl_charge_product_id.name))
 
         # Now if we wrote ANY messages to the messages list update the data error message field
         if len(messages):
@@ -673,7 +692,8 @@ class ProductTemplate(models.Model):
             # Get Odoo's decimal accuracy for pricing
             price_digits = self.env['decimal.precision'].precision_get('Product Price')
             # We'll keep track of the latest change date of any of the images used for this product
-            last_image_change_date = datetime.min.replace(tzinfo=pytz.UTC)
+            # last_image_change_date = datetime.min.replace(tzinfo=pytz.UTC)
+            last_image_change_date = datetime.min.replace(tzinfo=None)
             # Set the folder for uploading product documents to S3
             prod_folder = self.product_style_number + '/'
             # Snag the current date for comparison of changed images
@@ -764,8 +784,8 @@ class ProductTemplate(models.Model):
                     ET.SubElement(image_elem, "url").text = results['url']
                     ET.SubElement(image_elem, "md5").text = results['md5']
                     ET.SubElement(image_elem, "change_date").text = datetime.strftime(results['change_date'], "%Y-%m-%d")
-                    if results['change_date'].replace(tzinfo=pytz.UTC) > last_image_change_date:
-                        last_image_change_date = results['change_date']
+                    if results['change_date'].replace(tzinfo=None) > last_image_change_date:
+                        last_image_change_date = results['change_date'].replace(tzinfo=None)
                 # Upload the medium image
                 if self.image_medium:
                     image_elem = ET.SubElement(images_elem, "image")
@@ -774,8 +794,8 @@ class ProductTemplate(models.Model):
                     ET.SubElement(image_elem, "url").text = results['url']
                     ET.SubElement(image_elem, "md5").text = results['md5']
                     ET.SubElement(image_elem, "change_date").text = datetime.strftime(results['change_date'], "%Y-%m-%d")
-                    if results['change_date'].replace(tzinfo=pytz.UTC) > last_image_change_date:
-                        last_image_change_date = results['change_date']
+                    if results['change_date'].replace(tzinfo=None) > last_image_change_date:
+                        last_image_change_date = results['change_date'].replace(tzinfo=None)
                 # Upload the small image
                 if self.image_small:
                     image_elem = ET.SubElement(images_elem, "image")
@@ -784,8 +804,8 @@ class ProductTemplate(models.Model):
                     ET.SubElement(image_elem, "url").text = results['url']
                     ET.SubElement(image_elem, "md5").text = results['md5']
                     ET.SubElement(image_elem, "change_date").text = datetime.strftime(results['change_date'], "%Y-%m-%d")
-                    if results['change_date'].replace(tzinfo=pytz.UTC) > last_image_change_date:
-                        last_image_change_date = results['change_date']
+                    if results['change_date'].replace(tzinfo=None) > last_image_change_date:
+                        last_image_change_date = results['change_date'].replace(tzinfo=None)
                 # If there are any additional product images upload those
                 if self.product_image_ids:
                     # extra_images_elem = ET.SubElement(images_elem, "additional_images")
@@ -796,8 +816,8 @@ class ProductTemplate(models.Model):
                         ET.SubElement(image_elem, "url").text = results['url']
                         ET.SubElement(image_elem, "md5").text = results['md5']
                         ET.SubElement(image_elem, "change_date").text = datetime.strftime(results['change_date'], "%Y-%m-%d")
-                        if results['change_date'].replace(tzinfo=pytz.UTC) > last_image_change_date:
-                            last_image_change_date = results['change_date']
+                        if results['change_date'].replace(tzinfo=None) > last_image_change_date:
+                            last_image_change_date = results['change_date'].replace(tzinfo=None)
             # If the product has variants then add those.
             pvs_elem = ET.SubElement(product, "product_variants")
             if self.product_variant_ids:
@@ -844,8 +864,8 @@ class ProductTemplate(models.Model):
                         ET.SubElement(image_elem, "url").text = results['url']
                         ET.SubElement(image_elem, "md5").text = results['md5']
                         ET.SubElement(image_elem, "change_date").text = datetime.strftime(results['change_date'], "%Y-%m-%d")
-                        if results['change_date'].replace(tzinfo=pytz.UTC) > last_image_change_date:
-                            last_image_change_date = results['change_date']
+                        if results['change_date'].replace(tzinfo=None) > last_image_change_date:
+                            last_image_change_date = results['change_date'].replace(tzinfo=None)
                     if variant.image_medium:
                         image_elem = ET.SubElement(pv_images_elem, "image")
                         results = s3._upload_to_public_bucket(variant.image_medium, variant.default_code + '_medium.jpg', 'image/jpeg', prod_folder)
@@ -853,8 +873,8 @@ class ProductTemplate(models.Model):
                         ET.SubElement(image_elem, "url").text = results['url']
                         ET.SubElement(image_elem, "md5").text = results['md5']
                         ET.SubElement(image_elem, "change_date").text = datetime.strftime(results['change_date'], "%Y-%m-%d")
-                        if results['change_date'].replace(tzinfo=pytz.UTC) > last_image_change_date:
-                            last_image_change_date = results['change_date']
+                        if results['change_date'].replace(tzinfo=None) > last_image_change_date:
+                            last_image_change_date = results['change_date'].replace(tzinfo=None)
                     if variant.image_small:
                         image_elem = ET.SubElement(pv_images_elem, "image")
                         results = s3._upload_to_public_bucket(variant.image_small, variant.default_code + '_small.jpg', 'image/jpeg', prod_folder)
@@ -862,8 +882,8 @@ class ProductTemplate(models.Model):
                         ET.SubElement(image_elem, "url").text = results['url']
                         ET.SubElement(image_elem, "md5").text = results['md5']
                         ET.SubElement(image_elem, "change_date").text = datetime.strftime(results['change_date'], "%Y-%m-%d")
-                        if results['change_date'].replace(tzinfo=pytz.UTC) > last_image_change_date:
-                            last_image_change_date = results['change_date']
+                        if results['change_date'].replace(tzinfo=None) > last_image_change_date:
+                            last_image_change_date = results['change_date'].replace(tzinfo=None)
             save_location = None
             # Write the decoration location
             if self.decoration_area_ids:
@@ -1032,8 +1052,8 @@ class ProductTemplate(models.Model):
                         ET.SubElement(file_elem, "md5").text = results['md5']
                         ET.SubElement(file_elem, "change_date").text = datetime.strftime(results['change_date'], "%Y-%m-%d")
                         if attach.attachment_category[0].name == 'Blank' and \
-                            results['change_date'].replace(tzinfo=pytz.UTC) > last_image_change_date:
-                            last_image_change_date = results['change_date']
+                                results['change_date'].replace(tzinfo=None) > last_image_change_date:
+                            last_image_change_date = results['change_date'].replace(tzinfo=None)
 
             # Write the latest date that an image attached to this product has changed
             ET.SubElement(product, "last_image_change_date").text = datetime.strftime(last_image_change_date, "%Y-%m-%d")
