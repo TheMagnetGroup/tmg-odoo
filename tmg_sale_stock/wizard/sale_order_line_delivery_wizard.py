@@ -51,12 +51,22 @@ class SaleOrderLineDeliveryWizard(models.TransientModel):
         result = import_id.do(recognized_fields, parsed_header, options)
         rids = result.get('ids')
         if not rids:
+            error_message = '\n'
+            for msg in result.get('messages'):
+                if msg['type'] == 'error':
+                    error_message += "{} in row {}\n".format(msg['message'], msg['record'])
+            # raise ValidationError(_('Cannot create/find {} records from the uploaded file.\n'
+            #                         'Make sure the headers of your file match the technical or functional field names on model {}.\n\n'
+            #                         'Input Header: {}\n'
+            #                         'Mapped Header: {}\n'
+            #                         'Error Message: {}'.format(model_name, model_name, parsed_header, recognized_fields,
+            #                                                    result.get('messages'))))
             raise ValidationError(_('Cannot create/find {} records from the uploaded file.\n'
                                     'Make sure the headers of your file match the technical or functional field names on model {}.\n\n'
                                     'Input Header: {}\n'
                                     'Mapped Header: {}\n'
                                     'Error Message: {}'.format(model_name, model_name, parsed_header, recognized_fields,
-                                                               result.get('messages'))))
+                                                               error_message)))
         return rids
 
     # parent company

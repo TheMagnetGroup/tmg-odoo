@@ -248,7 +248,9 @@ class ProductDecorationMethod(models.Model):
 
     name = fields.Char(string='Name', compute='_set_name')
     product_tmpl_id = fields.Many2one(comodel_name='product.template', string='Product Template', required=True)
-    decoration_method_id = fields.Many2one(comodel_name='product.template.attribute.value', string='Decoration Method',
+    # decoration_method_id = fields.Many2one(comodel_name='product.template.attribute.value', string='Decoration Method',
+    #                                        delete='restrict', required=True)
+    decoration_method_id = fields.Many2one(comodel_name='product.attribute.value', string='Decoration Method',
                                            delete='restrict', required=True)
     prod_time_lo = fields.Integer(string='Production Time Low',
                                   help='Lowest decoration time (in days) for this product and decoration method',
@@ -289,9 +291,13 @@ class ProductDecorationArea(models.Model):
     name = fields.Char(string='Name', compute='_set_name')
     product_tmpl_id = fields.Many2one(comodel_name='product.template', string='Product Template', ondelete='restrict',
                                       required=True)
-    decoration_area_id = fields.Many2one(comodel_name='product.template.attribute.value', string='Decoration Area',
+    # decoration_area_id = fields.Many2one(comodel_name='product.template.attribute.value', string='Decoration Area',
+    #                                      required=True)
+    decoration_area_id = fields.Many2one(comodel_name='product.attribute.value', string='Decoration Area',
                                          required=True)
-    decoration_method_id = fields.Many2one(comodel_name='product.template.decorationmethod', string='Decoration Method',
+    # decoration_method_id = fields.Many2one(comodel_name='product.template.decorationmethod', string='Decoration Method',
+    #                                        required=True)
+    decoration_method_id = fields.Many2one(comodel_name='product.attribute.value', string='Decoration Method',
                                            required=True)
     height = fields.Float(string='Decoration Height', help='The height of the decoration area in inches.')
     width = fields.Float(string='Decoration Width', help='The width of the decoration area in inches.')
@@ -318,8 +324,9 @@ class ProductDecorationArea(models.Model):
 
     @api.constrains('shape')
     def _check_shape(self):
-        if self.shape == 'circle' and self.diameter == 0:
-            raise ValidationError("If the shape is a circle then diameter cannot be 0!")
+        for area in self:
+            if area.shape == 'circle' and area.diameter == 0:
+                raise ValidationError("If the shape is a circle then diameter cannot be 0!")
 
 
 class ProductAdditonalCharges(models.Model):
@@ -330,7 +337,9 @@ class ProductAdditonalCharges(models.Model):
                                       required=True)
     addl_charge_product_id = fields.Many2one(comodel_name='product.template', string='Additional Charge Product',
                                              ondelete='restrict', required=True)
-    decoration_method_ids = fields.Many2many(comodel_name='product.template.attribute.value',
+    # decoration_method_ids = fields.Many2many(comodel_name='product.template.attribute.value',
+    #                                          string='Decoration Methods')
+    decoration_method_ids = fields.Many2many(comodel_name='product.attribute.value',
                                              string='Decoration Methods')
     charge_type = fields.Selection([
         ('order', 'Order'),
@@ -373,6 +382,18 @@ class ProductTemplate(models.Model):
 
     @api.model
     def _build_all_xml(self):
+
+        # Get the IT message channel
+        it_channel = self.env['mail.channel'].search([('name', '=', 'it')])
+
+        # Now ensure that the tmg-public S3 bucket exists. If not, we'll send a message to the IT channel
+        # and not process any builds
+        s3_public = self.env['pr1_s3.s3_connection'].search([('name', '=', 'tmg-public')])
+        if not s3_public:
+            it_channel.message_post(body=_('The tmg-public S3 bucket required for product XML builds was not found'),
+                                    message_type='comment', subtype='mail.mt_comment')
+            return
+
         # Get a list of all active products that can be sold
         products = self.get_product_saleable()
 
@@ -397,7 +418,6 @@ class ProductTemplate(models.Model):
         # Also check if any build caused a technical error to occur
         prod_errors = products.filtered(lambda r: r.data_errors and not r.user_data_error)
         if prod_errors:
-            it_channel = self.env['mail.channel'].search([('name', '=', 'it')])
             if it_channel:
                 it_channel.message_post(body=_('One or more products have technical errors that need to be reviewed'),
                                         message_type='comment', subtype='mail.mt_comment')
@@ -616,6 +636,10 @@ class ProductTemplate(models.Model):
                 price_grid_dict = self._build_price_grid()
                 if not price_grid_dict:
                     messages.append("<li>Pricing not returned for product with decoration method {0}</li>".format(method.decoration_method_id.name))
+                else:
+                    # Ensure discount code were supplied
+                    if not price_grid_dict['discount_codes'] or not price_grid_dict['discount_codes'][0]:
+                        messages.append("<li>Discount codes not set for product</li>")
 
         if not self.decoration_area_ids:
             messages.append("<li>Product missing decoration locations</li>")
@@ -639,6 +663,10 @@ class ProductTemplate(models.Model):
                 ac_price_grid_dict = ac.addl_charge_product_id._build_price_grid()
                 if not ac_price_grid_dict:
                     messages.append("<li>No pricing found for additional charge item '{0}'</li>".format(ac.addl_charge_product_id.name))
+                else:
+                    # Ensure discount code were supplied
+                    if not price_grid_dict['discount_codes'] or not price_grid_dict['discount_codes'][0]:
+                        messages.append("<li>Discount codes not set for additional charge item '{0}'</li>".format(ac.addl_charge_product_id.name))
 
         # Now if we wrote ANY messages to the messages list update the data error message field
         if len(messages):
@@ -664,7 +692,8 @@ class ProductTemplate(models.Model):
             # Get Odoo's decimal accuracy for pricing
             price_digits = self.env['decimal.precision'].precision_get('Product Price')
             # We'll keep track of the latest change date of any of the images used for this product
-            last_image_change_date = datetime.min.replace(tzinfo=pytz.UTC)
+            # last_image_change_date = datetime.min.replace(tzinfo=pytz.UTC)
+            last_image_change_date = datetime.min.replace(tzinfo=None)
             # Set the folder for uploading product documents to S3
             prod_folder = self.product_style_number + '/'
             # Snag the current date for comparison of changed images
@@ -755,8 +784,8 @@ class ProductTemplate(models.Model):
                     ET.SubElement(image_elem, "url").text = results['url']
                     ET.SubElement(image_elem, "md5").text = results['md5']
                     ET.SubElement(image_elem, "change_date").text = datetime.strftime(results['change_date'], "%Y-%m-%d")
-                    if results['change_date'].replace(tzinfo=pytz.UTC) > last_image_change_date:
-                        last_image_change_date = results['change_date']
+                    if results['change_date'].replace(tzinfo=None) > last_image_change_date:
+                        last_image_change_date = results['change_date'].replace(tzinfo=None)
                 # Upload the medium image
                 if self.image_medium:
                     image_elem = ET.SubElement(images_elem, "image")
@@ -765,8 +794,8 @@ class ProductTemplate(models.Model):
                     ET.SubElement(image_elem, "url").text = results['url']
                     ET.SubElement(image_elem, "md5").text = results['md5']
                     ET.SubElement(image_elem, "change_date").text = datetime.strftime(results['change_date'], "%Y-%m-%d")
-                    if results['change_date'].replace(tzinfo=pytz.UTC) > last_image_change_date:
-                        last_image_change_date = results['change_date']
+                    if results['change_date'].replace(tzinfo=None) > last_image_change_date:
+                        last_image_change_date = results['change_date'].replace(tzinfo=None)
                 # Upload the small image
                 if self.image_small:
                     image_elem = ET.SubElement(images_elem, "image")
@@ -775,8 +804,8 @@ class ProductTemplate(models.Model):
                     ET.SubElement(image_elem, "url").text = results['url']
                     ET.SubElement(image_elem, "md5").text = results['md5']
                     ET.SubElement(image_elem, "change_date").text = datetime.strftime(results['change_date'], "%Y-%m-%d")
-                    if results['change_date'].replace(tzinfo=pytz.UTC) > last_image_change_date:
-                        last_image_change_date = results['change_date']
+                    if results['change_date'].replace(tzinfo=None) > last_image_change_date:
+                        last_image_change_date = results['change_date'].replace(tzinfo=None)
                 # If there are any additional product images upload those
                 if self.product_image_ids:
                     # extra_images_elem = ET.SubElement(images_elem, "additional_images")
@@ -787,8 +816,8 @@ class ProductTemplate(models.Model):
                         ET.SubElement(image_elem, "url").text = results['url']
                         ET.SubElement(image_elem, "md5").text = results['md5']
                         ET.SubElement(image_elem, "change_date").text = datetime.strftime(results['change_date'], "%Y-%m-%d")
-                        if results['change_date'].replace(tzinfo=pytz.UTC) > last_image_change_date:
-                            last_image_change_date = results['change_date']
+                        if results['change_date'].replace(tzinfo=None) > last_image_change_date:
+                            last_image_change_date = results['change_date'].replace(tzinfo=None)
             # If the product has variants then add those.
             pvs_elem = ET.SubElement(product, "product_variants")
             if self.product_variant_ids:
@@ -835,8 +864,8 @@ class ProductTemplate(models.Model):
                         ET.SubElement(image_elem, "url").text = results['url']
                         ET.SubElement(image_elem, "md5").text = results['md5']
                         ET.SubElement(image_elem, "change_date").text = datetime.strftime(results['change_date'], "%Y-%m-%d")
-                        if results['change_date'].replace(tzinfo=pytz.UTC) > last_image_change_date:
-                            last_image_change_date = results['change_date']
+                        if results['change_date'].replace(tzinfo=None) > last_image_change_date:
+                            last_image_change_date = results['change_date'].replace(tzinfo=None)
                     if variant.image_medium:
                         image_elem = ET.SubElement(pv_images_elem, "image")
                         results = s3._upload_to_public_bucket(variant.image_medium, variant.default_code + '_medium.jpg', 'image/jpeg', prod_folder)
@@ -844,8 +873,8 @@ class ProductTemplate(models.Model):
                         ET.SubElement(image_elem, "url").text = results['url']
                         ET.SubElement(image_elem, "md5").text = results['md5']
                         ET.SubElement(image_elem, "change_date").text = datetime.strftime(results['change_date'], "%Y-%m-%d")
-                        if results['change_date'].replace(tzinfo=pytz.UTC) > last_image_change_date:
-                            last_image_change_date = results['change_date']
+                        if results['change_date'].replace(tzinfo=None) > last_image_change_date:
+                            last_image_change_date = results['change_date'].replace(tzinfo=None)
                     if variant.image_small:
                         image_elem = ET.SubElement(pv_images_elem, "image")
                         results = s3._upload_to_public_bucket(variant.image_small, variant.default_code + '_small.jpg', 'image/jpeg', prod_folder)
@@ -853,8 +882,8 @@ class ProductTemplate(models.Model):
                         ET.SubElement(image_elem, "url").text = results['url']
                         ET.SubElement(image_elem, "md5").text = results['md5']
                         ET.SubElement(image_elem, "change_date").text = datetime.strftime(results['change_date'], "%Y-%m-%d")
-                        if results['change_date'].replace(tzinfo=pytz.UTC) > last_image_change_date:
-                            last_image_change_date = results['change_date']
+                        if results['change_date'].replace(tzinfo=None) > last_image_change_date:
+                            last_image_change_date = results['change_date'].replace(tzinfo=None)
             save_location = None
             # Write the decoration location
             if self.decoration_area_ids:
@@ -868,9 +897,19 @@ class ProductTemplate(models.Model):
                         methods_elem = ET.SubElement(location_elem, "decoration_methods")
                         save_location = location.decoration_area_id.id
                     method_elem = ET.SubElement(methods_elem, "decoration_method")
-                    ET.SubElement(method_elem, "id").text = str(location.decoration_method_id.id)
-                    ET.SubElement(method_elem, "name").text = location.decoration_method_id.name
-                    ET.SubElement(method_elem, "sequence").text = str(location.decoration_method_id.decoration_method_id.sequence)
+                    deco_method = self.env['product.template.decorationmethod'].search(
+                        [
+                            ('product_tmpl_id', '=', self.id),
+                            ('decoration_method_id.id', '=', location.decoration_method_id.id)
+                        ]
+                    )
+                    # ET.SubElement(method_elem, "id").text = str(location.decoration_method_id.id)
+                    ET.SubElement(method_elem, "id").text = str(deco_method.decoration_method_id.id)
+                    # ET.SubElement(method_elem, "name").text = location.decoration_method_id.name
+                    ET.SubElement(method_elem, "name").text = deco_method.name
+                    # ET.SubElement(method_elem, "sequence").text = str(location.decoration_method_id.decoration_method_id.sequence)
+                    ET.SubElement(method_elem, "sequence").text = str(
+                        deco_method.decoration_method_id.sequence)
                     ET.SubElement(method_elem, "height").text = str(location.height)
                     ET.SubElement(method_elem, "width").text = str(location.width)
                     if location.shape == "circle" and location.diameter and \
@@ -878,21 +917,34 @@ class ProductTemplate(models.Model):
                         ET.SubElement(method_elem, "diameter").text = str(location.diameter)
                     ET.SubElement(method_elem, "dimensions").text = location.dimensions
                     ET.SubElement(method_elem, "shape").text = location.shape
-                    ET.SubElement(method_elem, "prod_time_lo").text = str(location.decoration_method_id.prod_time_lo)
-                    ET.SubElement(method_elem, "prod_time_hi").text = str(location.decoration_method_id.prod_time_hi)
-                    ET.SubElement(method_elem, "quick_ship").text = str(location.decoration_method_id.quick_ship)
-                    ET.SubElement(method_elem, "quick_ship_max").text = str(location.decoration_method_id.quick_ship_max)
-                    ET.SubElement(method_elem, "quick_ship_prod_days").text = str(location.decoration_method_id.quick_ship_prod_days)
-                    ET.SubElement(method_elem, "number_sides").text = str(location.decoration_method_id.number_sides)
-                    ET.SubElement(method_elem, "pms").text = str(location.decoration_method_id.pms)
-                    ET.SubElement(method_elem, "full_color").text = str(location.decoration_method_id.full_color)
-                    ET.SubElement(method_elem, "max_colors").text = str(location.decoration_method_id.max_colors)
+                    # ET.SubElement(method_elem, "prod_time_lo").text = str(location.decoration_method_id.prod_time_lo)
+                    ET.SubElement(method_elem, "prod_time_lo").text = str(deco_method.prod_time_lo)
+                    # ET.SubElement(method_elem, "prod_time_hi").text = str(location.decoration_method_id.prod_time_hi)
+                    ET.SubElement(method_elem, "prod_time_hi").text = str(deco_method.prod_time_hi)
+                    # ET.SubElement(method_elem, "quick_ship").text = str(location.decoration_method_id.quick_ship)
+                    ET.SubElement(method_elem, "quick_ship").text = str(deco_method.quick_ship)
+                    # ET.SubElement(method_elem, "quick_ship_max").text = str(location.decoration_method_id.quick_ship_max)
+                    ET.SubElement(method_elem, "quick_ship_max").text = str(
+                        deco_method.quick_ship_max)
+                    # ET.SubElement(method_elem, "quick_ship_prod_days").text = str(location.decoration_method_id.quick_ship_prod_days)
+                    ET.SubElement(method_elem, "quick_ship_prod_days").text = str(
+                        deco_method.quick_ship_prod_days)
+                    # ET.SubElement(method_elem, "number_sides").text = str(location.decoration_method_id.number_sides)
+                    ET.SubElement(method_elem, "number_sides").text = str(deco_method.number_sides)
+                    # ET.SubElement(method_elem, "pms").text = str(location.decoration_method_id.pms)
+                    ET.SubElement(method_elem, "pms").text = str(deco_method.pms)
+                    # ET.SubElement(method_elem, "full_color").text = str(location.decoration_method_id.full_color)
+                    ET.SubElement(method_elem, "full_color").text = str(deco_method.full_color)
+                    # ET.SubElement(method_elem, "max_colors").text = str(location.decoration_method_id.max_colors)
+                    ET.SubElement(method_elem, "max_colors").text = str(deco_method.max_colors)
 
                     # Now write the prices.  First get the pricing grid
                     prices_elem = ET.SubElement(method_elem, "prices")
                     price_elem = ET.SubElement(prices_elem, "price")
                     # Set the variants that don't create attributes in the context
-                    self = self.with_context(no_create_variant_attributes=[location.decoration_method_id.decoration_method_id.id])
+                    # self = self.with_context(no_create_variant_attributes=[location.decoration_method_id.decoration_method_id.id])
+                    self = self.with_context(
+                        no_create_variant_attributes=[deco_method.decoration_method_id.id])
                     # Build the price grid for standard catalog/net
                     price_grid_dict = self._build_price_grid()
                     self = self.with_context(no_create_variant_attributes=None)
@@ -917,8 +969,11 @@ class ProductTemplate(models.Model):
                     if self.addl_charge_product_ids:
                         addl_charges_elem = ET.SubElement(method_elem, "additional_charges")
                         for addl_charge_id in self.addl_charge_product_ids:
+                            # if not addl_charge_id.decoration_method_ids or \
+                            #         location.decoration_method_id.decoration_method_id.id in \
+                            #         addl_charge_id.decoration_method_ids.ids:
                             if not addl_charge_id.decoration_method_ids or \
-                                    location.decoration_method_id.decoration_method_id.id in \
+                                    location.decoration_method_id.id in \
                                     addl_charge_id.decoration_method_ids.ids:
                                 addl_charge_elem = ET.SubElement(addl_charges_elem, "additional_charge")
                                 ET.SubElement(addl_charge_elem, "id").text = str(addl_charge_id.id)
@@ -997,8 +1052,8 @@ class ProductTemplate(models.Model):
                         ET.SubElement(file_elem, "md5").text = results['md5']
                         ET.SubElement(file_elem, "change_date").text = datetime.strftime(results['change_date'], "%Y-%m-%d")
                         if attach.attachment_category[0].name == 'Blank' and \
-                            results['change_date'].replace(tzinfo=pytz.UTC) > last_image_change_date:
-                            last_image_change_date = results['change_date']
+                                results['change_date'].replace(tzinfo=None) > last_image_change_date:
+                            last_image_change_date = results['change_date'].replace(tzinfo=None)
 
             # Write the latest date that an image attached to this product has changed
             ET.SubElement(product, "last_image_change_date").text = datetime.strftime(last_image_change_date, "%Y-%m-%d")

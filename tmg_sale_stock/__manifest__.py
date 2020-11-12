@@ -165,6 +165,7 @@
     [2060046]
     
         * Christian Dunn - 2020/04/09 -   Added check for validation to make sure location has product.
+        * Jonas Temple - 2020/11/11 - Reformatted the error message for drop ship imports to make it more readable.
     """,
     'license': 'OEEL-1',
     'author': 'Odoo Inc',

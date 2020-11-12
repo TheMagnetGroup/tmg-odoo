@@ -116,8 +116,11 @@
                             <field name="decoration_method_ids" widget="one2many_list" context="{'show_attribute': False}"
                                    modifiers="{'readonly':'false'}">
                                 <tree editable="bottom">
+<!--                                    <field name="decoration_method_id" options="{'no_create_edit':True}"-->
+<!--                                            domain="[('product_tmpl_id.id','=',parent.id),('attribute_id.category','=','decoration')]"-->
+<!--                                            />-->
                                     <field name="decoration_method_id" options="{'no_create_edit':True}"
-                                            domain="[('product_tmpl_id.id','=',parent.id),('attribute_id.category','=','decoration')]"
+                                            domain="[('attribute_id.category','=','decoration')]"
                                             />
                                     <field name="prod_time_lo"/>
                                     <field name="prod_time_hi"/>
@@ -135,11 +138,17 @@
                             <field name="decoration_area_ids" widget="one2many_list" context="{'show_attribute': False}"
                                    modifiers="{'readonly':'false'}">
                                 <tree editable="bottom">
+<!--                                    <field name="decoration_area_id" options="{'no_create_edit':True}"-->
+<!--                                            domain="[('product_tmpl_id.id','=',parent.id),('attribute_id.category','=','location')]"-->
+<!--                                            />-->
                                     <field name="decoration_area_id" options="{'no_create_edit':True}"
-                                            domain="[('product_tmpl_id.id','=',parent.id),('attribute_id.category','=','location')]"
+                                            domain="[('attribute_id.category','=','location')]"
                                             />
+<!--                                    <field name="decoration_method_id" options="{'no_create_edit':True}"-->
+<!--                                            domain="[('product_tmpl_id.id','=',parent.id)]"-->
+<!--                                            />-->
                                     <field name="decoration_method_id" options="{'no_create_edit':True}"
-                                            domain="[('product_tmpl_id.id','=',parent.id)]"
+                                            domain="[('attribute_id.category','=','decoration')]"
                                             />
                                     <field name="height"/>
                                     <field name="width"/>
@@ -154,9 +163,13 @@
                                 <tree editable="bottom">
                                     <field name="addl_charge_product_id" options="{'no_create_edit':True}"
                                             domain="[('type','in',['service','consu']),('id','!=',parent.id)]"/>
+<!--                                    <field name="decoration_method_ids" options="{'no_create_edit':True}"-->
+<!--                                            widget="many2many_tags"-->
+<!--                                            domain="[('product_tmpl_id.id','=',parent.id),('attribute_id.category','=','decoration')]"-->
+<!--                                            />-->
                                     <field name="decoration_method_ids" options="{'no_create_edit':True}"
                                             widget="many2many_tags"
-                                            domain="[('product_tmpl_id.id','=',parent.id),('attribute_id.category','=','decoration')]"
+                                            domain="[('attribute_id.category','=','decoration')]"
                                             />
                                     <field name="charge_type"/>
                                     <field name="charge_yuom"/>

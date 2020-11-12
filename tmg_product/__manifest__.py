@@ -8,6 +8,8 @@
     'description': """
         This TMG module extends the product module to allow for attribute price extras based on quantity breaks
         * Jon W. Bergt 2020-06-11 - mrp_job added to 'depends' list to ensure job_id is available in tmg_product load
+        * Jona Temple 2020-11-10 - Added models and code to support the ability to verify and create a standard product xml. Also
+            added code to import ASI/SAGE categories and to export product data to SAGE.
     """,
 
     'author': "The Magnet Group",
