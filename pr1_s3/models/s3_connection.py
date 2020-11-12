@@ -231,6 +231,10 @@ class S3Connection(models.Model):
         s3_bucket, s3_service = self.get_bucket()
         upload = False
 
+        # If the bucket has a subfolder prepend that to the passed folder
+        if self.sub_folder:
+            folder = self.sub_folder + "/" + folder
+
         # Decode from base64 and get the md5 checksum value
         bin_data = base64.b64decode(data)
         # Get the MD5 checksum of the data
