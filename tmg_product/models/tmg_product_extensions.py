@@ -665,7 +665,7 @@ class ProductTemplate(models.Model):
                     messages.append("<li>No pricing found for additional charge item '{0}'</li>".format(ac.addl_charge_product_id.name))
                 else:
                     # Ensure discount code were supplied
-                    if not price_grid_dict['discount_codes'] or not price_grid_dict['discount_codes'][0]:
+                    if not ac_price_grid_dict['discount_codes'] or not ac_price_grid_dict['discount_codes'][0]:
                         messages.append("<li>Discount codes not set for additional charge item '{0}'</li>".format(ac.addl_charge_product_id.name))
 
         # Now if we wrote ANY messages to the messages list update the data error message field
