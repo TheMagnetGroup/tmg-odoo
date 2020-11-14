@@ -404,7 +404,7 @@ class ProductTemplate(models.Model):
         for product_split in split_every(100, products):
             for product in product_split:
                 product._build_std_xml()
-            self._cr.commit()
+            cr.commit()
 
         # Now check if there were any products that have additional user data errors and if so send a message
         # to the product data group.
@@ -422,8 +422,8 @@ class ProductTemplate(models.Model):
                 it_channel.message_post(body=_('One or more products have technical errors that need to be reviewed'),
                                         message_type='comment', subtype='mail.mt_comment')
 
-        self._cr.commit()
-        self._cr.close()
+        cr.commit()
+        cr.close()
 
     @api.model
     def _send_product_updates(self):
@@ -441,7 +441,7 @@ class ProductTemplate(models.Model):
                     if export_account.export_data:
                         product._export_product_data()
                         break
-            self._cr.commit()
+            cr.commit()
 
         # If there are any product export accounts that have an error then broadcast a group message now
         prod_errors = self.env['product.export.account'].search([('last_export_error', '=', True)])
@@ -451,8 +451,8 @@ class ProductTemplate(models.Model):
                 user_channel.message_post(body=_('One or more products have export errors that need to be reviewed'),
                                         message_type='comment', subtype='mail.mt_comment')
 
-        self._cr.commit()
-        self._cr.close()
+        cr.commit()
+        cr.close()
 
     def _export_product_data(self):
         # Loop through the export accounts for this product
@@ -539,149 +539,178 @@ class ProductTemplate(models.Model):
     def _check_xml_data(self):
         messages = []
 
-        if not self.product_style_number:
-            messages.append("<li>Product Style Number missing</li>")
-        if not self.name:
+        # A generic try/catch here to catch any exceptions that can be generated based on the data environment
+        try:
 
-            messages.append("<li>Product Name missing</li>")
-        if not self.categ_id:
-            messages.append("<li>Product Category missing</li>")
-        if not self.website_description:
-            messages.append("<li>Product Website Description missing</li>")
-        if not self.width:
-            messages.append("<li>Product Width missing</li>")
-        if not self.height:
-            messages.append("<li>Product Height missing</li>")
-        if not self.depth:
-            messages.append("<li>Product Depth missing</li>")
-        if not self.product_variant_count or self.product_variant_count == 0:
-            messages.append("<li>Product does not have variants configured</li>")
-        if not self.primary_material:
-            messages.append("<li>Product Primary Material missing</li>")
-        if not self.market_introduction_date:
-            messages.append("<li>Product Market Introduction Date missing</li>")
-        if not self.website_meta_keywords:
-            messages.append("<li>Product Keywords missing</li>")
-        if not self.public_categ_ids:
-            messages.append("<li>Product Website Categories missing</li>")
-        else:
-            for cat in self.public_categ_ids:
-                if cat.parent_id.name == "Category":
-                    if not cat.sage_category_id:
-                        messages.append("<li>Product Category '{0}' missing equivalent SAGE category</li>".format(cat.name))
-                    if not cat.asi_category_id:
-                        messages.append("<li>Product Category '{0}' missing equivalent ASI category</li>".format(cat.name))
-        if not self.warehouses:
-            messages.append("<li>Product Warehouse(s) missing</li>")
-        else:
-            for warehouse in self.warehouses:
-                if not warehouse.partner_id:
-                    messages.append("<li>Product Warehouse '{0}' missing address entry</li>".format(warehouse.name))
-                else:
-                    if not warehouse.partner_id.zip:
-                        messages.append("<li>Product Warehouse '{0}' Address missing zip code</li>".format(warehouse.name))
-                    if not warehouse.partner_id.city:
-                        messages.append("<li>Product Warehouse '{0}' Address missing city</li>".format(warehouse.name))
-                    if not warehouse.partner_id.state_id:
-                        messages.append("<li>Product Warehouse '{0}' Address missing state</li>".format(warehouse.name))
-                    if not warehouse.partner_id.country_id:
-                        messages.append("<li>Product Warehouse '{0}' Address missing country</li>".format(warehouse.name))
-        if self.product_variant_ids:
-            for variant in self.product_variant_ids:
-                if not variant.name:
-                    messages.append("<li>Product Variant missing name</li>")
-                if not variant.weight:
-                    messages.append("<li>Product Variant '{0}' missing weight</li>".format(variant.weight))
-                if not variant.default_code:
-                    messages.append("<li>Product Variant '{0}' missing internal reference</li>".format(variant.display_name))
-                if not variant.default_code:
-                    messages.append("<li>Product Variant '{0}' missing default code</li>".format(variant.display_name))
-                if not variant.packaging_ids:
-                    messages.append("<li>Product Variant '{0}' missing packaging ids</li>".format(variant.display_name))
-                else:
-                    if not variant.packaging_ids[0].name:
-                        messages.append("<li>Product Variant '{0}' packaging missing name</li>".format(variant.display_name))
-                    if not variant.packaging_ids[0].qty:
-                        messages.append("<li>Product Variant '{0}' packaging missing quantity</li>".format(variant.display_name))
-                    if not variant.packaging_ids[0].max_weight:
-                        messages.append("<li>Product Variant '{0}' packaging missing maximum weight</li>".format(variant.display_name))
-                    if not variant.packaging_ids[0].length:
-                        messages.append("<li>Product Variant '{0}' packaging missing length</li>".format(variant.display_name))
-                    if not variant.packaging_ids[0].width:
-                        messages.append("<li>Product Variant '{0}' packaging missing width</li>".format(variant.display_name))
-                    if not variant.packaging_ids[0].height:
-                        messages.append("<li>Product Variant '{0}' packaging missing height</li>".format(variant.display_name))
-        else:
-            messages.append("<li>Product has no variants</li>")
-        if not self.decoration_method_ids:
-            messages.append("<li>Product missing decoration methods</li>")
-        else:
-            for method in self.decoration_method_ids:
-                if not method.name:
-                    messages.append("<li>Decoration method for product missing name</li>")
-                if not method.prod_time_lo:
-                    messages.append("<li>Decoration method '{0}' missing production time low</li>".format(method.name))
-                if not method.prod_time_hi:
-                    messages.append("<li>Decoration method '{0}' missing production time high</li>".format(method.name))
-                if method.quick_ship:
-                    if not method.quick_ship_max:
-                        messages.append("<li>Decoration method '{0}' flagged for quick ship but missing quick ship max quantity</li>".format(method.name))
-                    if not method.quick_ship_prod_days:
-                        messages.append("<li>Decoration method '{0}' flagged for quick ship but missing quick ship production days</li>".format(method.name))
-                # if not method.number_sides:
-                #     messages.append("<li>Decoration method '{0}' missing number of sides</li>".format(method.name))
-                # Set the variants that don't create attributes in the context
-                self = self.with_context(no_create_variant_attributes=[method.decoration_method_id.id])
-                # Build the price grid for standard catalog/net
-                price_grid_dict = self._build_price_grid()
-                if not price_grid_dict:
-                    messages.append("<li>Pricing not returned for product with decoration method {0}</li>".format(method.decoration_method_id.name))
-                else:
-                    # Ensure discount code were supplied
-                    if not price_grid_dict['discount_codes'] or not price_grid_dict['discount_codes'][0]:
-                        messages.append("<li>Discount codes not set for product</li>")
+            if not self.product_style_number:
+                messages.append("<li>Product Style Number missing</li>")
+            if not self.name:
 
-        if not self.decoration_area_ids:
-            messages.append("<li>Product missing decoration locations</li>")
-        else:
-            for area in self.decoration_area_ids:
-                if not area.height:
-                    messages.append("<li>Decoration area '{0}' missing height</li>".format(area.name))
-                if not area.width:
-                    messages.append("<li>Decoration area '{0}' missing width</li>".format(area.name))
-                if area.shape == "circle" and (not area.diameter or area.diameter == 0):
-                    messages.append("<li>Decoration area '{0}' shape is circle but no diameter specified</li>".format(area.name))
-                if not area.shape:
-                    messages.append("<li>Decoration area '{0}' missing shape</li>".format(area.name))
-        if self.addl_charge_product_ids:
-            for ac in self.addl_charge_product_ids:
-                if not ac.charge_type:
-                    messages.append("<li>Additional Charge Item '{0}' missing charge type</li>".format(ac.addl_charge_product_id.name))
-                if not ac.charge_yuom:
-                    messages.append("<li>Additional Charge Item '{0}' missing other unit of measure</li>".format(ac.addl_charge_product_id.name))
-                # Build the price grid for standard catalog/net
-                ac_price_grid_dict = ac.addl_charge_product_id._build_price_grid()
-                if not ac_price_grid_dict:
-                    messages.append("<li>No pricing found for additional charge item '{0}'</li>".format(ac.addl_charge_product_id.name))
-                else:
-                    # Ensure discount code were supplied
-                    if not ac_price_grid_dict['discount_codes'] or not ac_price_grid_dict['discount_codes'][0]:
-                        messages.append("<li>Discount codes not set for additional charge item '{0}'</li>".format(ac.addl_charge_product_id.name))
+                messages.append("<li>Product Name missing</li>")
+            if not self.categ_id:
+                messages.append("<li>Product Category missing</li>")
+            if not self.website_description:
+                messages.append("<li>Product Website Description missing</li>")
+            if not self.width:
+                messages.append("<li>Product Width missing</li>")
+            if not self.height:
+                messages.append("<li>Product Height missing</li>")
+            if not self.depth:
+                messages.append("<li>Product Depth missing</li>")
+            if not self.product_variant_count or self.product_variant_count == 0:
+                messages.append("<li>Product does not have variants configured</li>")
+            if not self.primary_material:
+                messages.append("<li>Product Primary Material missing</li>")
+            if not self.market_introduction_date:
+                messages.append("<li>Product Market Introduction Date missing</li>")
+            if not self.website_meta_keywords:
+                messages.append("<li>Product Keywords missing</li>")
+            if not self.public_categ_ids:
+                messages.append("<li>Product Website Categories missing</li>")
+            else:
+                for cat in self.public_categ_ids:
+                    if cat.parent_id.name == "Category":
+                        if not cat.sage_category_id:
+                            messages.append("<li>Product Category '{0}' missing equivalent SAGE category</li>".format(cat.name))
+                        if not cat.asi_category_id:
+                            messages.append("<li>Product Category '{0}' missing equivalent ASI category</li>".format(cat.name))
+            if not self.image:
+                messages.append("<li>Product has no image</li>")
+            if not self.warehouses:
+                messages.append("<li>Product Warehouse(s) missing</li>")
+            else:
+                for warehouse in self.warehouses:
+                    if not warehouse.partner_id:
+                        messages.append("<li>Product Warehouse '{0}' missing address entry</li>".format(warehouse.name))
+                    else:
+                        if not warehouse.partner_id.zip:
+                            messages.append("<li>Product Warehouse '{0}' Address missing zip code</li>".format(warehouse.name))
+                        if not warehouse.partner_id.city:
+                            messages.append("<li>Product Warehouse '{0}' Address missing city</li>".format(warehouse.name))
+                        if not warehouse.partner_id.state_id:
+                            messages.append("<li>Product Warehouse '{0}' Address missing state</li>".format(warehouse.name))
+                        if not warehouse.partner_id.country_id:
+                            messages.append("<li>Product Warehouse '{0}' Address missing country</li>".format(warehouse.name))
+            if self.product_variant_ids:
+                for variant in self.product_variant_ids:
+                    if not variant.name:
+                        messages.append("<li>Product Variant missing name</li>")
+                    if not variant.weight:
+                        messages.append("<li>Product Variant '{0}' missing weight</li>".format(variant.weight))
+                    if not variant.default_code:
+                        messages.append("<li>Product Variant '{0}' missing internal reference</li>".format(variant.display_name))
+                    if not variant.default_code:
+                        messages.append("<li>Product Variant '{0}' missing default code</li>".format(variant.display_name))
+                    if not variant.packaging_ids:
+                        messages.append("<li>Product Variant '{0}' missing packaging ids</li>".format(variant.display_name))
+                    else:
+                        if not variant.packaging_ids[0].name:
+                            messages.append("<li>Product Variant '{0}' packaging missing name</li>".format(variant.display_name))
+                        if not variant.packaging_ids[0].qty:
+                            messages.append("<li>Product Variant '{0}' packaging missing quantity</li>".format(variant.display_name))
+                        if not variant.packaging_ids[0].max_weight:
+                            messages.append("<li>Product Variant '{0}' packaging missing maximum weight</li>".format(variant.display_name))
+                        if not variant.packaging_ids[0].length:
+                            messages.append("<li>Product Variant '{0}' packaging missing length</li>".format(variant.display_name))
+                        if not variant.packaging_ids[0].width:
+                            messages.append("<li>Product Variant '{0}' packaging missing width</li>".format(variant.display_name))
+                        if not variant.packaging_ids[0].height:
+                            messages.append("<li>Product Variant '{0}' packaging missing height</li>".format(variant.display_name))
+                    if not self.image:
+                        messages.append("<li>Product Variant '{0}' has no image</li>".format(variant.display_name))
+            else:
+                messages.append("<li>Product has no variants</li>")
+            deco_ids = []
+            if not self.decoration_method_ids:
+                messages.append("<li>Product missing decoration methods</li>")
+            else:
+                for method in self.decoration_method_ids:
+                    deco_ids.append(method.decoration_method_id.id)
+                    if not method.name:
+                        messages.append("<li>Decoration method for product missing name</li>")
+                    if not method.prod_time_lo:
+                        messages.append("<li>Decoration method '{0}' missing production time low</li>".format(method.name))
+                    if not method.prod_time_hi:
+                        messages.append("<li>Decoration method '{0}' missing production time high</li>".format(method.name))
+                    if method.quick_ship:
+                        if not method.quick_ship_max:
+                            messages.append("<li>Decoration method '{0}' flagged for quick ship but missing quick ship max quantity</li>".format(method.name))
+                        if not method.quick_ship_prod_days:
+                            messages.append("<li>Decoration method '{0}' flagged for quick ship but missing quick ship production days</li>".format(method.name))
+                    # if not method.number_sides:
+                    #     messages.append("<li>Decoration method '{0}' missing number of sides</li>".format(method.name))
+                    # Set the variants that don't create attributes in the context
+                    self = self.with_context(no_create_variant_attributes=[method.decoration_method_id.id])
+                    # Build the price grid for standard catalog/net
+                    price_grid_dict = self._build_price_grid()
+                    if not price_grid_dict:
+                        messages.append("<li>Pricing not returned for product with decoration method {0}</li>".format(method.decoration_method_id.name))
+                    else:
+                        # Ensure discount code were supplied
+                        if not price_grid_dict['discount_codes'] or not price_grid_dict['discount_codes'][0]:
+                            messages.append("<li>Discount codes not set for product</li>")
 
-        # Now if we wrote ANY messages to the messages list update the data error message field
-        if len(messages):
-            error_text = '<ul>' + ''.join(messages) + '</ul>'
+            if not self.decoration_area_ids:
+                messages.append("<li>Product missing decoration locations</li>")
+            else:
+                for area in self.decoration_area_ids:
+                    if not area.decoration_method_id.id in deco_ids:
+                        messages.append("<li>Decoration method '{0}' used with decoration area '{1}' not found in decoration method list</li>".format(area.decoration_method_id.name,
+                                        area.name))
+                    if not area.height:
+                        messages.append("<li>Decoration area '{0}' missing height</li>".format(area.name))
+                    if not area.width:
+                        messages.append("<li>Decoration area '{0}' missing width</li>".format(area.name))
+                    if area.shape == "circle" and (not area.diameter or area.diameter == 0):
+                        messages.append("<li>Decoration area '{0}' shape is circle but no diameter specified</li>".format(area.name))
+                    if not area.shape:
+                        messages.append("<li>Decoration area '{0}' missing shape</li>".format(area.name))
+            if self.addl_charge_product_ids:
+                for ac in self.addl_charge_product_ids:
+                    for deco_method in ac.decoration_method_ids:
+                        if deco_method.id not in deco_ids:
+                            messages.append("<li>Decoration method '{0}' used on additional charge '{1}' not found in decoration method list</li>".format(
+                                deco_method.name, ac.addl_charge_product_id.name
+                            ))
+                    if not ac.charge_type:
+                        messages.append("<li>Additional Charge Item '{0}' missing charge type</li>".format(ac.addl_charge_product_id.name))
+                    if not ac.charge_yuom:
+                        messages.append("<li>Additional Charge Item '{0}' missing other unit of measure</li>".format(ac.addl_charge_product_id.name))
+                    # Build the price grid for standard catalog/net
+                    ac_price_grid_dict = ac.addl_charge_product_id._build_price_grid()
+                    if not ac_price_grid_dict:
+                        messages.append("<li>No pricing found for additional charge item '{0}'</li>".format(ac.addl_charge_product_id.name))
+                    else:
+                        # Ensure discount code were supplied
+                        if not ac_price_grid_dict['discount_codes'] or not ac_price_grid_dict['discount_codes'][0]:
+                            messages.append("<li>Discount codes not set for additional charge item '{0}'</li>".format(ac.addl_charge_product_id.name))
+
+            # Ensure that any attribute attached to a product has a category
+            if self.attribute_line_ids:
+                for attribute in self.attribute_line_ids:
+                    if not attribute.attribute_id.category:
+                        messages.append("<li>Attribute '{0}' has no category</li>".format(attribute.attribute_id.name))
+
+            # Now if we wrote ANY messages to the messages list update the data error message field
+            if len(messages):
+                error_text = '<ul>' + ''.join(messages) + '</ul>'
+                self.write({
+                    'data_errors': error_text,
+                    'user_data_error': True
+                })
+                return False
+            else:
+                self.write({
+                    'data_errors': None,
+                    'user_data_error': False
+                })
+                return True
+        except Exception as e:
+            error_text = '<p>Technical Errors, contact IT:' + '<p>'
             self.write({
-                'data_errors': error_text,
-                'user_data_error': True
-            })
-            return False
-        else:
-            self.write({
-                'data_errors': None,
+                'data_errors': error_text + traceback.format_exc(),
                 'user_data_error': False
             })
-            return True
 
     def _build_std_xml(self):
 
@@ -830,7 +859,7 @@ class ProductTemplate(models.Model):
                     # Here we'll write the first attribute value that has a category of 'color' or 'thickness'
                     for attribute_value in variant.attribute_value_ids:
                         if attribute_value.attribute_id.category in ('prodcolor', 'thickness'):
-                            ET.SubElement(pv_elem, "product_variant_swatch").text = attribute_value.html_color
+                            ET.SubElement(pv_elem, "product_variant_swatch").text = (attribute_value.html_color or '')
                             ET.SubElement(pv_elem, "product_variant_color").text = attribute_value.name
                             break
                     # Write the packaging information for this product variant. We will only write out the first packaging
