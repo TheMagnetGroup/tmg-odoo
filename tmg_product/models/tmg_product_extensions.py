@@ -12,10 +12,12 @@ import traceback
 import xmltodict
 import pytz
 import re
+import logging
 from io import BytesIO
 # import xml.etree.ElementTree as ET
 from lxml import etree as ET
 
+_logger = logging.getLogger(__name__)
 
 class tmg_product_template_tags(models.Model):
     _name = 'product.template.tags'
@@ -408,7 +410,8 @@ class ProductTemplate(models.Model):
         for product in products:
             product._build_std_xml()
             cr.commit()
-            print("Built XML for product '{0}'".format(product.name))
+            _logger.info("Built XML for product '{0}'".format(product.name))
+        _logger.info("Product XML build process complete")
 
         # Now check if there were any products that have additional user data errors and if so send a message
         # to the product data group.
