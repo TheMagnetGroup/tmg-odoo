@@ -401,10 +401,14 @@ class ProductTemplate(models.Model):
         # break up the products into chunks of 100 to avoid the task being timed out.
         cr = registry(self._cr.dbname).cursor()
         self = self.with_env(self.env(cr=cr))
-        for product_split in split_every(100, products):
-            for product in product_split:
-                product._build_std_xml()
+        # for product_split in split_every(100, products):
+        #     for product in product_split:
+        #         product._build_std_xml()
+        #     cr.commit()
+        for product in products:
+            product._build_std_xml()
             cr.commit()
+            print("Built XML for product '{0}'".format(product.name))
 
         # Now check if there were any products that have additional user data errors and if so send a message
         # to the product data group.
