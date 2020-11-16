@@ -2,6 +2,8 @@
 from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError, Warning
 from odoo.addons import decimal_precision as dp
+from odoo.tools.profiler import profile
+
 from odoo.tools import float_compare, float_round
 
 
@@ -100,6 +102,7 @@ class SaleOrder(models.Model):
                 order.delivery_update_ok = True
             else:
                 order.delivery_update_ok = False
+
 
     def action_update_delivery(self):
         for order in self:
