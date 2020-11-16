@@ -16,7 +16,13 @@ class shipment_notificaiton(models.Model):
                         join res_partner partner ON (partner.id = sale.partner_id)
                         join stock_picking pick ON (pick.sale_id = sale.id)
                         where (client_order_ref = %(PONumber)s or %(PONumber)s =  '')
-                        and ((CAST(partner.id as VARCHAR(20)) = %(Partner_ID)s or CAST(partner.parent_id as VARCHAR(20)) = %(Partner_ID)s) or %(Partner_ID)s = '')
+                        and (CAST(partner.id AS VARCHAR(20)) = %(Partner_ID)s
+                          OR CAST(partner.parent_id AS VARCHAR(20)) = %(Partner_ID)s
+                          OR %(Partner_ID)s = ''
+                          OR %(Partner_ID)s =
+                                (SELECT parent_id
+                                 FROM res_partner
+                                 WHERE id = partner.parent_id))
                         and (sale.name = %(SONumber)s or %(SONumber)s = '')
                         and (pick.date_done >= %(LastUpdate)s)
                         Group By sale.id"""
