@@ -12,6 +12,7 @@
                  <field name="daily_call_cap"/>
                  <field name="current_call_count"/>
                  <field name="debug"/>
+                 <field name="technical_contact"  domain="[('parent_id', '=', id)]"/>
                  </group>
              </page>
 

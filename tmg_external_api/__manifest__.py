@@ -9,6 +9,7 @@
         * Christian Dunn - 2020/05/29 -   Initial Commit
         * Jon W. Bergt - 2020-06-11 -  Updated to include requirements for Inventory API
         * Jonas Temple - 2020/08/12 -  Added export account model and views to store credentials for sending item information
+        * Christian Dunn - 2020/11/19 -  Added Technical Contact to res.partner
     """,
 
     'author': "The Magnet Group",
