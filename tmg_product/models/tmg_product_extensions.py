@@ -752,9 +752,8 @@ class ProductTemplate(models.Model):
             # The weight will come from the first variant
             if self.product_variant_ids:
                 ET.SubElement(product, "weight").text = str(self.product_variant_ids[0].weight)
-            # Get the res.config.settings model. If not found assume pounds
-            config = self.env['ir.config_parameter']
-            product_weight_in_lbs = config.get_param('product.weight_in_lbs', False)
+            # Get the setting that determines if the product weight is in pounds or kilogram
+            product_weight_in_lbs = self.env['ir.config_parameter'].sudo().get_param('product.weight_in_lbs')
             if product_weight_in_lbs == "1":
                 ET.SubElement(product, "weight_uom").text = "LB"
             else:
