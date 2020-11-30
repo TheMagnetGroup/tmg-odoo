@@ -178,5 +178,6 @@
         'wizard/delivery_package_wizard.xml',
         'views/sale_order_views.xml',
         'views/stock_picking_views.xml',
+        'wizard/delivery_process_shipments_wizard.xml',
     ],
 }
