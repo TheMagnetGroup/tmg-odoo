@@ -1,5 +1,7 @@
+
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
+
 
 
 class DeliveryPackageShipmentsWizard(models.TransientModel):
@@ -101,9 +103,8 @@ class DeliveryProcessShipments(models.TransientModel):
             elif mode == 'unfold':
                 for i in range(package.num_packages):
                     r_packages |= self.env[dest_model].create(values)
-
-
         return r_packages
+
 
     def process_done(self, pick_ids):
         pick_to_backorder = self.env['stock.picking']
@@ -128,7 +129,8 @@ class DeliveryProcessShipments(models.TransientModel):
             pick_to_do.action_done()
         if pick_to_backorder:
             return pick_to_backorder.action_generate_backorder_wizard()
+
+
         return False
 
-        return r_packages
 
