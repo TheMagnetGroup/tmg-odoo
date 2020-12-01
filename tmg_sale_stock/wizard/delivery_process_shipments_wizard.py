@@ -1,5 +1,5 @@
 from odoo import api, fields, models
-
+from odoo.exceptions import UserError
 
 class DeliveryPackageShipmentsWizard(models.TransientModel):
     _name = 'delivery.package.shipments.wizard'
@@ -58,15 +58,16 @@ class DeliveryProcessShipments(models.TransientModel):
         deliveries = []
         deliveries.extend(pick.carrier_id.delivery_type for pick in pickings)
         deliveries = list(set(deliveries))
-        if deliveries.length > 1:
+        if len(deliveries) > 1:
             warning = 1
         for pick in pickings:
-            if pick.picking_id:
-                self.picking_id.alt_package_ids.unlink()
+            if pick.id:
+                pick.alt_package_ids.unlink()
                 if self.delivery_package_ids:
                     packages = self.convert_packages_to('stock.quant.package', self.delivery_package_ids, mode='unfold')
                     pick.write({'alt_package_ids': [(6, 0, packages.ids)]})
-                    pick.button_validate()
+                    self.process_done(pick)
+                    pick.action_print_labels
 
 
         return {'type': 'ir.actions.act_window_close'}
@@ -100,3 +101,28 @@ class DeliveryProcessShipments(models.TransientModel):
                     r_packages |= self.env[dest_model].create(values)
 
         return r_packages
+
+    def process_done(self, pick_ids):
+        pick_to_backorder = self.env['stock.picking']
+        pick_to_do = self.env['stock.picking']
+        for picking in pick_ids:
+            # If still in draft => confirm and assign
+            if picking.state == 'draft':
+                picking.action_confirm()
+                if picking.state != 'assigned':
+                    picking.action_assign()
+                    if picking.state != 'assigned':
+                        raise UserError(_("Could not reserve all requested products. Please use the \'Mark as Todo\' button to handle the reservation manually."))
+            for move in picking.move_lines.filtered(lambda m: m.state not in ['done', 'cancel']):
+                for move_line in move.move_line_ids:
+                    move_line.qty_done = move_line.product_uom_qty
+            if picking._check_backorder():
+                pick_to_backorder |= picking
+                continue
+            pick_to_do |= picking
+        # Process every picking that do not require a backorder, then return a single backorder wizard for every other ones.
+        if pick_to_do:
+            pick_to_do.action_done()
+        if pick_to_backorder:
+            return pick_to_backorder.action_generate_backorder_wizard()
+        return False
