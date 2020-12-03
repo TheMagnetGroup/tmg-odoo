@@ -8,7 +8,7 @@ class Partner(models.Model):
     daily_call_cap = fields.Integer(string="Daily Call Cap", default=9999)
     current_call_count = fields.Integer(string="Current Call Cap", default=0)
     debug = fields.Boolean(string = "Debug")
-
+    technical_contact = fields.Many2one("res.partner", string="Technical Contact", ondelete='restrict')
     # Method to called by CRON to update SLA & statistics
     @api.model
     def reset_call_cap(self):
