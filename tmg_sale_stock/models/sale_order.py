@@ -101,6 +101,7 @@ class SaleOrder(models.Model):
             else:
                 order.delivery_update_ok = False
 
+
     def action_update_delivery(self):
         for order in self:
             if not order.delivery_update_ok:
