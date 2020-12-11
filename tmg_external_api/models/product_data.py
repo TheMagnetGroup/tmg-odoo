@@ -19,13 +19,11 @@ class product_data(models.Model):
         search_for_sellable = [('product_tmpl_id', 'in', sellable_product_ids)]
         if style_rqs:
             search_for_sellable.append(('product_style_number', '=', style_rqs))
-            if variant_rqs:
-                search_for_sellable.append(('default_code', '=', variant_rqs))
         elif variant_rqs:
             return [dict(errorOdoo=dict(code=120,
                                         message="If Variant number is requested, Style is also required"))]
 
-        product_sellable_export = self._get_sellable_products(search_for_sellable)
+        product_sellable_export = self._get_sellable_products(search_for_sellable, variant_rqs)
         return product_sellable_export
 
     @api.model
@@ -60,19 +58,27 @@ class product_data(models.Model):
 #  Private functions
 # ------------------
 
-    def _get_sellable_products(self, search):
+    def _get_sellable_products(self, search, variant):
         sellable_products = []
         sellable_list = self.env['product.product'].search_read(search, ['product_style_number', 'default_code'])
         for s in sellable_list:
-            data = dict(errorOdoo=dict(),
-                        styleNumber=s['product_style_number'],
-                        productVariant=s['default_code'])
-            sellable_products.append(data)
+            if not variant or s['default_code'] == variant:
+                data = dict(errorOdoo=dict(),
+                            styleNumber=s['product_style_number'],
+                            productVariant=s['default_code'])
+                sellable_products.append(data)
         if len(sellable_products) == 0:
-            sellable_products = [
-                dict(errorOdoo=dict(code=130,
-                                    message="No sellable product data found (only sellable data is returned)")
-                     )]
+            if len(sellable_list) == 0:
+                # not even the main product was found
+                sellable_products = [
+                    dict(errorOdoo=dict(code=130,
+                                        message="No sellable product data found (only sellable data is returned)"))]
+            else:
+                # variants were found but none matched the request
+                sellable_products = [
+                    dict(errorOdoo=dict(code=140,
+                                        message="Product " + sellable_list[0]['product_style_number']
+                                                + " has no variant that matches '" + variant + "'"))]
         return sellable_products
 
     def _get_closeout_products(self, search):
