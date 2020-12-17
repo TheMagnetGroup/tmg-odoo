@@ -44,7 +44,7 @@ class order_status(models.Model):
                     ('active', '=', True),
                     # ('parent_id', '=', partner_id.parent_id.id),
                     ('name', '=', order.name),
-                    ('ship_date', '=', order.expected_date),
+                    ('ship_date', '=', order.commitment_date),
                     ('in_hands', '=', order.in_hands),
                     ('status', '=', orderStatus[0]),
                     ('SONumber', '=', order.name),
