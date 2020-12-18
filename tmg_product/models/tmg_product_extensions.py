@@ -822,25 +822,25 @@ class ProductTemplate(models.Model):
                     if results['change_date'].replace(tzinfo=None) > last_image_change_date:
                         last_image_change_date = results['change_date'].replace(tzinfo=None)
                 # Upload the medium image
-                if self.image_medium:
-                    image_elem = ET.SubElement(images_elem, "image")
-                    results = s3._upload_to_public_bucket(self.image_medium, self.product_style_number + '_medium.jpg', 'image/jpeg', prod_folder)
-                    ET.SubElement(image_elem, "type").text = "image_medium"
-                    ET.SubElement(image_elem, "url").text = results['url']
-                    ET.SubElement(image_elem, "md5").text = results['md5']
-                    ET.SubElement(image_elem, "change_date").text = datetime.strftime(results['change_date'], "%Y-%m-%d")
-                    if results['change_date'].replace(tzinfo=None) > last_image_change_date:
-                        last_image_change_date = results['change_date'].replace(tzinfo=None)
+                # if self.image_medium:
+                #     image_elem = ET.SubElement(images_elem, "image")
+                #     results = s3._upload_to_public_bucket(self.image_medium, self.product_style_number + '_medium.jpg', 'image/jpeg', prod_folder)
+                #     ET.SubElement(image_elem, "type").text = "image_medium"
+                #     ET.SubElement(image_elem, "url").text = results['url']
+                #     ET.SubElement(image_elem, "md5").text = results['md5']
+                #     ET.SubElement(image_elem, "change_date").text = datetime.strftime(results['change_date'], "%Y-%m-%d")
+                #     if results['change_date'].replace(tzinfo=None) > last_image_change_date:
+                #         last_image_change_date = results['change_date'].replace(tzinfo=None)
                 # Upload the small image
-                if self.image_small:
-                    image_elem = ET.SubElement(images_elem, "image")
-                    results = s3._upload_to_public_bucket(self.image_small, self.product_style_number + '_small.jpg', 'image/jpeg', prod_folder)
-                    ET.SubElement(image_elem, "type").text = "image_small"
-                    ET.SubElement(image_elem, "url").text = results['url']
-                    ET.SubElement(image_elem, "md5").text = results['md5']
-                    ET.SubElement(image_elem, "change_date").text = datetime.strftime(results['change_date'], "%Y-%m-%d")
-                    if results['change_date'].replace(tzinfo=None) > last_image_change_date:
-                        last_image_change_date = results['change_date'].replace(tzinfo=None)
+                # if self.image_small:
+                #     image_elem = ET.SubElement(images_elem, "image")
+                #     results = s3._upload_to_public_bucket(self.image_small, self.product_style_number + '_small.jpg', 'image/jpeg', prod_folder)
+                #     ET.SubElement(image_elem, "type").text = "image_small"
+                #     ET.SubElement(image_elem, "url").text = results['url']
+                #     ET.SubElement(image_elem, "md5").text = results['md5']
+                #     ET.SubElement(image_elem, "change_date").text = datetime.strftime(results['change_date'], "%Y-%m-%d")
+                #     if results['change_date'].replace(tzinfo=None) > last_image_change_date:
+                #         last_image_change_date = results['change_date'].replace(tzinfo=None)
                 # If there are any additional product images upload those
                 if self.product_image_ids:
                     # extra_images_elem = ET.SubElement(images_elem, "additional_images")
@@ -901,24 +901,24 @@ class ProductTemplate(models.Model):
                         ET.SubElement(image_elem, "change_date").text = datetime.strftime(results['change_date'], "%Y-%m-%d")
                         if results['change_date'].replace(tzinfo=None) > last_image_change_date:
                             last_image_change_date = results['change_date'].replace(tzinfo=None)
-                    if variant.image_medium:
-                        image_elem = ET.SubElement(pv_images_elem, "image")
-                        results = s3._upload_to_public_bucket(variant.image_medium, variant.default_code + '_medium.jpg', 'image/jpeg', prod_folder)
-                        ET.SubElement(image_elem, "type").text = "image_medium"
-                        ET.SubElement(image_elem, "url").text = results['url']
-                        ET.SubElement(image_elem, "md5").text = results['md5']
-                        ET.SubElement(image_elem, "change_date").text = datetime.strftime(results['change_date'], "%Y-%m-%d")
-                        if results['change_date'].replace(tzinfo=None) > last_image_change_date:
-                            last_image_change_date = results['change_date'].replace(tzinfo=None)
-                    if variant.image_small:
-                        image_elem = ET.SubElement(pv_images_elem, "image")
-                        results = s3._upload_to_public_bucket(variant.image_small, variant.default_code + '_small.jpg', 'image/jpeg', prod_folder)
-                        ET.SubElement(image_elem, "type").text = "image_small"
-                        ET.SubElement(image_elem, "url").text = results['url']
-                        ET.SubElement(image_elem, "md5").text = results['md5']
-                        ET.SubElement(image_elem, "change_date").text = datetime.strftime(results['change_date'], "%Y-%m-%d")
-                        if results['change_date'].replace(tzinfo=None) > last_image_change_date:
-                            last_image_change_date = results['change_date'].replace(tzinfo=None)
+                    # if variant.image_medium:
+                    #     image_elem = ET.SubElement(pv_images_elem, "image")
+                    #     results = s3._upload_to_public_bucket(variant.image_medium, variant.default_code + '_medium.jpg', 'image/jpeg', prod_folder)
+                    #     ET.SubElement(image_elem, "type").text = "image_medium"
+                    #     ET.SubElement(image_elem, "url").text = results['url']
+                    #     ET.SubElement(image_elem, "md5").text = results['md5']
+                    #     ET.SubElement(image_elem, "change_date").text = datetime.strftime(results['change_date'], "%Y-%m-%d")
+                    #     if results['change_date'].replace(tzinfo=None) > last_image_change_date:
+                    #         last_image_change_date = results['change_date'].replace(tzinfo=None)
+                    # if variant.image_small:
+                    #     image_elem = ET.SubElement(pv_images_elem, "image")
+                    #     results = s3._upload_to_public_bucket(variant.image_small, variant.default_code + '_small.jpg', 'image/jpeg', prod_folder)
+                    #     ET.SubElement(image_elem, "type").text = "image_small"
+                    #     ET.SubElement(image_elem, "url").text = results['url']
+                    #     ET.SubElement(image_elem, "md5").text = results['md5']
+                    #     ET.SubElement(image_elem, "change_date").text = datetime.strftime(results['change_date'], "%Y-%m-%d")
+                    #     if results['change_date'].replace(tzinfo=None) > last_image_change_date:
+                    #         last_image_change_date = results['change_date'].replace(tzinfo=None)
             save_location = None
             # Write the decoration location
             if self.decoration_area_ids:
