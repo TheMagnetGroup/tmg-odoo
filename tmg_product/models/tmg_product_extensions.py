@@ -892,9 +892,9 @@ class ProductTemplate(models.Model):
                             ET.SubElement(attr_elem, "attribute_sequence").text = str(attribute_value.sequence)
                     # Upload the variant's images to public storage
                     pv_images_elem = ET.SubElement(pv_elem, "images")
-                    if variant.image:
+                    if variant.image_variant:
                         image_elem = ET.SubElement(pv_images_elem, "image")
-                        results = s3._upload_to_public_bucket(variant.image, variant.default_code + '.jpg', 'image/jpeg', prod_folder)
+                        results = s3._upload_to_public_bucket(variant.image_variant, variant.default_code + '.jpg', 'image/jpeg', prod_folder)
                         ET.SubElement(image_elem, "type").text = "image"
                         ET.SubElement(image_elem, "url").text = results['url']
                         ET.SubElement(image_elem, "md5").text = results['md5']
