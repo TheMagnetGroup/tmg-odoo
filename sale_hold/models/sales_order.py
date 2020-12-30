@@ -5,28 +5,17 @@ from odoo.tools import DEFAULT_SERVER_DATE_FORMAT as DF
 from datetime import datetime
 
 
-class SaleOrderLine(models.Model):
-    _inherit = "sale.order.line"
-
-    @api.multi
-    def _action_launch_stock_rule(self):
-        res = super(SaleOrderLine, self)._action_launch_stock_rule()
-        orders = self.filtered(lambda line: line.product_id and line.product_id.type != 'service').mapped('order_id')
-        orders.CheckHolds()
-        return res
-
-
 class SaleOrder(models.Model):
 
     _inherit = 'sale.order'
-    order_holds = fields.Many2many('sale.hold' ,string='Order Holds')
+    order_holds = fields.Many2many('sale.hold' , copy=False,  default=False, string='Order Holds')
 
     on_hold = fields.Boolean(string='On Hold')
-    approved_credit = fields.Boolean(string='Approved Credit', default=False)
-    had_credit_hold = fields.Boolean(string="Had Credit Hold", default=False)
-    is_automated_hold = fields.Boolean(string = "Automated Credit Hold", default=False)
-    on_production_hold = fields.Boolean(string="On Production Hold", default=False)
-
+    approved_credit = fields.Boolean(string='Approved Credit', copy=False, default=False)
+    had_credit_hold = fields.Boolean(string="Had Credit Hold", copy=False,  default=False)
+    is_automated_hold = fields.Boolean(string = "Automated Credit Hold", copy=False,  default=False)
+    on_production_hold = fields.Boolean(string="On Production Hold", copy=False,  default=False)
+    payment_term_id = fields.Many2one('account.payment.term', string='Payment Terms',copy=False, oldname='payment_term')
 
     def checkSecurity(self, value):
         hasGroup = False
@@ -44,9 +33,12 @@ class SaleOrder(models.Model):
         else:
             return True
 
+
     @api.model
     def create(self, values):
-        vals = values['order_holds']
+        vals = False
+        if 'order_holds' in values:
+            vals = values['order_holds']
         note_list = []
         if 'payment_term_id' not in values:
 
@@ -77,7 +69,6 @@ class SaleOrder(models.Model):
         if message_text != '':
             self.message_post(body=message_text)
         return result
-
 
 
 
