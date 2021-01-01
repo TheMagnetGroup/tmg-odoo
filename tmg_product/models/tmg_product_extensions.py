@@ -439,10 +439,10 @@ class ProductTemplate(models.Model):
         products = self.get_product_saleable()
 
         # Since a single change in the system could cause every product to be update on external systems, we
-        # will break up the products into chunks of 100 to avoid the task being timed out.
+        # will break up the products into smaller chunks to avoid the task being timed out.
         cr = registry(self._cr.dbname).cursor()
         self = self.with_env(self.env(cr=cr))
-        for product_split in split_every(100, products):
+        for product_split in split_every(10, products):
             for product in product_split:
                 for export_account in product.export_account_ids:
                     if export_account.export_data:
