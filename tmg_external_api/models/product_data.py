@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from odoo import models, api
+from odoo import models, fields, api
 import base64
 
 
@@ -53,6 +53,25 @@ class product_data(models.Model):
                                message="Product Style Number is required")
             )
         return product_export
+
+    @api.model
+    def ProductDateModified(self, change_as_of_date_str):
+        product_date_modified_export = dict()
+
+        if change_as_of_date_str and change_as_of_date_str.strip():
+            sellable_product_ids = self.env['product.template'].get_product_saleable().ids
+            change_as_of_date = fields.Datetime.from_string(change_as_of_date_str)
+            date_modified_search = [('data_last_change_date', '>', change_as_of_date),
+                                    ('product_tmpl_id', 'in', sellable_product_ids)]
+            product_date_modified_export = self._get_date_modified_products(date_modified_search,
+                                                                            change_as_of_date_str)
+        else:
+            product_date_modified_export = dict(
+                errorOdoo=dict(code=120,
+                               message="Product Last Changed timestamp is required")
+            )
+
+        return product_date_modified_export
 
 # ------------------
 #  Private functions
@@ -159,3 +178,18 @@ class product_data(models.Model):
                                                         + '" record is missing'))
 
         return stored_export
+
+    def _get_date_modified_products(self, search, as_of_date_str):
+        date_modified_products = []
+        mod_prods = self.env['product.product'].search_read(search, ['product_style_number', 'default_code'])
+        for mp in mod_prods:
+            data = dict(errorOdoo=dict(),
+                        styleNumber=mp['product_style_number'],
+                        productVariant=mp['default_code'])
+            date_modified_products.append(data)
+        if len(date_modified_products) == 0:
+            date_modified_products = [
+                dict(errorOdoo=dict(code=130,
+                                    message="No product data found that was modified since " + as_of_date_str)
+                     )]
+        return date_modified_products
