@@ -6,6 +6,7 @@ from odoo import fields, models, api, _
 class Product(models.Model):
     _inherit = 'product.product'
 
+    @api.multi
     def _compute_quantities(self):
         super(Product, self)._compute_quantities()
         res = self._compute_quantities_dict(self._context.get('lot_id'), self._context.get('owner_id'),
@@ -14,6 +15,7 @@ class Product(models.Model):
         for product in self:
             product.virtual_available_qty = res[product.id]['virtual_available_qty']
 
+    @api.multi
     def _compute_quantities_dict(self, lot_id, owner_id, package_id, from_date=False, to_date=False):
         """
             Inherited to update quantity fields for manufacturable products7
@@ -147,12 +149,14 @@ class ProductTemplate(models.Model):
     bom_id = fields.Many2one('mrp.bom', string='Bill of Material',
                              help="Bill of Material to compute manufacturable quantities.")
 
+    @api.multi
     def _compute_quantities(self):
         super(ProductTemplate, self)._compute_quantities()
         res = self._compute_quantities_dict()
         for template in self:
             template.virtual_available_qty = res[template.id]['virtual_available_qty']
 
+    @api.multi
     def _compute_quantities_dict(self):
         qty_dict = super(ProductTemplate, self)._compute_quantities_dict()
         for template in self:
@@ -161,7 +165,7 @@ class ProductTemplate(models.Model):
             if template.bom_id:
                 manufacturable_qty = [sum(template.product_variant_ids.mapped('virtual_available_qty'))]
                 shared_lines = template.bom_id.bom_line_ids.filtered(lambda bol: bol.is_shared())
-                print(shared_lines)
+                # print(shared_lines)
                 if shared_lines:
                     manufacturable_qty.append(min(shared_lines.mapped('product_id').mapped('virtual_available_qty')))
                 qty_dict[template.id]['virtual_available_qty'] = min(manufacturable_qty)

@@ -93,9 +93,9 @@ class ProductTemplate(models.Model):
     primary_material = fields.Char(string='Primary Material')
     market_introduction_date = fields.Date(string='Market Introduction Date')
     warehouses = fields.Many2many('stock.warehouse', string='Warehouses')
-    ala_catalog = fields.Float(string='As Low As Catalog', compute='_compute_ala')
-    ala_net = fields.Float(string='As Low As Net', compute='_compute_ala')
-    ala_code = fields.Char(string='As Low As Code', compute='_compute_ala')
+    ala_catalog = fields.Float(string='As Low As Catalog', compute='_compute_ala', store=True)
+    ala_net = fields.Float(string='As Low As Net', compute='_compute_ala', store=True)
+    ala_code = fields.Char(string='As Low As Code', compute='_compute_ala', store=True)
     product_style_number = fields.Char(string='Product Style Number', copy=False)
 
     _sql_constraints = [
