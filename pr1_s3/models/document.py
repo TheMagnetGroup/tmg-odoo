@@ -133,7 +133,7 @@ class Document(models.Model):
 
         super(Document, self - s3_to_do)._inverse_datas()
 
-    # This routine uploads an attachement to the standard TMG public bucket
+    # This routine uploads an attachment to the standard TMG public bucket
     @api.multi
     def _upload_to_public_bucket(self, folder):
         # We only want to deal with a single attachment here
@@ -142,30 +142,32 @@ class Document(models.Model):
         connection = self.env['pr1_s3.s3_connection'].search([('name', '=', 'tmg_public')])
         # If we got a connection object
         if connection:
-            s3_bucket, s3_service = connection.get_bucket()
-            upload = False
+            # Is the connection S3 enabled? If not then skip uploading (testing purposes)
+            if connection.s3_enabled:
+                s3_bucket, s3_service = connection.get_bucket()
+                upload = False
 
-            # Decode from base64 and get the md5 checksum value
-            bin_data = base64.b64decode(self.data)
-            # Get the MD5 checksum of the data
-            local_md5 = '"' + hashlib.md5(bin_data).hexdigest() + '"'
+                # Decode from base64 and get the md5 checksum value
+                bin_data = base64.b64decode(self.data)
+                # Get the MD5 checksum of the data
+                local_md5 = '"' + hashlib.md5(bin_data).hexdigest() + '"'
 
-            # Is the file already in S3?
-            obj = list(s3_bucket.objects.filter(Prefix=self.name))
-            if len(obj) == 0:
-                upload = True
-            else:
-                # Check the MD5 of the file in S3 and compare that against the current file.  If different, upload
-                s3_md5 = obj[0].e_tag
-                if s3_md5 != local_md5:
+                # Is the file already in S3?
+                obj = list(s3_bucket.objects.filter(Prefix=self.name))
+                if len(obj) == 0:
                     upload = True
+                else:
+                    # Check the MD5 of the file in S3 and compare that against the current file.  If different, upload
+                    s3_md5 = obj[0].e_tag
+                    if s3_md5 != local_md5:
+                        upload = True
 
-            # Upload the file to the public bucket
-            if upload:
-                try:
-                    s3_obj = s3_bucket.put_object(Key=folder + self.name,Body=self.datas,ACL='public-read',ContentType=self.mimetype)
-                except Exception as e:
-                    raise e.UserError(e.message)
+                # Upload the file to the public bucket
+                if upload:
+                    try:
+                        s3_obj = s3_bucket.put_object(Key=folder + self.name,Body=self.datas,ACL='public-read',ContentType=self.mimetype)
+                    except Exception as e:
+                        raise e.UserError(e.message)
 
             # Return the path to the file in our public bucket.
             return connection.s3_api_url + "/" + connection.s3_bucket_name + "/" + folder + self.name

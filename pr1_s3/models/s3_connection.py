@@ -257,7 +257,7 @@ class S3Connection(models.Model):
                 s3_change_date = datetime.now()
 
         # Upload the file to the public bucket
-        if upload:
+        if self.s3_enabled and upload:
             try:
                 s3_obj = s3_bucket.put_object(Key=folder + file_name, Body=bin_data, ACL='public-read', ContentType=mime_type)
             except Exception as e:
