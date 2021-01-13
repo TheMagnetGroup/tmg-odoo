@@ -778,6 +778,12 @@ class ProductTemplate(models.Model):
             product_tags_elem = ET.SubElement(product, "product_tags")
             for tag in self.product_tags_ids:
                 ET.SubElement(product_tags_elem, "product_tag").text = tag.name
+            # If the product's category hierarchy has "Discontinued" in the path then set the
+            # closeout node to True
+            if 'discontinued' in self.categ_id.display_name.lower():
+                ET.SubElement(product, "is_closeout").text = "true"
+            else:
+                ET.SubElement(product, "is_closeout").text = "false"
             # Website tags will be any e-commerce category with a parent of "Tags"
             website_tags_elem = ET.SubElement(product, "website_tags")
             for category in self.public_categ_ids:
