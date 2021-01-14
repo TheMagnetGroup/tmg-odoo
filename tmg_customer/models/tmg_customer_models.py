@@ -44,10 +44,14 @@ class SaleOrder(models.Model):
         self.ensure_one()
         invoice_vals = super(SaleOrder, self)._prepare_invoice()
         bg_id = None
-        if self.partner_id.buying_group_id:
-            bg_id = self.partner_id.buying_group_id.id
-        elif self.partner_id.parent_id.buying_group_id:
-            bg_id = self.partner_id.parent_id.buying_group_id.id
+        # Look for a buying group anywhere in the account/parent hierarchy
+        p_id = self.partner_id
+        while p_id:
+            if p_id.buying_group_id:
+                bg_id = p_id.buying_group_id.id
+                break
+            p_id = p_id.parent_id
+
         if bg_id:
             invoice_vals.update({
                 'buying_group_id': bg_id
