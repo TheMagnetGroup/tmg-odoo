@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+
+        <record model="ir.ui.view" id="wizard_price_grid_inquiry">
+            <field name="name">Price Grid Inquiry</field>
+            <field name="model">product.pricelist.inquiry.wizard</field>
+            <field name="priority">16</field>
+            <field name="type">form</field>
+            <field name="arch" type="xml">
+                <form>
+                    <group>
+		                <field name="product_id" readonly="1"/>
+		            </group>
+                    <field name="pricelist_grid_ids" mode="tree" nolabel="1" readonly="1">
+                        <tree string="Price Grid Inqiury">
+                            <field name="product_id" invisible="1"/>
+                            <field name="catalog_pricelist"/>
+                            <field name="net_pricelist"/>
+                            <field name="quantity"/>
+                            <field name="catalog_price"/>
+                            <field name="net_price"/>
+                            <field name="discount_code"/>
+                            <field name="start_date"/>
+                            <field name="end_date"/>
+                            <field name="published"/>
+                        </tree>
+                    </field>
+                    <footer>
+                        <button string="Cancel" special="cancel" class="oe_link"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+    </data>
+</odoo>

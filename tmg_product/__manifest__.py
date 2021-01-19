@@ -10,6 +10,7 @@
         * Jon W. Bergt 2020-06-11 - mrp_job added to 'depends' list to ensure job_id is available in tmg_product load
         * Jona Temple 2020-11-10 - Added models and code to support the ability to verify and create a standard product xml. Also
             added code to import ASI/SAGE categories and to export product data to SAGE.
+        * Jonas Temple 2021-01-14 - Added price grid inquiry
     """,
 
     'author': "The Magnet Group",
@@ -27,6 +28,7 @@
     # always loaded
     'data': [
         'security/ir.model.access.csv',
+        'wizard/price_grid_inquiry_wizard.xml',
         'views/tmg_product_views.xml',
         'data/cron.xml',
     ],
