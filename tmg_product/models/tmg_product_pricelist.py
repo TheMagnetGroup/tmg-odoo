@@ -63,9 +63,10 @@ class PriceList(models.Model):
 
         return result
 
-    def get_product_published_quantities(self, product, date=False):
-        # Get the published quantities for a product template. Note that this routine does
-        # not support quantities for a product.product or product category, only a product template
+    def get_product_quantities(self, product, date=False, published_only=True):
+        # Get the quantities for a product template. Note that this routine does
+        # not support quantities for a product.product or product category, only a product template.
+        # The published_only parm allows the routine to return non-published pricing if required
         if not date:
             date = self._context.get('date') or fields.Date.today()
         date = fields.Date.to_date(date)  # boundary conditions differ if we have a datetime
@@ -76,9 +77,9 @@ class PriceList(models.Model):
             'AND (item.pricelist_id = %s) '
             'AND (item.date_start IS NULL OR item.date_start<=%s) '
             'AND (item.date_end IS NULL OR item.date_end>=%s) '
-            'AND (item.published = True) '
+            'AND (%s = False OR item.published = True) '
             'ORDER BY item.min_quantity',
-            (product.id, self.id, date, date))
+            (product.id, self.id, date, date, published_only))
         return [x[0] for x in self._cr.fetchall()]
 
 
@@ -156,9 +157,10 @@ class ProductTemplate(models.Model):
     #       "net_prices" : [list_of_prices],
     #       "discount_codes" : [list_of_discount_codes],
     #       "effective_dates" : [list_of_dates],
-    #       "expiration_dates" : [list_of_dates]
+    #       "expiration_dates" : [list_of_dates],
+    #       "published": [list_of_published_flags]
     #   }
-    def _build_price_grid(self, catalog_pricelist='Catalog', net_pricelist='Net'):
+    def _build_price_grid(self, catalog_pricelist='Catalog', net_pricelist='Net', published_only=True):
         # Get the passed catalog/net pricelists or the default
         cat = self.env['product.pricelist'].search([('name', '=', catalog_pricelist)])
         net = self.env['product.pricelist'].search([('name', '=', net_pricelist)])
@@ -168,11 +170,12 @@ class ProductTemplate(models.Model):
         discount_codes = []
         effective_dates = []
         expiration_dates = []
+        published = []
         # If we have both
         if cat and net:
             for product in self:
                 # Get the published quantities from the catalog pricelist, assuming current date as effectivity
-                quantities = cat.get_product_published_quantities(product)
+                quantities = cat.get_product_quantities(product, published_only=published_only)
                 if len(quantities):
                     price_grid_dict['catalog_pricelist'] = cat.name
                     price_grid_dict['catalog_currency'] = cat.currency_id.name
@@ -182,6 +185,10 @@ class ProductTemplate(models.Model):
                     for qty in quantities:
                         cat_price = cat.get_product_price_rule(self, qty, None)
                         cat_prices.append(cat_price[0])
+                        # Get the catalog price rule to get the published flag
+                        cpi = self.env['product.pricelist.item'].browse(cat_price[1])
+                        if cpi:
+                            published.append(cpi.published)
                         net_price = net.get_product_price_rule(self, qty, None)
                         net_prices.append(net_price[0])
                         # Get the rule ID that generated this pricing
@@ -196,6 +203,7 @@ class ProductTemplate(models.Model):
                     price_grid_dict['discount_codes'] = discount_codes
                     price_grid_dict['effective_dates'] = effective_dates
                     price_grid_dict['expiration_dates'] = expiration_dates
+                    price_grid_dict['published'] = published
 
             return price_grid_dict
 

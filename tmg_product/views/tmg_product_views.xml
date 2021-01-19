@@ -2,6 +2,17 @@
 <odoo>
     <data>
 
+        <act_window id="action_open_pricelist_inquiry_wizard"
+            name="Pricelist Inquiry Wizard"
+            src_model="product.template"
+            res_model="product.pricelist.inquiry.wizard"
+            target="new"
+            view_mode="form"
+            view_id="wizard_price_grid_inquiry"
+            multi="False"
+            context="{}"/>
+
+
         <record id="tmg_product_pricelist_item_form_view" model="ir.ui.view">
             <field name="name">tmg.product.pricelist.item.extras.form</field>
             <field name="model">product.pricelist.item</field>
@@ -86,6 +97,17 @@
                 <xpath expr="//field[@name='order_line']/tree/field[@name='product_uom_qty']" position="after">
                     <field name="price_at_qty"/>
                 </xpath>
+            </field>
+        </record>
+
+        <record id="tmg_product_template_only_form_view" model="ir.ui.view">
+            <field name="name">tmg.product.template.only.form.view</field>
+            <field name="model">product.template</field>
+            <field name="inherit_id" ref="product.product_template_only_form_view"/>
+            <field name="arch" type="xml">
+                <button name="action_open_quants" position="before">
+                    <button name="%(action_open_pricelist_inquiry_wizard)d" type="action" string="Pricing" class="oe_stat_button" icon="fa-dollar"/>
+                </button>
             </field>
         </record>
 
