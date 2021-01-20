@@ -132,6 +132,7 @@ class ProductTemplate(models.Model):
             product.dimensions = dimensions
 
     @api.multi
+    @api.depends('item_ids.fixed_price')
     def _compute_ala(self):
         for product in self:
             pricingGrid = product._build_price_grid()
