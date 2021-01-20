@@ -389,5 +389,49 @@
             <field name="code">record._export_product_data()</field>
         </record>
 
+        <record id="tmg_product_template_kanban_price_view" model="ir.ui.view">
+            <field name="name">tmg.product.template.kanban.price.view</field>
+            <field name="model">product.template</field>
+            <field name="inherit_id" ref="stock.product_template_kanban_stock_view"/>
+            <field name="arch" type="xml">
+                <xpath expr="//ul" position="inside">
+                    <li t-if="record.type.raw_value == 'product'">Ala Net: <field name="ala_net"/></li>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="tmg_product_template_price_tree_inherit" model="ir.ui.view">
+            <field name="name">tmg.product.template.price.tree.inherit</field>
+            <field name="model">product.template</field>
+            <field name="inherit_id" ref="stock.view_stock_product_template_tree"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='list_price']" position="replace">
+                    <field name="ala_net"/>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="view_tmg_product_template_search" model="ir.ui.view">
+            <field name="name">view.tmg.product.template.search</field>
+            <field name="model">product.template</field>
+            <field name="inherit_id" ref="product.product_template_search_view"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='categ_id']" position="after">
+                    <field name="decoration_method_ids" string="Decoration Method" filter_domain="[('decoration_method_ids.decoration_method_id.name','ilike',self)]"/>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="view_tmg_product_search" model="ir.ui.view">
+            <field name="name">view.tmg.product.search</field>
+            <field name="model">product.product</field>
+            <field name="inherit_id" ref="product.product_search_form_view"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='name']" position="after">
+                    <field name="decoration_method_ids" string="Decoration Method" filter_domain="[('decoration_method_ids.decoration_method_id.name','ilike',self)]"/>
+                </xpath>
+            </field>
+        </record>
+
     </data>
 </odoo>
