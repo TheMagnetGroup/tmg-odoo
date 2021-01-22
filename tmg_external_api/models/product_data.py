@@ -28,12 +28,14 @@ class product_data(models.Model):
 
     @api.model
     def ProductCloseout(self):
+        # determine closeout status from sellable products that are categorized "discontinued"
+        sellable_product_ids = self.env['product.template'].get_product_saleable().ids
+        category_discontinued_ids = \
+            self.env['product.category'].search([('complete_name', 'ilike', 'discontinued')]).ids
+        search_for_closeouts = [('product_tmpl_id', 'in', sellable_product_ids),
+                                ('product_tmpl_id.categ_id', 'in', category_discontinued_ids)]
 
-        closeout_cursor = self._get_closeouts_sql()
-        closeout_product_ids = closeout_cursor.fetchall()
-
-        closeouts_search = [('product_tmpl_id', 'in', closeout_product_ids)]
-        product_closeout_export = self._get_closeout_products(closeouts_search)
+        product_closeout_export = self._get_closeout_products(search_for_closeouts)
 
         return product_closeout_export
 
@@ -52,6 +54,7 @@ class product_data(models.Model):
                 errorOdoo=dict(code=120,
                                message="Product Style Number is required")
             )
+
         return product_export
 
     @api.model
@@ -98,6 +101,7 @@ class product_data(models.Model):
                     dict(errorOdoo=dict(code=140,
                                         message="Product " + sellable_list[0]['product_style_number']
                                                 + " has no variant that matches '" + variant + "'"))]
+
         return sellable_products
 
     def _get_closeout_products(self, search):
@@ -113,22 +117,8 @@ class product_data(models.Model):
                 dict(errorOdoo=dict(code=130,
                                     message="No closeout product data was found")
                      )]
-        return closeout_products
 
-    def _get_closeouts_sql(self):
-        # filter the list of sellable product ids for only closeout products
-        sellable_product_ids = self.env['product.template'].get_product_saleable().ids
-        sql = """select product_template_id
-                   from product_template_product_template_tags_rel
-                  where product_template_tags_id 
-                        in (select id from product_template_tags where name = %(TagName)s)
-                    and product_template_id
-                        in %(SellableProducts)s;"""
-        params = {'TagName': 'Closeout',
-                  'SellableProducts': tuple(sellable_product_ids)}
-        cursor = self.env.cr
-        cursor.execute(sql, params)
-        return cursor
+        return closeout_products
 
     def _get_product_stored_xml(self, item_search, style):
         stored_export = dict()
