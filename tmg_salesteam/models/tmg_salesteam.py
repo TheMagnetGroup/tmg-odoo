@@ -16,3 +16,9 @@ class tmg_salesteam(models.Model):
 
     team_member_ids = fields.Many2many('res.users', 'team_member_id_rel', 'member_id', 'user_id', string='Channel Team Members', domain= lambda self: [('groups_id', 'in', self.env.ref('base.group_user').id)], help="Add members to the sales team.")
 
+    @api.multi
+    def name_get(self):
+        result = []
+        for team in self:
+            result.append((team.id, "%s (%s)" % (team.name, team.user_id.name if team.user_id.name else "N/A")))
+        return result

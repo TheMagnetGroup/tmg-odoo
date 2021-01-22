@@ -1,0 +1,10 @@
+<odoo>
+    <data>
+        <template id="tmg_sale_order_report_quote_totals" inherit_id="sale.report_saleorder_document">
+            <!-- If this is an order OR the "Show Quote Totals" flag is on -->
+            <xpath expr="//div[@id='total']" position="attributes">
+                <attribute name="t-if">doc.state not in ('draft','sent') or doc.quote_total == True</attribute>
+            </xpath>
+        </template>
+    </data>
+</odoo>
