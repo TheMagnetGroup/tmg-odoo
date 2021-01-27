@@ -80,6 +80,7 @@
 					<field name="url"/>
                     <field name="xslt_file"/>
                     <field name="file_extension"/>
+                    <field name="folder"/>
 				</tree>
 	   		</field>
 	    </record>
