@@ -16,8 +16,24 @@ import logging
 from io import BytesIO
 # import xml.etree.ElementTree as ET
 from lxml import etree as ET
+import ssl
+import ftplib
 
 _logger = logging.getLogger(__name__)
+
+class MyFTP_TLS(ftplib.FTP_TLS):
+    """Explicit FTPS, with shared TLS session"""
+    def ntransfercmd(self, cmd, rest=None):
+        conn, size = ftplib.FTP.ntransfercmd(self, cmd, rest)
+        if self._prot_p:
+            session = self.sock.session
+            if isinstance(self.sock, ssl.SSLSocket):
+                session = self.sock.session
+            conn = self.context.wrap_socket(conn,
+                                            server_hostname=self.host,
+                                            session=session)  # this is the fix
+        return conn, size
+
 
 class tmg_product_template_tags(models.Model):
     _name = 'product.template.tags'
@@ -469,6 +485,8 @@ class ProductTemplate(models.Model):
                 # At this point we only export to SAGE
                 if export_account.export_account_id.category == 'SAGE':
                     self._export_sage(export_account)
+                elif export_account.export_account_id.category == 'TMGWeb':
+                    self._export_web(export_account)
                 # For all others just set the export_data flag to False
                 else:
                     export_account.write({
@@ -531,6 +549,58 @@ class ProductTemplate(models.Model):
                 export_error = True
                 export_message = sageresponsedict['Responses'][0]['Errors']
             else:
+                export_data_required = False
+                export_date = datetime.today()
+
+            export_account.write({
+                'export_data': export_data_required,
+                'last_export_date': export_date,
+                'last_export_message': export_message,
+                'last_export_error': export_error
+            })
+
+    def _export_web(self, export_account):
+
+        export_error = False
+        export_data_required = True
+        export_date = None
+        export_message = None
+
+        # Get the SAGE Json pre-built product data file
+        file_name = "product_data_{}_{}.{}".format(export_account.export_account_id.category,
+                                                   export_account.export_account_id.name,
+                                                   export_account.export_account_id.file_extension)
+        attach = self._get_stored_file(file_name)
+        if attach:
+
+            try:
+
+                # Decode from base64
+                datas_str = base64.b64decode(attach.datas)
+
+                # Create an IO stream from the file data
+                bio = BytesIO(datas_str)
+
+                # Create an ssl context and turn off host name checking
+                ctx = ssl.create_default_context()
+                ctx.check_hostname = False
+
+                # Create an FTP connection using our custom class to allow session reuse
+                ftp = MyFTP_TLS(export_account.export_account_id.url, context=ctx)
+                ftp.login(export_account.export_account_id.login, export_account.export_account_id.pwd)
+                ftp.prot_p()
+                ftp.set_pasv(True)
+
+                ftp_file_name = "{0}{1}_{2}".format(export_account.export_account_id.folder, self.product_style_number, file_name)
+                ftp.storbinary("STOR {0}".format(ftp_file_name), bio)
+
+                ftp.quit()
+
+            except ftplib.error_perm as e:
+                export_error = True
+                export_message = "An exception occurred updating Web product data: {0}".format(traceback.format_exc())
+
+            if not export_message:
                 export_data_required = False
                 export_date = datetime.today()
 

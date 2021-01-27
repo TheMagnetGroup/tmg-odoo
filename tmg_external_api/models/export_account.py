@@ -20,6 +20,7 @@ class ExportAccount(models.Model):
     file_extension = fields.Char(string="File Extension")
     product_tmpl_ids = fields.One2many(comodel_name='product.export.account',
                                           inverse_name='product_tmpl_id')
+    folder = fields.Char(string="Folder")
 
     _sql_constraints = [
         ('name_uniq', 'unique (name)', "Export account name already exists!"),
