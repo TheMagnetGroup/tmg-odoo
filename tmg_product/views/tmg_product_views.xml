@@ -419,6 +419,9 @@
                 <xpath expr="//field[@name='categ_id']" position="after">
                     <field name="decoration_method_ids" string="Decoration Method" filter_domain="[('decoration_method_ids.decoration_method_id.name','ilike',self)]"/>
                 </xpath>
+                <xpath expr="//field[@name='name']" position="replace">
+                    <field name="name" string="Product" filter_domain="['|', '|','|', ('product_variant_ids.default_code', 'ilike', self),('name', 'ilike', self), ('barcode', 'ilike', self), ('product_style_number', 'ilike', self)]"/>
+                </xpath>
             </field>
         </record>
 

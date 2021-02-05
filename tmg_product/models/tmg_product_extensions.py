@@ -376,7 +376,7 @@ class ProductAdditonalCharges(models.Model):
 class ProductTemplate(models.Model):
     _inherit = 'product.template'
 
-    data_last_change_date = fields.Date(string='Data Last Change Date')
+    data_last_change_date = fields.Datetime(string='Data Last Change Date')
     decoration_method_ids = fields.One2many(comodel_name='product.template.decorationmethod',
                                             inverse_name='product_tmpl_id')
     decoration_area_ids = fields.One2many(comodel_name='product.template.decorationarea',
@@ -384,6 +384,7 @@ class ProductTemplate(models.Model):
     addl_charge_product_ids = fields.One2many(comodel_name='product.addl.charges', inverse_name='product_tmpl_id')
     data_errors = fields.Html(string='Required Data Errors')
     user_data_error = fields.Boolean(string='Data Error Resolved by User')
+    image_last_change_date = fields.Datetime(string="Image Last Change Date")
 
     @api.constrains('decoration_method_ids')
     def _check_deco_methods(self):
@@ -798,8 +799,8 @@ class ProductTemplate(models.Model):
             # Get Odoo's decimal accuracy for pricing
             price_digits = self.env['decimal.precision'].precision_get('Product Price')
             # We'll keep track of the latest change date of any of the images used for this product
-            # last_image_change_date = datetime.min.replace(tzinfo=pytz.UTC)
-            last_image_change_date = datetime.min.replace(tzinfo=None)
+            last_image_change_date = datetime.min.replace(tzinfo=pytz.UTC)
+            # last_image_change_date = datetime.min.replace(tzinfo=None)
             # Set the folder for uploading product documents to S3
             prod_folder = self.product_style_number + '/'
             # Snag the current date for comparison of changed images
@@ -836,7 +837,7 @@ class ProductTemplate(models.Model):
             else:
                 ET.SubElement(product, "market_introduction_date").text = ""
             if self.data_last_change_date:
-                ET.SubElement(product, "data_last_change_date").text = datetime.strftime(self.data_last_change_date, "%Y-%m-%d")
+                ET.SubElement(product, "data_last_change_date").text = datetime.strftime(self.data_last_change_date, "%Y-%m-%d %H:%M:%S")
             else:
                 ET.SubElement(product, "data_last_change_date").text = ""
             # Split the keywords for the product
@@ -894,9 +895,11 @@ class ProductTemplate(models.Model):
                     ET.SubElement(image_elem, "type").text = "image"
                     ET.SubElement(image_elem, "url").text = results['url']
                     ET.SubElement(image_elem, "md5").text = results['md5']
-                    ET.SubElement(image_elem, "change_date").text = datetime.strftime(results['change_date'], "%Y-%m-%d")
-                    if results['change_date'].replace(tzinfo=None) > last_image_change_date:
-                        last_image_change_date = results['change_date'].replace(tzinfo=None)
+                    ET.SubElement(image_elem, "change_date").text = datetime.strftime(results['change_date'], "%Y-%m-%d %H:%M:%S")
+                    # if results['change_date'].replace(tzinfo=None) > last_image_change_date:
+                    #     last_image_change_date = results['change_date'].replace(tzinfo=None)
+                    if results['change_date'] > last_image_change_date:
+                        last_image_change_date = results['change_date']
                 # Upload the medium image
                 # if self.image_medium:
                 #     image_elem = ET.SubElement(images_elem, "image")
@@ -926,9 +929,11 @@ class ProductTemplate(models.Model):
                         ET.SubElement(image_elem, "type").text = "image_additional"
                         ET.SubElement(image_elem, "url").text = results['url']
                         ET.SubElement(image_elem, "md5").text = results['md5']
-                        ET.SubElement(image_elem, "change_date").text = datetime.strftime(results['change_date'], "%Y-%m-%d")
-                        if results['change_date'].replace(tzinfo=None) > last_image_change_date:
-                            last_image_change_date = results['change_date'].replace(tzinfo=None)
+                        ET.SubElement(image_elem, "change_date").text = datetime.strftime(results['change_date'], "%Y-%m-%d %H:%M:%S")
+                        # if results['change_date'].replace(tzinfo=None) > last_image_change_date:
+                        #     last_image_change_date = results['change_date'].replace(tzinfo=None)
+                        if results['change_date'] > last_image_change_date:
+                            last_image_change_date = results['change_date']
             # If the product has variants then add those.
             pvs_elem = ET.SubElement(product, "product_variants")
             if self.product_variant_ids:
@@ -974,9 +979,11 @@ class ProductTemplate(models.Model):
                         ET.SubElement(image_elem, "type").text = "image"
                         ET.SubElement(image_elem, "url").text = results['url']
                         ET.SubElement(image_elem, "md5").text = results['md5']
-                        ET.SubElement(image_elem, "change_date").text = datetime.strftime(results['change_date'], "%Y-%m-%d")
-                        if results['change_date'].replace(tzinfo=None) > last_image_change_date:
-                            last_image_change_date = results['change_date'].replace(tzinfo=None)
+                        ET.SubElement(image_elem, "change_date").text = datetime.strftime(results['change_date'], "%Y-%m-%d %H:%M:%S")
+                        # if results['change_date'].replace(tzinfo=None) > last_image_change_date:
+                        #     last_image_change_date = results['change_date'].replace(tzinfo=None)
+                        if results['change_date'] > last_image_change_date:
+                            last_image_change_date = results['change_date']
                     # if variant.image_medium:
                     #     image_elem = ET.SubElement(pv_images_elem, "image")
                     #     results = s3._upload_to_public_bucket(variant.image_medium, variant.default_code + '_medium.jpg', 'image/jpeg', prod_folder)
@@ -1161,13 +1168,18 @@ class ProductTemplate(models.Model):
                         ET.SubElement(file_elem, "category").text = attach.attachment_category[0].name
                         ET.SubElement(file_elem, "url").text = results['url']
                         ET.SubElement(file_elem, "md5").text = results['md5']
-                        ET.SubElement(file_elem, "change_date").text = datetime.strftime(results['change_date'], "%Y-%m-%d")
+                        ET.SubElement(file_elem, "change_date").text = datetime.strftime(results['change_date'], "%Y-%m-%d %H:%M:%S")
+                        # if attach.attachment_category[0].name == 'Blank' and \
+                        #         results['change_date'].replace(tzinfo=None) > last_image_change_date:
+                        #     last_image_change_date = results['change_date'].replace(tzinfo=None)
                         if attach.attachment_category[0].name == 'Blank' and \
-                                results['change_date'].replace(tzinfo=None) > last_image_change_date:
-                            last_image_change_date = results['change_date'].replace(tzinfo=None)
+                                results['change_date'] > last_image_change_date:
+                            last_image_change_date = results['change_date']
 
             # Write the latest date that an image attached to this product has changed
-            ET.SubElement(product, "last_image_change_date").text = datetime.strftime(last_image_change_date, "%Y-%m-%d")
+            # ET.SubElement(product, "last_image_change_date").text = datetime.strftime(last_image_change_date, "%Y-%m-%d")
+            ET.SubElement(product, "last_image_change_date").text = datetime.strftime(last_image_change_date,
+                                                                                      "%Y-%m-%d %H:%M:%S")
 
             # Now we dump the entire XML into a string
             product_xml = base64.b64encode(ET.tostring(product, encoding='utf-8', xml_declaration=True, pretty_print=True))
@@ -1179,11 +1191,21 @@ class ProductTemplate(models.Model):
                 # Comparing both files in base64 encoded form
                 if product_xml != attach.datas:
                     attach.unlink()
+                    new_change_date = datetime.utcnow()
                     write_new_file = True
             else:
                 write_new_file = True
+                new_change_date = datetime.utcnow()
 
             if write_new_file:
+
+                e = product.find('data_last_change_date')
+                e.text = datetime.strftime(new_change_date, "%Y-%m-%d %H:%M:%S")
+                # Re-encode the data since we updated the last change date
+                # Now we dump the entire XML into a string
+                product_xml = base64.b64encode(
+                    ET.tostring(product, encoding='utf-8', xml_declaration=True, pretty_print=True))
+
                 # Create the xml attachment
                 self.env['ir.attachment'].create({
                     'name': 'product_data.xml',
@@ -1195,9 +1217,10 @@ class ProductTemplate(models.Model):
                     'mimetype': 'application/xml'
                 })
 
-                # Since the data changed set the last data change date
+                # Since the data changed set the last data change date and image last change date
                 self.write({
-                    'data_last_change_date': datetime.now()
+                    'data_last_change_date': new_change_date,
+                    'image_last_change_date': last_image_change_date
                 })
 
                 # Now flag all current export accounts for this product to export
