@@ -2,7 +2,7 @@
 from odoo.exceptions import UserError
 from odoo import api, fields, models, _
 import logging
-from datetime import datetime,time
+from datetime import datetime,time, timezone
 import odoo.modules as addons
 import os
 from odoo.tools import DEFAULT_SERVER_DATE_FORMAT
@@ -247,14 +247,14 @@ class S3Connection(models.Model):
         if len(obj) == 0:
             upload = True
             s3_md5 = local_md5
-            s3_change_date = datetime.now()
+            s3_change_date = datetime.utcnow()
         else:
             # Check the MD5 of the file in S3 and compare that against the current file.  If different, upload
             s3_md5 = obj[0].e_tag
             s3_change_date = obj[0].last_modified
             if s3_md5 != local_md5:
                 upload = True
-                s3_change_date = datetime.now()
+                s3_change_date = datetime.utcnow()
 
         # Upload the file to the public bucket
         if self.s3_enabled and upload:
