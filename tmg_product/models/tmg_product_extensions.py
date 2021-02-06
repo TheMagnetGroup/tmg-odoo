@@ -462,7 +462,7 @@ class ProductTemplate(models.Model):
         for product_split in split_every(10, products):
             for product in product_split:
                 for export_account in product.export_account_ids:
-                    if export_account.export_data:
+                    if export_account.export_product_data:
                         product._export_product_data()
                         break
             cr.commit()
@@ -482,22 +482,22 @@ class ProductTemplate(models.Model):
         # Loop through the export accounts for this product
         for export_account in self.export_account_ids:
             # If the account should be exported
-            if export_account.export_data:
+            if export_account.export_product_data:
                 # At this point we only export to SAGE
                 if export_account.export_account_id.category == 'SAGE':
                     self._export_sage(export_account)
                 elif export_account.export_account_id.category == 'TMGWeb':
                     self._export_web(export_account)
-                # For all others just set the export_data flag to False
+                # For all others just set the export_product_data flag to False
                 else:
                     export_account.write({
-                        'export_data': False
+                        'export_product_data': False
                     })
 
     def _export_sage(self, export_account):
 
         export_error = False
-        export_data_required = True
+        export_product_data_required = True
         export_date = None
         export_message = None
 
@@ -550,11 +550,11 @@ class ProductTemplate(models.Model):
                 export_error = True
                 export_message = sageresponsedict['Responses'][0]['Errors']
             else:
-                export_data_required = False
+                export_product_data_required = False
                 export_date = datetime.today()
 
             export_account.write({
-                'export_data': export_data_required,
+                'export_product_data': export_product_data_required,
                 'last_export_date': export_date,
                 'last_export_message': export_message,
                 'last_export_error': export_error
@@ -563,7 +563,7 @@ class ProductTemplate(models.Model):
     def _export_web(self, export_account):
 
         export_error = False
-        export_data_required = True
+        export_product_data_required = True
         export_date = None
         export_message = None
 
@@ -602,11 +602,11 @@ class ProductTemplate(models.Model):
                 export_message = "An exception occurred updating Web product data: {0}".format(traceback.format_exc())
 
             if not export_message:
-                export_data_required = False
+                export_product_data_required = False
                 export_date = datetime.today()
 
             export_account.write({
-                'export_data': export_data_required,
+                'export_product_data': export_product_data_required,
                 'last_export_date': export_date,
                 'last_export_message': export_message,
                 'last_export_error': export_error
@@ -1226,7 +1226,7 @@ class ProductTemplate(models.Model):
                 # Now flag all current export accounts for this product to export
                 for ea in self.export_account_ids:
                     ea.write({
-                        'export_data': True
+                        'export_product_data': True
                     })
 
                 # Build the standard export files

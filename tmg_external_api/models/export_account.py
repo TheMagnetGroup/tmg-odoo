@@ -18,8 +18,8 @@ class ExportAccount(models.Model):
     url = fields.Char(string="Url")
     xslt_file = fields.Many2one(comodel_name="ir.attachment", string="XSLT File", ondelete="restrict")
     file_extension = fields.Char(string="File Extension")
-    product_tmpl_ids = fields.One2many(comodel_name='product.export.account',
-                                          inverse_name='product_tmpl_id')
+    export_account_ids = fields.One2many(comodel_name='product.export.account',
+                                          inverse_name='export_account_id')
     folder = fields.Char(string="Folder")
 
     _sql_constraints = [
@@ -173,7 +173,7 @@ class ProductExportAccount(models.Model):
                                       required=True)
     export_account_id = fields.Many2one(comodel_name='tmg_external_api.tmg_export_account', string='Export Account',
                                         ondelete='restrict', required=True)
-    export_data = fields.Boolean(string='Export Data', default=True)
+    export_product_data = fields.Boolean(string='Export Data', default=True)
     last_export_date = fields.Date(string='Last Export Date')
     last_export_error = fields.Boolean(string='Last Export Error')
     last_export_message = fields.Char(string='Last Export Error Message')
