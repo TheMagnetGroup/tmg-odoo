@@ -138,6 +138,41 @@ class promostandards(models.Model):
         self.log_transaction(partner_str, request, "Invoice")
         return data
 
+    @api.model
+    def MediaContent(self, partner_str, style_rqs, request):
+        if not partner_str or not partner_str.strip():
+            data = [dict(errorList=[dict(
+                            code=100,
+                            message="Invalid partner ID value: '" + partner_str + "'")
+                            ]
+                         )]
+            return data
+        elif not self.check_call_cap(partner_str):
+            data = [dict(errorList=[dict(
+                            code=999,
+                            message="Call Cap not found for partner ID " + partner_str)
+                            ]
+                         )]
+            return data
+        media_content_obj = self.env['tmg_external_api.media_content']
+        data = media_content_obj.MediaContent(style_rqs)
+        self.log_transaction(partner_str, request, "MediaContent")
+        return data
+
+    @api.model
+    def MediaContentDateModified(self, partner_str, as_of_date_str, request):
+        if not partner_str or not partner_str.strip():
+            data = [dict(errorOdoo=dict(code=100,
+                                        message="Invalid partner ID value: '" + partner_str + "'"))]
+            return data
+        elif not self.check_call_cap(partner_str):
+            data = [dict(errorOdoo=dict(code=999,
+                                        message="Call Cap not found for partner ID " + partner_str))]
+        modified_products_obj = self.env['tmg_external_api.media_content']
+        data = modified_products_obj.MediaContentDateModified(as_of_date_str)
+        self.log_transaction(partner_str, request, "MediaContentDateModified")
+        return data
+
     # def OrderStatus(self, PONumber, SONumber, LastUpdate, Partner_id):
     #     if LastUpdate == '':
     #         LastUpdate = '02/01/1990'
