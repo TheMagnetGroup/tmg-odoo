@@ -799,8 +799,8 @@ class ProductTemplate(models.Model):
             # Get Odoo's decimal accuracy for pricing
             price_digits = self.env['decimal.precision'].precision_get('Product Price')
             # We'll keep track of the latest change date of any of the images used for this product
-            last_image_change_date = datetime.min.replace(tzinfo=pytz.UTC)
-            # last_image_change_date = datetime.min.replace(tzinfo=None)
+            # last_image_change_date = datetime.min.replace(tzinfo=pytz.UTC)
+            last_image_change_date = datetime.min.replace(tzinfo=None)
             # Set the folder for uploading product documents to S3
             prod_folder = self.product_style_number + '/'
             # Snag the current date for comparison of changed images

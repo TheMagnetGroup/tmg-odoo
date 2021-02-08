@@ -251,7 +251,7 @@ class S3Connection(models.Model):
         else:
             # Check the MD5 of the file in S3 and compare that against the current file.  If different, upload
             s3_md5 = obj[0].e_tag
-            s3_change_date = obj[0].last_modified
+            s3_change_date = obj[0].last_modified.replace(tzinfo=None)
             if s3_md5 != local_md5:
                 upload = True
                 s3_change_date = datetime.utcnow()
