@@ -81,6 +81,7 @@
                     <field name="xslt_file"/>
                     <field name="file_extension"/>
                     <field name="folder"/>
+                    <field name="image_folder"/>
 				</tree>
 	   		</field>
 	    </record>
