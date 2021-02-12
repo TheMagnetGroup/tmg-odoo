@@ -567,7 +567,7 @@ class ProductTemplate(models.Model):
         export_date = None
         export_message = None
 
-        # Get the SAGE Json pre-built product data file
+        # Get the website pre-built product data file
         file_name = "product_data_{}_{}.{}".format(export_account.export_account_id.category,
                                                    export_account.export_account_id.name,
                                                    export_account.export_account_id.file_extension)
@@ -594,6 +594,22 @@ class ProductTemplate(models.Model):
 
                 ftp_file_name = "{0}{1}_{2}".format(export_account.export_account_id.folder, self.product_style_number, file_name)
                 ftp.storbinary("STOR {0}".format(ftp_file_name), bio)
+                bio.close()
+
+                # Now we'll upload the product template's image as well as the variant's images
+                bio = BytesIO(base64.b64decode(self.image))
+                ftp_file_name = "{0}{1}.jpg".format(export_account.export_account_id.image_folder, self.product_style_number)
+                ftp.storbinary("STOR {0}".format(ftp_file_name), bio)
+                bio.close()
+
+                if self.product_variant_ids:
+                    # Loop through the product.products and add variant specific information
+                    for variant in self.product_variant_ids:
+                        bio = BytesIO(base64.b64decode(variant.image_variant))
+                        ftp_file_name = "{0}{1}.jpg".format(export_account.export_account_id.image_folder,
+                                                            variant.default_code)
+                        ftp.storbinary("STOR {0}".format(ftp_file_name), bio)
+                        bio.close()
 
                 ftp.quit()
 
@@ -1224,13 +1240,14 @@ class ProductTemplate(models.Model):
                 })
 
                 # Now flag all current export accounts for this product to export
-                for ea in self.export_account_ids:
-                    ea.write({
-                        'export_product_data': True
-                    })
+                # This determination is now done in the _build_export_files routine
+                # for ea in self.export_account_ids:
+                #     ea.write({
+                #         'export_product_data': True
+                #     })
 
-                # Build the standard export files
-                self._build_export_files()
+            # Build the standard export files
+            self._build_export_files()
 
         except Exception as e:
             error_text = '<p>Technical Errors, contact IT:' + '<p>'
@@ -1287,11 +1304,14 @@ class ProductTemplate(models.Model):
                                                                       export_account.export_account_id.name,
                                                                       export_account.export_account_id.file_extension)
 
+                    # Get the attachment if it currently exists
+                    xslt_attach = self._get_stored_file(file_name)
+
                     # Decode the XSLT file
                     xslt = base64.b64decode(export_account.export_account_id.xslt_file.datas)
 
                     # Delete the existing file name if found
-                    self._delete_stored_file(file_name)
+                    # self._delete_stored_file(file_name)
 
                     # Generate the new file content
                     std_xml_dom = ET.parse(BytesIO(std_xml))
@@ -1327,16 +1347,27 @@ class ProductTemplate(models.Model):
                         # Base 64 encode the translated data
                         xslt_result = base64.b64encode(ET.tostring(xslt_result, pretty_print=True))
 
-                    # Create the translated document attachment
-                    self.env['ir.attachment'].create({
-                        'name': file_name,
-                        'datas_fname': file_name,
-                        'type': 'binary',
-                        'datas': xslt_result,
-                        'res_model': 'product.template',
-                        'res_id': self.id,
-                        'mimetype': 'text/plain'
-                    })
+                    # If the attachment doesn't exist OR the attachment does exist and the data changed
+                    if not xslt_attach or (xslt_attach and xslt_attach.datas != xslt_result):
+
+                        # Delete the existing file name if found
+                        self._delete_stored_file(file_name)
+
+                        # Create the translated document attachment
+                        self.env['ir.attachment'].create({
+                            'name': file_name,
+                            'datas_fname': file_name,
+                            'type': 'binary',
+                            'datas': xslt_result,
+                            'res_model': 'product.template',
+                            'res_id': self.id,
+                            'mimetype': 'text/plain'
+                        })
+
+                        # Mark the current export account as needing to be exported
+                        export_account.write({
+                            'export_product_data': True
+                        })
 
 class ProductCategory(models.Model):
     _inherit = 'product.category'

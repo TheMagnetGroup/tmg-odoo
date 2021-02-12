@@ -21,6 +21,7 @@ class ExportAccount(models.Model):
     export_account_ids = fields.One2many(comodel_name='product.export.account',
                                           inverse_name='export_account_id')
     folder = fields.Char(string="Folder")
+    image_folder = fields.Char(string="Image Folder")
 
     _sql_constraints = [
         ('name_uniq', 'unique (name)', "Export account name already exists!"),
