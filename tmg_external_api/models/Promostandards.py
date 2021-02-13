@@ -138,6 +138,64 @@ class promostandards(models.Model):
         self.log_transaction(partner_str, request, "Invoice")
         return data
 
+    @api.model
+    def ProductSellable(self, partner_str, style_rqs, variant_rqs, request):
+        if not partner_str or not partner_str.strip():
+            data = [dict(errorOdoo=dict(code=100,
+                                        message="Invalid partner ID value: '" + partner_str + "'"))]
+            return data
+        elif not self.check_call_cap(partner_str):
+            data = [dict(errorOdoo=dict(code=999,
+                                        message="Call Cap not found for partner ID " + partner_str))]
+            return data
+        sellables_obj = self.env['tmg_external_api.product_data']
+        data = sellables_obj.ProductSellable(style_rqs, variant_rqs)
+        self.log_transaction(partner_str, request, "ProductSellable")
+        return data
+
+    @api.model
+    def ProductCloseout(self, partner_str, request):
+        if not partner_str or not partner_str.strip():
+            data = [dict(errorOdoo=dict(code=100,
+                                        message="Invalid partner ID value: '" + partner_str + "'"))]
+            return data
+        elif not self.check_call_cap(partner_str):
+            data = [dict(errorOdoo=dict(code=999,
+                                        message="Call Cap not found for partner ID " + partner_str))]
+        closeouts_obj = self.env['tmg_external_api.product_data']
+        data = closeouts_obj.ProductCloseout()
+        self.log_transaction(partner_str, request, "ProductCloseout")
+        return data
+
+    @api.model
+    def ProductData(self, partner_str, style_rqs, request):
+        if not partner_str or not partner_str.strip():
+            data = [dict(errorOdoo=dict(code=100,
+                                        message="Invalid partner ID value: '" + partner_str + "'"))]
+            return data
+        elif not self.check_call_cap(partner_str):
+            data = [dict(errorOdoo=dict(code=999,
+                                        message="Call Cap not found for partner ID " + partner_str))]
+            return data
+        product_data_obj = self.env['tmg_external_api.product_data']
+        data = product_data_obj.ProductData(style_rqs)
+        self.log_transaction(partner_str, request, "ProductData")
+        return data
+
+    @api.model
+    def ProductDateModified(self, partner_str, as_of_date_str, request):
+        if not partner_str or not partner_str.strip():
+            data = [dict(errorOdoo=dict(code=100,
+                                        message="Invalid partner ID value: '" + partner_str + "'"))]
+            return data
+        elif not self.check_call_cap(partner_str):
+            data = [dict(errorOdoo=dict(code=999,
+                                        message="Call Cap not found for partner ID " + partner_str))]
+        modified_products_obj = self.env['tmg_external_api.product_data']
+        data = modified_products_obj.ProductDateModified(as_of_date_str)
+        self.log_transaction(partner_str, request, "ProductDateModified")
+        return data
+
     # def OrderStatus(self, PONumber, SONumber, LastUpdate, Partner_id):
     #     if LastUpdate == '':
     #         LastUpdate = '02/01/1990'

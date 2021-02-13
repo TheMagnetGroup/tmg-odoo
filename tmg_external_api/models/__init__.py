@@ -9,3 +9,4 @@ from . import tmg_reference
 from . import shipment_notification
 from . import export_account
 from . import invoice
+from . import product_data
