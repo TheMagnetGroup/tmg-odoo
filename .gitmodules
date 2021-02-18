@@ -1,0 +1,4 @@
+[submodule "edi/edi"]
+	path = edi/edi
+	url = git@github.com:odoo-sh/edi.git
+	branch = 12.0
