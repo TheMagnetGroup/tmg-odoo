@@ -6,11 +6,13 @@ class sale_hold(models.Model):
     name = fields.Char(string="Name")
     blocks_production = fields.Boolean(string="Blocks Production")
     blocks_delivery = fields.Boolean(string="Blocks Delivery")
+    blocks_confirmation = fields.Boolean(string="Blocks Confirmation")
     color = fields.Char(string="Color")
     active = fields.Boolean(string="Active")
     group_ids = fields.Many2many("res.groups", "rel_sales_to_holds", 'salesid', 'holdid',string="Security Group")
     credit_hold = fields.Boolean(string="Credit Hold")
     promostandards_hold_description = fields.Selection(selection=lambda x: x.env['tmg_external_api.tmg_reference'].getEnums('promostandards_order_status'), string="Promostandards Hold Description")
+
 
 
 
