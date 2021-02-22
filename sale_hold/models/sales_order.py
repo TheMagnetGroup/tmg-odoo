@@ -344,6 +344,8 @@ class SaleOrder(models.Model):
                 for hold in order.order_holds:
                     if hold.blocks_production or hold.credit_hold:
                         has_stop_hold = True
+                    if hold.blocks_confirmation:
+                        raise UserError('This order has holds preventing confirmation.')
 
 
             ret = super(SaleOrder, self).action_confirm()
