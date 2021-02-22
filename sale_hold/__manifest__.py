@@ -9,6 +9,7 @@ Add sales holds to orders that can block production or delivery. Also implements
     * Christian Dunn – 1/15/2020 – Changed what shipping labels used to get ship from company name
     * Christian Dunn – 4/02/2020 – Added picking logic to manufacturing order's picking. 
     * Christian Dunn - 9/29/2020 - Changed to only check holds on line items <> service.
+    * Christian Dunn - 2/22/2021 - Added confirmation hold and logic.
     
 """,
     "author": "The Magnet Group",
