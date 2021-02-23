@@ -3,8 +3,6 @@ from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError, Warning, UserError
 from odoo.addons import decimal_precision as dp
 from odoo.tools import float_compare, float_round
-# from odoo.tools.profiler import profile
-from odoo.tools.misc import profile
 
 
 class SaleOrderLineDelivery(models.Model):
@@ -103,28 +101,43 @@ class SaleOrder(models.Model):
             else:
                 order.delivery_update_ok = False
 
-    # @api.multi
-    # @profile('/home/cindey/debugModules/prof.profile')
+    @api.multi
+    def create_procurement(self, quant_uom, line, get_param, product_qty, shipping_partner, values):
+        procurement_uom = line.product_uom
+
+        group_id = self.env['procurement.group'].create({
+            'name': line.order_id.name, 'move_type': line.order_id.picking_policy,
+            'sale_id': line.order_id.id,
+            'partner_id': shipping_partner.id,
+        })
+        values.update({'partner_id': shipping_partner.id,
+                       'group_id': group_id})
+
+        if procurement_uom.id != quant_uom.id and get_param('stock.propagate_uom') != '1':
+            product_qty = line.product_uom._compute_quantity(product_qty, quant_uom,
+                                                             rounding_method='HALF-UP')
+            procurement_uom = quant_uom
+        try:
+            self.env['procurement.group'].run(line.product_id, product_qty, procurement_uom,
+                                              shipping_partner.property_stock_customer,
+                                              line.name, line.order_id.name, values)
+        except UserError as error:
+            return error.name
+
+        return ''
+
+    @api.multi
     def action_update_delivery(self):
         for order in self:
             if not order.delivery_update_ok:
                 raise ValidationError(_('Cannot update delivery when there is at least one confirmed delivery.'))
-            # old_move_orig_ids = order.picking_ids.filtered(lambda pick: pick.picking_type_code == 'outgoing').mapped('move_ids_without_package.move_orig_ids.id')
-            # old_production_ids = self.env['mrp.production'].search([('sale_line_id', 'in', order.order_line.ids)])
-            #
+            old_move_orig_ids = order.picking_ids.filtered(lambda pick: pick.picking_type_code == 'outgoing').mapped('move_ids_without_package.move_orig_ids.id')
+            old_production_ids = self.env['mrp.production'].search([('sale_line_id', 'in', order.order_line.ids)])
+
             order.picking_ids.action_cancel()
             order.picking_ids.unlink()
             # order.order_line.with_context(ignore_assigned=True)._action_launch_stock_rule()
-            #
-            # if old_move_orig_ids and old_production_ids:
-            #     new_move_ids = order.picking_ids.filtered(lambda pick: pick.picking_type_code == 'outgoing').mapped('move_ids_without_package.move_orig_ids')
-            #     order.picking_ids.filtered(lambda pick: pick.picking_type_code == 'outgoing').mapped('move_ids_without_package').write({'move_orig_ids': [(6, 0, old_move_orig_ids)]})
-            #
-            #     new_production_ids = new_move_ids.mapped('production_id')
-            #     # new_move_ids.unlink()
-            #     new_production_ids.action_cancel()
-            #     new_production_ids.unlink()
-            #
+
             errors = []
             for line in order.order_line:
                 values = line._prepare_procurement_values()
@@ -132,34 +145,25 @@ class SaleOrder(models.Model):
                 get_param = self.env['ir.config_parameter'].sudo().get_param
 
                 for delivery in line.delivery_ids:
-                    procurement_uom = line.product_uom
-
-                    group_id = self.env['procurement.group'].create({
-                        'name': line.order_id.name, 'move_type': line.order_id.picking_policy,
-                        'sale_id': line.order_id.id,
-                        'partner_id': delivery.shipping_partner_id.id,
-                    })
-
-                    values.update({'partner_id': delivery.shipping_partner_id.id,
-                                   'group_id': group_id})
-
-                    product_qty = delivery.qty
-
-                    if procurement_uom.id != quant_uom.id and get_param('stock.propagate_uom') != '1':
-                        product_qty = line.product_uom._compute_quantity(product_qty, quant_uom,
-                                                                         rounding_method='HALF-UP')
-                        procurement_uom = quant_uom
-
-                    try:
-                        self.env['procurement.group'].run(line.product_id, product_qty, procurement_uom,
-                                                          delivery.shipping_partner_id.property_stock_customer,
-                                                          line.name, line.order_id.name, values)
-                    except UserError as error:
-                        errors.append(error.name)
-
+                    error = self.create_procurement(quant_uom, line, get_param, delivery.qty, delivery.shipping_partner_id, values)
+                    if error:
+                        errors.append(error)
+                # handle case where sol qty is greater than the number of delivery addresses
+                if line.product_uom_qty > line.delivery_qty_sum:
+                    # Get the remainder products in sol
+                    left_over = line.product_uom_qty - line.delivery_qty_sum
+                    error = self.create_procurement(quant_uom, line, get_param, left_over, order.partner_shipping_id, values)
+                    if error:
+                        errors.append(error)
             if errors:
                 raise UserError('\n'.join(errors))
 
-            #TODO: handle case with leftovers, put those in the main address
+            if old_move_orig_ids and old_production_ids:
+                new_move_ids = order.picking_ids.filtered(lambda pick: pick.picking_type_code == 'outgoing').mapped('move_ids_without_package.move_orig_ids')
+                order.picking_ids.filtered(lambda pick: pick.picking_type_code == 'outgoing').mapped('move_ids_without_package').write({'move_orig_ids': [(6, 0, old_move_orig_ids)]})
 
+                new_production_ids = new_move_ids.mapped('production_id')
+                # new_move_ids.unlink()
+                new_production_ids.action_cancel()
+                new_production_ids.unlink()
         return True
