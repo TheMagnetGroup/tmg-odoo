@@ -34,7 +34,7 @@ class media_content(models.Model):
         if change_as_of_date_str and change_as_of_date_str.strip():
             sellable_product_ids = self.env['product.template'].get_product_saleable().ids
             change_as_of_date = fields.Datetime.from_string(change_as_of_date_str)
-            date_modified_search = [('data_last_change_date', '>=', change_as_of_date),
+            date_modified_search = [('image_last_change_date', '>=', change_as_of_date),
                                     ('product_tmpl_id', 'in', sellable_product_ids)]
             media_date_modified_export = self._get_date_modified_media(date_modified_search,
                                                                        change_as_of_date_str)
@@ -81,13 +81,13 @@ class media_content(models.Model):
                     stored_export = dict(errorOdoo=dict(),
                                          xmlString=product_xml_str.replace("\n", ""))
                 else:
-                    stored_export = dict(odooError=dict(code=160,
+                    stored_export = dict(errorOdoo=dict(code=160,
                                                         message="No media content data found"))
             else:
-                stored_export = dict(odooError=dict(code=130,
+                stored_export = dict(errorOdoo=dict(code=130,
                                                     message="Product '" + style + "' not found"))
         else:
-            stored_export = dict(odooError=dict(code=999,
+            stored_export = dict(errorOdoo=dict(code=999,
                                                 message='Product Export Account "' + export_account_name
                                                         + '" record is missing'))
         return stored_export
