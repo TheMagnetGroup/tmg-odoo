@@ -8,6 +8,7 @@ from datetime import datetime, timedelta
 import urllib.request
 import json
 import base64
+import os
 import traceback
 import xmltodict
 import pytz
@@ -463,7 +464,7 @@ class ProductTemplate(models.Model):
             for product in product_split:
                 for export_account in product.export_account_ids:
                     if export_account.export_product_data:
-                        product._export_product_data()
+                        product._export_product_data(process_sage=False)
                         break
             cr.commit()
 
@@ -478,14 +479,14 @@ class ProductTemplate(models.Model):
         cr.commit()
         cr.close()
 
-    def _export_product_data(self):
+    def _export_product_data(self, process_sage=True):
         # Loop through the export accounts for this product
         for export_account in self.export_account_ids:
             # If the account should be exported
             if export_account.export_product_data:
-                # At this point we only export to SAGE
-                if export_account.export_account_id.category == 'SAGE':
-                    self._export_sage(export_account)
+                # By default we will export SAGE for single product updates but not in bulk
+                if process_sage and export_account.export_account_id.category == 'SAGE':
+                    self._export_sage([export_account])
                 elif export_account.export_account_id.category == 'TMGWeb':
                     self._export_web(export_account)
                 # For all others just set the export_product_data flag to False
@@ -494,37 +495,73 @@ class ProductTemplate(models.Model):
                         'export_product_data': False
                     })
 
-    def _export_sage(self, export_account):
+    def _send_sage_product_updates(self):
+        # Get all the export account records with a category of SAGE
+        export_accounts = self.env['tmg_external_api.tmg_export_account'].search([('category', '=', 'SAGE')])
+        for export_account in export_accounts:
+            # Get all the product export accounts for this export account that are set to export
+            product_export_accounts = self.env['product.export.account'].search([('export_account_id', '=', export_account.id),
+                                                                                 ('export_product_data', '=', True)])
+            # Now we'll send the sage updates in chunks of 25
+            for account_split in split_every(100, product_export_accounts):
+                self._export_sage(account_split)
+
+    def _export_sage(self, export_accounts):
 
         export_error = False
-        export_product_data_required = True
-        export_date = None
         export_message = None
+        export_date = None
+        export_product_data_required = False
+        export_count = 0
+        sage_request_data = []
 
-        # Build the SAGE structure
-        SAGEAuth = export_account.export_account_id.get_sage_credentials("ProductDataUpdate")
-        # Get the SAGE Json pre-built product data file
-        file_name = "product_data_{}_{}.{}".format(export_account.export_account_id.category,
+        # Build the SAGE structure from the first export account (assuming all export accounts
+        # passed to this routine will be the same).
+        SAGEAuth = export_accounts[0].export_account_id.get_sage_credentials("ProductDataUpdate")
+        # Start the Products section
+        sage_request_data.append('{"Products": [')
+        # Now spin through each passed export account, retrieve the data and append to the request
+        for export_account in export_accounts:
+            # Get the SAGE Json pre-built product data file
+            file_name = "product_data_{}_{}.{}".format(export_account.export_account_id.category,
                                                    export_account.export_account_id.name,
                                                    export_account.export_account_id.file_extension)
-        attach = self._get_stored_file(file_name)
-        if attach:
-            # Decode from base64
-            datas_str = base64.b64decode(attach.datas)
-            # Serialize the attachment data to Json in order to set the credentials and the supplier number
-            sage_json_data = json.loads(datas_str)
+            attach = export_account.product_tmpl_id._get_stored_file(file_name)
+            if attach:
+                export_count += 1
+                # Add a comma between the product array elements
+                if export_count > 1:
+                    sage_request_data.append(",")
+                # Decode from base64
+                datas_str = base64.b64decode(attach.datas).decode("utf-8")
+                # In order to reference a SAGE update back to an export account we will put the
+                # export account id in the RefNum we send to SAGE
+                datas_str = datas_str.replace("export_account_id", str(export_account.id))
+                sage_request_data.append(datas_str)
+            # If there is not attachment for this export then we should set the export account with a error
+            else:
+                export_account.write({
+                    'export_product_data': True,
+                    'last_export_message': "Attachment file {0} not found".format(file_name),
+                    'last_export_error': True
+                })
+
+        # If we're going to export at least 1 product
+        if export_count > 0:
+
+            # Add the closing bracket
+            sage_request_data.append("]}")
+
+            # Serialize the request data to Json in order to set the credentials and the supplier number
+            sage_json_data = json.loads("".join(sage_request_data))
             sage_json = {}
             sage_json.update(SAGEAuth)
             sage_json.update(sage_json_data)
-            # If the images have not changed since the last export then delete that node
-            # image_change_date = datetime.strptime(sage_json['Products'][0]['ImageChangeDate'], '%Y-%m-%d')
-            # if export_account.last_export_date and image_change_date.date() < export_account.last_export_date:
-            #     del sage_json['Products'][0]['Pics']
-            #     sage_json['Products'][0]['DeletePics'] = 0
+
             # Set the supplier ID
             for i in range(len(sage_json['Products'])):
                 sage_json['Products'][i]['SuppID'] = export_account.export_account_id.account_number
-            # sage_json['SuppID'] = export_account.export_account_id.account_number
+
             # Send the product update to SAGE. NOTE: you must be VERY careful sending any product updates to SAGE
             # They do not have a test environment so any product updates will hit their LIVE database.
             sagerequest = urllib.request.Request(export_account.export_account_id.url,
@@ -545,20 +582,48 @@ class ProductTemplate(models.Model):
                 export_error = True
                 export_message = "An exception occurred updating the SAGE product date: {0}".format(traceback.format_exc())
 
-            # If the response was NOT ok then set an error
-            if sageresponsedict['Responses'][0]['OK'] == "0":
+            # If the Responses element was not in the reponse from SAGE then grab the error message as the entire response
+            if not 'Responses' in sageresponsedict:
                 export_error = True
-                export_message = sageresponsedict['Responses'][0]['Errors']
-            else:
-                export_product_data_required = False
-                export_date = datetime.today()
+                export_message = sageresponsestr
 
-            export_account.write({
-                'export_product_data': export_product_data_required,
-                'last_export_date': export_date,
-                'last_export_message': export_message,
-                'last_export_error': export_error
-            })
+            # At this point if there were any errors we will update all export accounts with the same error since they apply
+            # to the entire batch
+            if export_error:
+                # Write the same error for every account.
+                for export_account in export_accounts:
+                    export_account.write({
+                        'export_product_data': True,
+                        'last_export_message': export_message,
+                        'last_export_error': export_error
+                    })
+            # Else there was a specific response for every product passed
+            else:
+                # Loop through each response and update the export account accordingly.  The export
+                # account id will be in the RefNum field of each response.
+                for response in sageresponsedict['Responses']:
+                    export_error = False
+                    export_message = None
+                    export_date = None
+                    export_product_data_required = False
+                    # Get the export account record
+                    export_account_id = int(response['RefNum'])
+                    export_account = self.env['product.export.account'].search([('id', '=', export_account_id)])
+                    # If the product update had an error
+                    if response['OK'] == "0":
+                        export_error = True
+                        export_message = response['Errors']
+                        export_date = export_account.last_export_date
+                        export_product_data_required = True
+                    else:
+                        export_date = datetime.today()
+
+                    export_account.write({
+                        'export_product_data': export_product_data_required,
+                        'last_export_date': export_date,
+                        'last_export_message': export_message,
+                        'last_export_error': export_error
+                    })
 
     def _export_web(self, export_account):
 
@@ -627,6 +692,14 @@ class ProductTemplate(models.Model):
                 'last_export_message': export_message,
                 'last_export_error': export_error
             })
+
+        else:
+            export_account.write({
+                'export_product_data': True,
+                'last_export_message': "Attachment file {0} not found".format(file_name),
+                'last_export_error': True
+            })
+
 
     # In this routine we will check all required data elements to build the product XML and if any are missing
     # we'll update the data error messages field on this product and return false
