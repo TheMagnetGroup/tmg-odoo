@@ -485,8 +485,9 @@ class ProductTemplate(models.Model):
             # If the account should be exported
             if export_account.export_product_data:
                 # By default we will export SAGE for single product updates but not in bulk
-                if process_sage and export_account.export_account_id.category == 'SAGE':
-                    self._export_sage([export_account])
+                if export_account.export_account_id.category == 'SAGE':
+                    if process_sage:
+                        self._export_sage([export_account])
                 elif export_account.export_account_id.category == 'TMGWeb':
                     self._export_web(export_account)
                 # For all others just set the export_product_data flag to False
