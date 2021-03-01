@@ -102,16 +102,25 @@ class SaleOrder(models.Model):
                 order.delivery_update_ok = False
 
     @api.multi
-    def create_procurement(self, quant_uom, line, get_param, product_qty, shipping_partner, values):
+    def create_procurement(self, quant_uom, line, get_param, product_qty, shipping_partner, order):
+        values = line._prepare_procurement_values()
         procurement_uom = line.product_uom
+        # logic to check if we already have a delivery order created for that partner on SOL
+        existing_pick = order.picking_ids.filtered(lambda p: p.partner_id == shipping_partner)
+        if existing_pick:
+            group_id = existing_pick.move_ids_without_package.mapped('group_id')
+            if len(group_id) == 1:
+                values.update({'group_id': group_id})
 
-        group_id = self.env['procurement.group'].create({
-            'name': line.order_id.name, 'move_type': line.order_id.picking_policy,
-            'sale_id': line.order_id.id,
-            'partner_id': shipping_partner.id,
-        })
-        values.update({'partner_id': shipping_partner.id,
-                       'group_id': group_id})
+        # if no existing group id create a new group
+        if not values.get('group_id'):
+            group_id = self.env['procurement.group'].create({
+                'name': line.order_id.name, 'move_type': line.order_id.picking_policy,
+                'sale_id': line.order_id.id,
+                'partner_id': shipping_partner.id,
+            })
+            values.update({'group_id': group_id})
+        values.update({'partner_id': shipping_partner.id})
 
         if procurement_uom.id != quant_uom.id and get_param('stock.propagate_uom') != '1':
             product_qty = line.product_uom._compute_quantity(product_qty, quant_uom,
@@ -136,23 +145,21 @@ class SaleOrder(models.Model):
 
             order.picking_ids.action_cancel()
             order.picking_ids.unlink()
-            # order.order_line.with_context(ignore_assigned=True)._action_launch_stock_rule()
 
             errors = []
             for line in order.order_line:
-                values = line._prepare_procurement_values()
                 quant_uom = line.product_id.uom_id
                 get_param = self.env['ir.config_parameter'].sudo().get_param
 
                 for delivery in line.delivery_ids:
-                    error = self.create_procurement(quant_uom, line, get_param, delivery.qty, delivery.shipping_partner_id, values)
+                    error = self.create_procurement(quant_uom, line, get_param, delivery.qty, delivery.shipping_partner_id, order)
                     if error:
                         errors.append(error)
                 # handle case where sol qty is greater than the number of delivery addresses
                 if line.product_uom_qty > line.delivery_qty_sum:
                     # Get the remainder products in sol
                     left_over = line.product_uom_qty - line.delivery_qty_sum
-                    error = self.create_procurement(quant_uom, line, get_param, left_over, order.partner_shipping_id, values)
+                    error = self.create_procurement(quant_uom, line, get_param, left_over, order.partner_shipping_id, order)
                     if error:
                         errors.append(error)
             if errors:
