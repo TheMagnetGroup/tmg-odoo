@@ -41,7 +41,7 @@ class media_content(models.Model):
         else:
             media_date_modified_export = dict(
                 errorOdoo=dict(code=120,
-                               message="Media Last Changed timestamp is required")
+                               message="A valid date/timestamp value is required to request media modified as of date")
             )
 
         return media_date_modified_export
@@ -102,7 +102,7 @@ class media_content(models.Model):
             date_modified_media.append(data)
         if len(date_modified_media) == 0:
             date_modified_media = [
-                dict(errorOdoo=dict(code=130,
-                                    message="No media content data found that was modified since " + as_of_date_str)
+                dict(errorOdoo=dict(code=160,
+                                    message="No media content data found that was modified as of " + as_of_date_str)
                      )]
         return date_modified_media
