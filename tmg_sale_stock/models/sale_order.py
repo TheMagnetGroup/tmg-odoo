@@ -3,7 +3,7 @@ from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError, Warning, UserError
 from odoo.addons import decimal_precision as dp
 from odoo.tools import float_compare, float_round
-
+from odoo.tools.misc import profile
 
 class SaleOrderLineDelivery(models.Model):
     _name = 'sale.order.line.delivery'
@@ -127,7 +127,7 @@ class SaleOrder(models.Model):
                                                              rounding_method='HALF-UP')
             procurement_uom = quant_uom
         try:
-            self.env['procurement.group'].run(line.product_id, product_qty, procurement_uom,
+            self.env['procurement.group'].with_context(tracking_disable=True).run(line.product_id, product_qty, procurement_uom,
                                               shipping_partner.property_stock_customer,
                                               line.name, line.order_id.name, values)
         except UserError as error:
@@ -136,12 +136,13 @@ class SaleOrder(models.Model):
         return ''
 
     @api.multi
+    @profile('/home/cindey/debugModules/with_fix_tmg_tracking_off_search.profile')
     def action_update_delivery(self):
         for order in self:
             if not order.delivery_update_ok:
                 raise ValidationError(_('Cannot update delivery when there is at least one confirmed delivery.'))
             old_move_orig_ids = order.picking_ids.filtered(lambda pick: pick.picking_type_code == 'outgoing').mapped('move_ids_without_package.move_orig_ids.id')
-            old_production_ids = self.env['mrp.production'].search([('sale_line_id', 'in', order.order_line.ids)])
+            old_production_ids = self.env['mrp.production'].with_context(prefetch_fields=False).search([('sale_line_id', 'in', order.order_line.ids)])
 
             order.picking_ids.action_cancel()
             order.picking_ids.unlink()
