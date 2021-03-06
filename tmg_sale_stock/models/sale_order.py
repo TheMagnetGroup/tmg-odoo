@@ -137,7 +137,6 @@ class SaleOrder(models.Model):
         return ''
 
     @api.multi
-    # @profile('/home/cindey/debugModules/with_fix_tmg_tracking_off_search.profile')
     def action_update_delivery(self):
         for order in self:
             if not order.delivery_update_ok:
