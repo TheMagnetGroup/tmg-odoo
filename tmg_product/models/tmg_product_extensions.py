@@ -671,15 +671,19 @@ class ProductTemplate(models.Model):
                 if self.product_variant_ids:
                     # Loop through the product.products and add variant specific information
                     for variant in self.product_variant_ids:
-                        bio = BytesIO(base64.b64decode(variant.image_variant))
-                        ftp_file_name = "{0}{1}.jpg".format(export_account.export_account_id.image_folder,
+                        if variant.image_variant:
+                            bio = BytesIO(base64.b64decode(variant.image_variant))
+                            ftp_file_name = "{0}{1}.jpg".format(export_account.export_account_id.image_folder,
                                                             variant.default_code)
-                        ftp.storbinary("STOR {0}".format(ftp_file_name), bio)
-                        bio.close()
+                            ftp.storbinary("STOR {0}".format(ftp_file_name), bio)
+                            bio.close()
 
                 ftp.quit()
 
             except ftplib.error_perm as e:
+                export_error = True
+                export_message = "An exception occurred updating Web product data: {0}".format(traceback.format_exc())
+            except Exception as e:
                 export_error = True
                 export_message = "An exception occurred updating Web product data: {0}".format(traceback.format_exc())
 
