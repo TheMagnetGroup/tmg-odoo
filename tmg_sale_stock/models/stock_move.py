@@ -87,3 +87,21 @@ class StockMove(models.Model):
         # for move in self:
         #     move._split_move_before_assigning_picking()
         # return super(StockMove, self)._assign_picking()
+
+    def _prepare_procurement_values(self):
+        values = super(StockMove, self)._prepare_procurement_values()
+        if self._context.get('update_deliveries'):
+            self = self.with_context(update_deliveries=False)
+            values.update({'skip_procurement': True})
+        return values
+
+    def _assign_picking(self):
+        if self._context.get('update_deliveries'):
+            self = self.with_context(tracking_disable=True)
+        return super(StockMove, self)._assign_picking()
+
+    def _assign_picking_post_process(self, new=False):
+        if self._context.get('update_deliveries'):
+            pass
+        else:
+            super(StockMove, self)._assign_picking_post_process(new=new)
