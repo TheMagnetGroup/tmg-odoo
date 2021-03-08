@@ -38,13 +38,18 @@ class order_status(models.Model):
                 order_id = val['id']
                 order = orderObj.browse(order_id)
                 orderStatus = self._get_current_status(order)
-
+                ship_date = ''
+                if order.state == 'complete':
+                    pickings = order.picking_ids.filtered(lambda pick: pick.state == 'done').sorted('date_done')[0]
+                    ship_date = pickings.date_done
+                else:
+                    ship_date = order.commitment_date
                 data = [
 
                     ('active', '=', True),
                     # ('parent_id', '=', partner_id.parent_id.id),
                     ('name', '=', order.name),
-                    ('ship_date', '=', order.commitment_date),
+                    ('ship_date', '=', ship_date),
                     ('in_hands', '=', order.in_hands),
                     ('status', '=', orderStatus[0]),
                     ('SONumber', '=', order.name),
