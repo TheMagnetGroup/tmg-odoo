@@ -11,6 +11,7 @@
         * Jonas Temple - 2020/08/12 -  Added export account model and views to store credentials for sending item information
         * Christian Dunn - 2020/11/19 -  Added Technical Contact to res.partner
         * Christian Dunn - 2020/12/17 -  Changed return values for order status
+        * Christian Dunn - 2021/03/08 -  Changed ship date fields in order status
         
     """,
 
