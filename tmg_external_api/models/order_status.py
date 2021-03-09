@@ -40,8 +40,10 @@ class order_status(models.Model):
                 orderStatus = self._get_current_status(order)
                 ship_date = ''
                 if order.invoice_status == 'invoiced':
-                    pickings = order.picking_ids.filtered(lambda pick: pick.state == 'done').sorted('date_done')[0]
-                    ship_date = pickings.date_done
+                    pickings = order.picking_ids.filtered(lambda pick: pick.state == 'done')
+                    if pickings:
+                        pickings = pickings.sorted('date_done')[0]
+                        ship_date = pickings.date_done
                 else:
                     ship_date = order.commitment_date
                 data = [
