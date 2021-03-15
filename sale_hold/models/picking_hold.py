@@ -17,9 +17,9 @@ class picking_sales_hold(models.Model):
             self.on_hold_text = 'On Hold'
         else:
             self.on_hold_text = ''
-            
+
     @api.multi
-    @api.depends('on_hold')
+    @api.depends('has_shipping_hold')
     def update_on_shipping_hold(self):
         if self.sale_id:
             if self.has_shipping_hold:
