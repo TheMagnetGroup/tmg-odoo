@@ -9,7 +9,6 @@ class picking_sales_hold(models.Model):
     on_hold = fields.Boolean(string="On Hold")
     on_hold_text = fields.Char(string="Hold Text")
     has_shipping_hold = fields.Boolean(string="Has Shipping Hold", related='sale_id.on_shipping_hold')
-
     @api.multi
     @api.depends('on_hold')
     def update_on_change_text(self):
@@ -19,7 +18,7 @@ class picking_sales_hold(models.Model):
             self.on_hold_text = ''
 
     @api.multi
-    @api.depends('has_shipping_hold')
+    @api.depends('sale_id.on_shipping_hold')
     def update_on_shipping_hold(self):
 
         if self.has_shipping_hold:
