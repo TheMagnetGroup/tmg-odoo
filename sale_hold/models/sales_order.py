@@ -16,7 +16,7 @@ class SaleOrder(models.Model):
     is_automated_hold = fields.Boolean(string = "Automated Credit Hold", copy=False,  default=False)
     on_production_hold = fields.Boolean(string="On Production Hold", copy=False,  default=False)
     payment_term_id = fields.Many2one('account.payment.term', string='Payment Terms',copy=False, oldname='payment_term')
-    on_shipping_hold = fields.Boolean(string="Has Shipping Hold", default=False, copy=False)
+
     def checkSecurity(self, value):
         hasGroup = False
         for grp in value.group_ids:
@@ -211,18 +211,18 @@ class SaleOrder(models.Model):
                 #         #     mo.on_hold = False
                 #     order.on_production_hold = False
             self.set_holds(hasShippingBlock, hasProductionBlock)
-            # if hasProductionBlock and hasShippingBlock:
-            #     order.on_production_hold = True
-            #
-            # else:
-            #     order.on_production_hold = False
-            #
-            #
+            if hasProductionBlock and hasShippingBlock:
+                order.on_production_hold = True
+
+            else:
+                order.on_production_hold = False
+
+
             # if len(order.order_holds) == 0:
             #     order.on_hold = False
-            #     for pi in self.picking_ids:
-            #         order.picking_ids.write({'on_hold': False})
-            #         order.picking_ids.write({'on_hold_text': ''})
+            #
+            #     order.picking_ids.write({'on_hold': False})
+            #     order.picking_ids.write({'on_hold_text': ''})
             #     for li in self.order_line:
             #         li.job_id.write({'on_hold': False})
             #     self.set_holds(False, False)
@@ -241,18 +241,16 @@ class SaleOrder(models.Model):
 
     def set_holds(self, ship, prod):
         if ship:
-            # for pi in self.picking_ids:
-            #     self.picking_ids.write({'on_hold': True})
-            #     self.picking_ids.write({'on_hold_text': 'On Hold'})
+
+            self.picking_ids.write({'on_hold': True})
+            self.picking_ids.write({'on_hold_text': 'On Hold'})
             self.on_hold = True
-            self.on_shipping_hold = True
             for li in self.order_line:
                 li.job_id.write({'on_hold': True})
         else:
-            self.on_shipping_hold = False
-            # for pi in self.picking_ids:
-            #     self.picking_ids.write({'on_hold': False})
-            #     self.picking_ids.write({'on_hold_text': ''})
+
+            self.picking_ids.write({'on_hold': False})
+            self.picking_ids.write({'on_hold_text': ''})
         if prod:
             for li in self.order_line:
                 li.job_id.write({'on_hold': True})
@@ -266,10 +264,9 @@ class SaleOrder(models.Model):
                     for pi in mo.picking_ids:
                         pi.write({'on_hold': True})
 
-            self.on_shipping_hold = True
-            # for pi in self.picking_ids:
-            #     self.picking_ids.write({'on_hold': True})
-            #     self.picking_ids.write({'on_hold_text': 'On Hold'})
+
+            self.picking_ids.write({'on_hold': True})
+            self.picking_ids.write({'on_hold_text': 'On Hold'})
 
             self.on_production_hold = True
             self.on_hold= True
@@ -285,12 +282,11 @@ class SaleOrder(models.Model):
                     for pi in mo.picking_ids:
                         pi.write({'on_hold': False})
             if not ship:
-                self.on_shipping_hold = False
                 for li in self.order_line:
                     li.job_id.write({'on_hold': False})
-                # for pi in self.picking_ids:
-                #     self.picking_ids.write({'on_hold': False})
-                #     self.picking_ids.write({'on_hold_text': ''})
+
+                self.picking_ids.write({'on_hold': False})
+                self.picking_ids.write({'on_hold_text': ''})
 
 
             self.on_production_hold = False
