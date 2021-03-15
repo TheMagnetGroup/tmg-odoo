@@ -211,23 +211,23 @@ class SaleOrder(models.Model):
                 #         #     mo.on_hold = False
                 #     order.on_production_hold = False
             self.set_holds(hasShippingBlock, hasProductionBlock)
-            if hasProductionBlock and hasShippingBlock:
-                order.on_production_hold = True
-
-            else:
-                order.on_production_hold = False
-
-
-            if len(order.order_holds) == 0:
-                order.on_hold = False
-                for pi in self.picking_ids:
-                    order.picking_ids.write({'on_hold': False})
-                    order.picking_ids.write({'on_hold_text': ''})
-                for li in self.order_line:
-                    li.job_id.write({'on_hold': False})
-                self.set_holds(False, False)
-            else:
-                order.on_hold = True
+            # if hasProductionBlock and hasShippingBlock:
+            #     order.on_production_hold = True
+            #
+            # else:
+            #     order.on_production_hold = False
+            #
+            #
+            # if len(order.order_holds) == 0:
+            #     order.on_hold = False
+            #     for pi in self.picking_ids:
+            #         order.picking_ids.write({'on_hold': False})
+            #         order.picking_ids.write({'on_hold_text': ''})
+            #     for li in self.order_line:
+            #         li.job_id.write({'on_hold': False})
+            #     self.set_holds(False, False)
+            # else:
+            #     order.on_hold = True
             if any(hol.credit_hold == True for hol in order.order_holds):
                 order.approved_credit = False
             else:
