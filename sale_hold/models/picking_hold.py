@@ -6,8 +6,9 @@ from odoo.exceptions import UserError
 class picking_sales_hold(models.Model):
     _inherit = "stock.picking"
 
-    on_hold = fields.Boolean(string="On Hold", related='sale_id.on_shipping_hold')
+    on_hold = fields.Boolean(string="On Hold")
     on_hold_text = fields.Char(string="Hold Text")
+    has_shipping_hold = fields.Boolean(string="Has Shipping Hold", related = 'sale_id.on_shipping_hold')
 
     @api.multi
     @api.depends('on_hold')
@@ -16,6 +17,15 @@ class picking_sales_hold(models.Model):
             self.on_hold_text = 'On Hold'
         else:
             self.on_hold_text = ''
+            
+    @api.multi
+    @api.depends('on_hold')
+    def update_on_shipping_hold(self):
+        if self.sale_id:
+            if self.has_shipping_hold:
+                self.on_hold = True
+            else:
+                self.on_hold = False
 
 
     @api.multi
