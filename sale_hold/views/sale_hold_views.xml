@@ -133,6 +133,7 @@
       <field name="arch" type="xml">
       <xpath expr="//form[1]/sheet[1]/group[1]/group[1]/field[@name='picking_type_id']" position="after">
          <field name="on_hold" readonly="1"/>
+         <field name="has_shipping_hold"   attrs="{'invisible': True}"/>
       </xpath>
       </field>
    </record>
