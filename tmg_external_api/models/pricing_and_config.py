@@ -23,8 +23,8 @@ class pricing_and_config(models.Model):
             return [dict(errorOdoo=dict(code=120,
                                         message="If Variant number is requested, Style is also required"))]
 
-        product_sellable_export = self._get_sellable_products(search_for_sellable, variant_rqs)
-        return product_sellable_export
+        export_locations = self._get_sellable_products(search_for_sellable, variant_rqs)
+        return export_locations
 
     @api.model
     def DecorationColors(self, style_rqs, variant_rqs):
@@ -37,27 +37,27 @@ class pricing_and_config(models.Model):
             return [dict(errorOdoo=dict(code=120,
                                         message="If Variant number is requested, Style is also required"))]
 
-        product_sellable_export = self._get_sellable_products(search_for_sellable, variant_rqs)
-        return product_sellable_export
+        export_colors = self._get_sellable_products(search_for_sellable, variant_rqs)
+        return export_colors
 
     @api.model
     def FobPoints(self, change_as_of_date_str):
-        product_date_modified_export = dict()
+        export_fobs = dict()
 
         if change_as_of_date_str and change_as_of_date_str.strip():
             sellable_product_ids = self.env['product.template'].get_product_saleable().ids
             change_as_of_date = fields.Datetime.from_string(change_as_of_date_str)
             date_modified_search = [('data_last_change_date', '>=', change_as_of_date),
                                     ('product_tmpl_id', 'in', sellable_product_ids)]
-            product_date_modified_export = self._get_date_modified_products(date_modified_search,
+            export_fobs = self._get_date_modified_products(date_modified_search,
                                                                             change_as_of_date_str)
         else:
-            product_date_modified_export = dict(
+            export_fobs = dict(
                 errorOdoo=dict(code=120,
                                message="Product Last Changed timestamp is required")
             )
 
-        return product_date_modified_export
+        return export_fobs
 
     @api.model
     def AvailableCharges(self):
@@ -68,27 +68,27 @@ class pricing_and_config(models.Model):
         search_for_closeouts = [('product_tmpl_id', 'in', sellable_product_ids),
                                 ('product_tmpl_id.categ_id', 'in', category_discontinued_ids)]
 
-        product_closeout_export = self._get_closeout_products(search_for_closeouts)
+        export_charges = self._get_closeout_products(search_for_closeouts)
 
-        return product_closeout_export
+        return export_charges
 
     @api.model
     def ConfigurationAndPricing(self, style_rqs):
-        product_export = dict()
+        export_config = dict()
 
         if style_rqs:
             # make sure the product exists and is sellable
             sellable_product_ids = self.env['product.template'].get_product_saleable().ids
             product_search = [('product_style_number', '=', style_rqs),
                               ('id', 'in', sellable_product_ids)]
-            product_export = self._get_product_stored_xml(product_search, style_rqs)
+            export_config = self._get_config_xml(product_search, style_rqs)
         else:
-            product_export = dict(
+            export_config = dict(
                 errorOdoo=dict(code=120,
                                message="Product Style Number is required")
             )
 
-        return product_export
+        return export_config
 
 # ------------------
 #  Private functions
@@ -134,18 +134,33 @@ class pricing_and_config(models.Model):
 
         return closeout_products
 
-    def _get_product_stored_xml(self, item_search, style):
+    def _get_date_modified_products(self, search, as_of_date_str):
+        date_modified_products = []
+        mod_prods = self.env['product.product'].search_read(search, ['product_style_number', 'default_code'])
+        for mp in mod_prods:
+            data = dict(errorOdoo=dict(),
+                        styleNumber=mp['product_style_number'],
+                        productVariant=mp['default_code'])
+            date_modified_products.append(data)
+        if len(date_modified_products) == 0:
+            date_modified_products = [
+                dict(errorOdoo=dict(code=130,
+                                    message="No product data found that was modified since " + as_of_date_str)
+                     )]
+        return date_modified_products
+
+    def _get_config_xml(self, item_search, style):
         stored_export = dict()
         stored_xml_64 = None
-        export_account_name = 'PSProductData'
+        export_account_name = 'PSPricingAndConfiguration'
 
-        # assemble the export file name, compiled from segments of the ProductData export account attributes
-        product_data_export_account = self.env['tmg_external_api.tmg_export_account'] \
+        # assemble the export file name, compiled from segments of the PricingAndConfig export account attributes
+        pricing_and_config_export = self.env['tmg_external_api.tmg_export_account'] \
             .search_read([('name', '=', export_account_name)], ['category', 'name', 'file_extension'])
-        if product_data_export_account:
-            export_file_name = "product_data_{}_{}.{}".format(product_data_export_account[0]['category'],
-                                                              product_data_export_account[0]['name'],
-                                                              product_data_export_account[0]['file_extension'])
+        if pricing_and_config_export:
+            export_file_name = "product_data_{}_{}.{}".format(pricing_and_config_export[0]['category'],
+                                                              pricing_and_config_export[0]['name'],
+                                                              pricing_and_config_export[0]['file_extension'])
 
             # obtain the product-specific instance of the product.template model via item search by style number
             product_obj_list = self.env['product.template']
@@ -169,31 +184,18 @@ class pricing_and_config(models.Model):
                     stored_export = dict(errorOdoo=dict(),
                                          xmlString=product_xml_str.replace("\n", ""))
                 else:
-                    stored_export = dict(odooError=dict(code=999,
-                                                        message="Product XML data was expected but NOT found"))
+                    stored_export = dict(
+                        errorOdoo=dict(code=999,
+                                       message="Pricing and Configuration XML data was expected but NOT found")
+                    )
 
             else:
-                stored_export = dict(odooError=dict(code=130,
+                stored_export = dict(errorOdoo=dict(code=130,
                                                     message="Product '" + style + "' not found"))
 
         else:
-            stored_export = dict(odooError=dict(code=999,
+            stored_export = dict(errorOdoo=dict(code=999,
                                                 message='Product Export Account "' + export_account_name
                                                         + '" record is missing'))
 
         return stored_export
-
-    def _get_date_modified_products(self, search, as_of_date_str):
-        date_modified_products = []
-        mod_prods = self.env['product.product'].search_read(search, ['product_style_number', 'default_code'])
-        for mp in mod_prods:
-            data = dict(errorOdoo=dict(),
-                        styleNumber=mp['product_style_number'],
-                        productVariant=mp['default_code'])
-            date_modified_products.append(data)
-        if len(date_modified_products) == 0:
-            date_modified_products = [
-                dict(errorOdoo=dict(code=130,
-                                    message="No product data found that was modified since " + as_of_date_str)
-                     )]
-        return date_modified_products
