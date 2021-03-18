@@ -9,6 +9,24 @@ class StockMove(models.Model):
     is_split_move = fields.Boolean('Is a Split Move',
                                    help='This is a technical field to detect if a move is a split move')
 
+    @api.multi
+    @api.depends('reserved_availablility')
+    def _notify_backorder_picking(self):
+        picking = self.picking_id
+        if self.reserved_availability > 0:
+            if picking:
+                if picking.backorder_id:
+                    self.action_send_notification(picking.backorder_id)
+                    picking.backorder_id.sale_id.printed_date = ''
+
+    @api.multi
+    def action_send_notification(self, backorder_id):
+        warehouse = backorder_id.location_id.warehouse_id
+        if warehouse.backorder_channel:
+            channel_id = warehouse.backorder_channel
+            channel_id.message_post(subject='Backorder Inventory Reservation',
+                                    body="The following backorder has an inventory reservation " + backorder_id,
+                                    subtype='mail.mt_comment')
     # we need to pass the sale_line_id info for the sake of figuring out splitting
     def _prepare_procurement_values(self):
         res = super(StockMove, self)._prepare_procurement_values()
