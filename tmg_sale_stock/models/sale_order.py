@@ -141,14 +141,19 @@ class SaleOrder(models.Model):
         for order in self:
             if not order.delivery_update_ok:
                 raise ValidationError(_('Cannot update delivery when there is at least one confirmed delivery.'))
-            old_move_orig_ids = order.picking_ids.filtered(lambda pick: pick.picking_type_code == 'outgoing').mapped('move_ids_without_package.move_orig_ids.id')
-            old_production_ids = self.env['mrp.production'].with_context(prefetch_fields=False).search([('sale_line_id', 'in', order.order_line.ids)])
-
+            line_move_orig_ids = {
+                line.id: line.move_ids.filtered(lambda mv: mv.picking_code == 'outgoing').mapped('move_orig_ids.id')
+                    for line in order.order_line
+            }
             order.picking_ids.action_cancel()
             order.picking_ids.unlink()
 
             errors = []
             for line in order.order_line:
+
+                old_move_orig_ids = line_move_orig_ids[line.id]
+                old_production_ids = self.env['mrp.production'].with_context(prefetch_fields=False).search([('sale_line_id', '=', line.id)])
+
                 quant_uom = line.product_id.uom_id
                 get_param = self.env['ir.config_parameter'].sudo().get_param
 
@@ -163,16 +168,8 @@ class SaleOrder(models.Model):
                     error = self.with_context(tracking_disable=True).create_procurement(quant_uom, line, get_param, left_over, order.partner_shipping_id, order)
                     if error:
                         errors.append(error)
+                if old_move_orig_ids and old_production_ids:
+                    line.move_ids.filtered(lambda mv: mv.picking_code == 'outgoing').write({'move_orig_ids': [(6, 0, old_move_orig_ids)]})
             if errors:
                 raise UserError('\n'.join(errors))
-
-            if old_move_orig_ids and old_production_ids:
-                new_move_ids = order.picking_ids.filtered(lambda pick: pick.picking_type_code == 'outgoing').mapped('move_ids_without_package.move_orig_ids')
-                order.picking_ids.filtered(lambda pick: pick.picking_type_code == 'outgoing').mapped('move_ids_without_package').write({'move_orig_ids': [(6, 0, old_move_orig_ids)]})
-
-                #TODO: Following lines is not required anymore, review and remove it
-                # new_production_ids = new_move_ids.mapped('production_id')
-                # # new_move_ids.unlink()
-                # new_production_ids.action_cancel()
-                # new_production_ids.unlink()
         return True
