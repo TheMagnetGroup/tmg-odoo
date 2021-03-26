@@ -52,13 +52,13 @@ class pricing_and_config(models.Model):
         fp_level = 0
         for fp in fobs_with_products:
             if fp_level != 0 and fp_level != fp[0]:
-                data.append(self._load_warehouse_attributes(fp_level, fob_prod_list))
-            product = self.env['product.template'].search([('id', '=', fp[1])]).product_style_number
+                data.append(self._load_warehouse_attributes(fp_level, sorted(fob_prod_list)))
+            product = fp[1]
             fob_prod_list.append(product)
             fp_level = fp[0]
 
         # Load the warehouse attributes for the final fob point
-        data.append(self._load_warehouse_attributes(fp_level, fob_prod_list.sort()))
+        data.append(self._load_warehouse_attributes(fp_level, sorted(fob_prod_list)))
 
         export_fobs = dict(errorOdoo=dict(),
                            FobPointArray=data)
@@ -155,13 +155,17 @@ class pricing_and_config(models.Model):
 
     def _load_warehouse_attributes(self, fob, products):
         warehouse = self.env['stock.warehouse'].search_read([('id', '=', fob)], ['name', 'partner_id'])
-        location = self.env['res.partner'].search_read([('id', '=', warehouse[0]['partner_id'][0])])
+        location = self.env['res.partner'].search_read([('id', '=', warehouse[0]['partner_id'][0])],
+                                                       ['city', 'zip', 'state_id', 'country_id'])
         data = dict(fobId=warehouse[0]['name'],
                     fobPostalCode=location[0]['zip'],
                     fobCity=location[0]['city'],
-                    fobState=self.env['res.country.state']
-                    .search([('id', '=', location[0]['state_id'][0])]).code,
-                    fobCountry=self.env['res.country'].search([('id', '=', location[0]['country_id'][0])]).code,
+                    fobState=self.env['res.country.state'].search([('id',
+                                                                    '=',
+                                                                    location[0]['state_id'][0])]).code,
+                    fobCountry=self.env['res.country'].search([('id',
+                                                                '=',
+                                                                location[0]['country_id'][0])]).code,
                     CurrencySupportedArray=["USD"],
                     ProductArray=products)
         return data
