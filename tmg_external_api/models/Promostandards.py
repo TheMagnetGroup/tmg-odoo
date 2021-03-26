@@ -246,6 +246,22 @@ class promostandards(models.Model):
         self.log_transaction(partner_str, request, "ConfigurationAndPricing")
         return data
 
+    @api.model
+    def FobPoints(self, partner_str, style_rqs, request):
+        fob_dict = dict()
+        if not partner_str or not partner_str.strip():
+            fob_dict = dict(errorOdoo=dict(code=100,
+                                        message="Invalid partner ID value: '" + partner_str + "'"))
+            return fob_dict
+        elif not self.check_call_cap(partner_str):
+            fob_dict = dict(errorOdoo=dict(code=999,
+                                        message="Call Cap not found for partner ID " + partner_str))
+            return fob_dict
+        fob_points_obj = self.env['tmg_external_api.pricing_and_config']
+        fob_dict = fob_points_obj.FobPoints(style_rqs)
+        self.log_transaction(partner_str, request, "FobPoints")
+        return fob_dict
+
     # def OrderStatus(self, PONumber, SONumber, LastUpdate, Partner_id):
     #     if LastUpdate == '':
     #         LastUpdate = '02/01/1990'
