@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from odoo import models, fields, api
+from odoo import models, api
 import base64
 
 
@@ -12,65 +12,70 @@ class pricing_and_config(models.Model):
 #  Public functions
 # ------------------
 
+    # @api.model
+    # def AvailableLocations(self, style_rqs, variant_rqs):
+    #
+    #     sellable_product_ids = self.env['product.template'].get_product_saleable().ids
+    #     search_for_sellable = [('product_tmpl_id', 'in', sellable_product_ids)]
+    #     if style_rqs:
+    #         search_for_sellable.append(('product_style_number', '=', style_rqs))
+    #     elif variant_rqs:
+    #         return [dict(errorOdoo=dict(code=120,
+    #                                     message="If Variant number is requested, Style is also required"))]
+    #
+    #     export_locations = self._get_sellable_products(search_for_sellable, variant_rqs)
+    #     return export_locations
+
+    # @api.model
+    # def DecorationColors(self, style_rqs, variant_rqs):
+    #
+    #     sellable_product_ids = self.env['product.template'].get_product_saleable().ids
+    #     search_for_sellable = [('product_tmpl_id', 'in', sellable_product_ids)]
+    #     if style_rqs:
+    #         search_for_sellable.append(('product_style_number', '=', style_rqs))
+    #     elif variant_rqs:
+    #         return [dict(errorOdoo=dict(code=120,
+    #                                     message="If Variant number is requested, Style is also required"))]
+    #
+    #     export_colors = self._get_sellable_products(search_for_sellable, variant_rqs)
+    #     return export_colors
+
     @api.model
-    def AvailableLocations(self, style_rqs, variant_rqs):
-
-        sellable_product_ids = self.env['product.template'].get_product_saleable().ids
-        search_for_sellable = [('product_tmpl_id', 'in', sellable_product_ids)]
-        if style_rqs:
-            search_for_sellable.append(('product_style_number', '=', style_rqs))
-        elif variant_rqs:
-            return [dict(errorOdoo=dict(code=120,
-                                        message="If Variant number is requested, Style is also required"))]
-
-        export_locations = self._get_sellable_products(search_for_sellable, variant_rqs)
-        return export_locations
-
-    @api.model
-    def DecorationColors(self, style_rqs, variant_rqs):
-
-        sellable_product_ids = self.env['product.template'].get_product_saleable().ids
-        search_for_sellable = [('product_tmpl_id', 'in', sellable_product_ids)]
-        if style_rqs:
-            search_for_sellable.append(('product_style_number', '=', style_rqs))
-        elif variant_rqs:
-            return [dict(errorOdoo=dict(code=120,
-                                        message="If Variant number is requested, Style is also required"))]
-
-        export_colors = self._get_sellable_products(search_for_sellable, variant_rqs)
-        return export_colors
-
-    @api.model
-    def FobPoints(self, change_as_of_date_str):
+    def FobPoints(self, style_rqs):
         export_fobs = dict()
 
-        if change_as_of_date_str and change_as_of_date_str.strip():
-            sellable_product_ids = self.env['product.template'].get_product_saleable().ids
-            change_as_of_date = fields.Datetime.from_string(change_as_of_date_str)
-            date_modified_search = [('data_last_change_date', '>=', change_as_of_date),
-                                    ('product_tmpl_id', 'in', sellable_product_ids)]
-            export_fobs = self._get_date_modified_products(date_modified_search,
-                                                                            change_as_of_date_str)
-        else:
-            export_fobs = dict(
-                errorOdoo=dict(code=120,
-                               message="Product Last Changed timestamp is required")
-            )
+        sellable_product_ids = self.env['product.template'].get_product_saleable().ids
+        fobs_with_products = self._get_sql_warehouses_and_products(style_rqs, sellable_product_ids)
 
+        data = []
+        fob_prod_list = []
+        fp_level = 0
+        for fp in fobs_with_products:
+            if fp_level != 0 and fp_level != fp[0]:
+                data.append(self._load_warehouse_attributes(fp_level, fob_prod_list))
+            product = self.env['product.template'].search([('id', '=', fp[1])]).product_style_number
+            fob_prod_list.append(product)
+            fp_level = fp[0]
+
+        # Load the warehouse attributes for the final fob point
+        data.append(self._load_warehouse_attributes(fp_level, fob_prod_list.sort()))
+
+        export_fobs = dict(errorOdoo=dict(),
+                           FobPointArray=data)
         return export_fobs
 
-    @api.model
-    def AvailableCharges(self):
-        # determine closeout status from sellable products that are categorized "discontinued"
-        sellable_product_ids = self.env['product.template'].get_product_saleable().ids
-        category_discontinued_ids = \
-            self.env['product.category'].search([('complete_name', 'ilike', 'discontinued')]).ids
-        search_for_closeouts = [('product_tmpl_id', 'in', sellable_product_ids),
-                                ('product_tmpl_id.categ_id', 'in', category_discontinued_ids)]
-
-        export_charges = self._get_closeout_products(search_for_closeouts)
-
-        return export_charges
+    # @api.model
+    # def AvailableCharges(self):
+    #     # determine closeout status from sellable products that are categorized "discontinued"
+    #     sellable_product_ids = self.env['product.template'].get_product_saleable().ids
+    #     category_discontinued_ids = \
+    #         self.env['product.category'].search([('complete_name', 'ilike', 'discontinued')]).ids
+    #     search_for_closeouts = [('product_tmpl_id', 'in', sellable_product_ids),
+    #                             ('product_tmpl_id.categ_id', 'in', category_discontinued_ids)]
+    #
+    #     export_charges = self._get_closeout_products(search_for_closeouts)
+    #
+    #     return export_charges
 
     @api.model
     def ConfigurationAndPricing(self, style_rqs):
@@ -94,60 +99,72 @@ class pricing_and_config(models.Model):
 #  Private functions
 # ------------------
 
-    def _get_sellable_products(self, search, variant):
-        sellable_products = []
-        sellable_list = self.env['product.product'].search_read(search, ['product_style_number', 'default_code'])
-        for s in sellable_list:
-            if not variant or s['default_code'] == variant:
-                data = dict(errorOdoo=dict(),
-                            styleNumber=s['product_style_number'],
-                            productVariant=s['default_code'])
-                sellable_products.append(data)
-        if len(sellable_products) == 0:
-            if len(sellable_list) == 0:
-                # not even the main product was found
-                sellable_products = [
-                    dict(errorOdoo=dict(code=130,
-                                        message="No sellable product data found (only sellable data is returned)"))]
-            else:
-                # variants were found but none matched the request
-                sellable_products = [
-                    dict(errorOdoo=dict(code=140,
-                                        message="Product " + sellable_list[0]['product_style_number']
-                                                + " has no variant that matches '" + variant + "'"))]
+    # def _get_sellable_products(self, search, variant):
+    #     sellable_products = []
+    #     sellable_list = self.env['product.product'].search_read(search, ['product_style_number', 'default_code'])
+    #     for s in sellable_list:
+    #         if not variant or s['default_code'] == variant:
+    #             data = dict(errorOdoo=dict(),
+    #                         styleNumber=s['product_style_number'],
+    #                         productVariant=s['default_code'])
+    #             sellable_products.append(data)
+    #     if len(sellable_products) == 0:
+    #         if len(sellable_list) == 0:
+    #             # not even the main product was found
+    #             sellable_products = [
+    #                 dict(errorOdoo=dict(code=130,
+    #                                     message="No sellable product data found (only sellable data is returned)"))]
+    #         else:
+    #             # variants were found but none matched the request
+    #             sellable_products = [
+    #                 dict(errorOdoo=dict(code=140,
+    #                                     message="Product " + sellable_list[0]['product_style_number']
+    #                                             + " has no variant that matches '" + variant + "'"))]
+    #
+    #     return sellable_products
 
-        return sellable_products
+    # def _get_closeout_products(self, search):
+    #     closeout_products = []
+    #     closeouts = self.env['product.product'].search_read(search, ['product_style_number', 'default_code'])
+    #     for co in closeouts:
+    #         data = dict(errorOdoo=dict(),
+    #                     styleNumber=co['product_style_number'],
+    #                     productVariant=co['default_code'])
+    #         closeout_products.append(data)
+    #     if len(closeout_products) == 0:
+    #         closeout_products = [
+    #             dict(errorOdoo=dict(code=130,
+    #                                 message="No closeout product data was found")
+    #                  )]
+    #
+    #     return closeout_products
 
-    def _get_closeout_products(self, search):
-        closeout_products = []
-        closeouts = self.env['product.product'].search_read(search, ['product_style_number', 'default_code'])
-        for co in closeouts:
-            data = dict(errorOdoo=dict(),
-                        styleNumber=co['product_style_number'],
-                        productVariant=co['default_code'])
-            closeout_products.append(data)
-        if len(closeout_products) == 0:
-            closeout_products = [
-                dict(errorOdoo=dict(code=130,
-                                    message="No closeout product data was found")
-                     )]
+    def _get_sql_warehouses_and_products(self, style, sellables):
+        wh_and_prods = []
+        sql = """select sw.stock_warehouse_id, pt.product_style_number
+                   from product_template_stock_warehouse_rel sw
+                        inner
+                   join product_template pt on sw.product_template_id = pt.id
+                  where sw.product_template_id in {} """.format(tuple(sellables))
+        if style:
+            sql += """ and pt.product_style_number = '{}' """.format(style)
+        sql += """ order by stock_warehouse_id, product_style_number;"""
+        self.env.cr.execute(sql)
+        wh_and_prods = self.env.cr.fetchall()
+        return wh_and_prods
 
-        return closeout_products
-
-    def _get_date_modified_products(self, search, as_of_date_str):
-        date_modified_products = []
-        mod_prods = self.env['product.product'].search_read(search, ['product_style_number', 'default_code'])
-        for mp in mod_prods:
-            data = dict(errorOdoo=dict(),
-                        styleNumber=mp['product_style_number'],
-                        productVariant=mp['default_code'])
-            date_modified_products.append(data)
-        if len(date_modified_products) == 0:
-            date_modified_products = [
-                dict(errorOdoo=dict(code=130,
-                                    message="No product data found that was modified since " + as_of_date_str)
-                     )]
-        return date_modified_products
+    def _load_warehouse_attributes(self, fob, products):
+        warehouse = self.env['stock.warehouse'].search_read([('id', '=', fob)], ['name', 'partner_id'])
+        location = self.env['res.partner'].search_read([('id', '=', warehouse[0]['partner_id'][0])])
+        data = dict(fobId=warehouse[0]['name'],
+                    fobPostalCode=location[0]['zip'],
+                    fobCity=location[0]['city'],
+                    fobState=self.env['res.country.state']
+                    .search([('id', '=', location[0]['state_id'][0])]).code,
+                    fobCountry=self.env['res.country'].search([('id', '=', location[0]['country_id'][0])]).code,
+                    CurrencySupportedArray=["USD"],
+                    ProductArray=products)
+        return data
 
     def _get_config_xml(self, item_search, style):
         stored_export = dict()
