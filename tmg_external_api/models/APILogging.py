@@ -1,5 +1,6 @@
 from odoo import models, fields, api
 import json
+import lxml.etree as le
 
 
 class APILogging(models.Model):
@@ -15,3 +16,13 @@ class APILogging(models.Model):
         name = self.api_name or ''
         partner_name = self.partner_id.name or ''
         self.name= partner_name + "," + name
+
+    @api.depends('request')
+    def _redact_password(self):
+        val = self.request
+        if val.contains('</'):
+            doc = le.parse(val)
+            for elem in doc.xpath('//password'):
+                elem.text = ''
+
+
