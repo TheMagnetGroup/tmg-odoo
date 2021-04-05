@@ -25,4 +25,6 @@ class APILogging(models.Model):
             for elem in doc.xpath('//password'):
                 elem.text = ''
 
+            self.request = le.tostring(doc)
+
 
