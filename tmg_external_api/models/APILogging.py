@@ -20,11 +20,10 @@ class APILogging(models.Model):
     @api.depends('request')
     def _redact_password(self):
         val = self.request
-        if val.contains('</'):
-            doc = le.parse(val)
-            for elem in doc.xpath('//password'):
-                elem.text = ''
+        doc = le.parse(val)
+        for elem in doc.xpath('.//password'):
+            elem.text = ''
 
-            self.request = le.tostring(doc)
+        self.request = le.tostring(doc)
 
 
