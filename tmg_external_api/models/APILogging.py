@@ -21,7 +21,7 @@ class APILogging(models.Model):
     def _redact_password(self):
         val = self.request
         doc = le.fromstring(val)
-        for elem in doc.findall(".//password")
+        for elem in doc.findall(".//password"):
             doc.remove(elem)
 
         self.request = le.tostring(doc)
