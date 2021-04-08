@@ -15,7 +15,7 @@ class APILogging(models.Model):
     def _get_order_name(self):
         name = self.api_name or ''
         partner_name = self.partner_id.name or ''
-        self.name= partner_name + "," + name
+        self.name = partner_name + "," + name
 
     @api.depends('request')
     def _redact_password(self):
