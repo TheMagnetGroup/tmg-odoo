@@ -24,6 +24,7 @@ class APILogging(models.Model):
         for elem in doc.findall(".//password"):
             doc.remove(elem)
 
+
         self.request = le.tostring(doc)
 
 
