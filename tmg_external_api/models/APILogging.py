@@ -1,7 +1,7 @@
 from odoo import models, fields, api
 import json
 import lxml.etree as le
-
+import re
 
 class APILogging(models.Model):
     _name = 'tmg_external_api.api_logging'
@@ -17,14 +17,37 @@ class APILogging(models.Model):
         partner_name = self.partner_id.name or ''
         self.name = partner_name + "," + name
 
-    @api.depends('request')
-    def _redact_password(self):
-        val = self.request
-        doc = le.fromstring(val)
-        for elem in doc.findall("//password"):
-            doc.remove(elem)
+    @api.multi
+    def write(self, vals):
+        if vals.get('request'):
+            data = vals.get('request')
+            data = self._redact_password(data)
+            vals['request'] = data
+        res = super(APILogging, self).write(vals)
+
+    @api.model
+    def create(self, vals):
+        if vals.get('request'):
+            request = vals.get('request')
+            if 'xml' in request:
+                data = self._redact_password(request)
+                vals['request'] = data
+        return super(APILogging, self).create(vals)
+
+    def _redact_password(self, val):
+
+        if '>' in val:
+            val = re.sub(' xmlns="[^"]+"', '', val)
+            # val = re.sub(' xsd="[^"]+"', '', val, count=1)
+            # val = re.sub(' xsi="[^"]+"', '', val, count=1)
+            doc = le.fromstring(val)
+
+            for elem in doc.xpath('//password'):
+                elem.text = ''
 
 
-        self.request = le.tostring(doc)
+
+            return le.tostring(doc)
+        return val
 
 
