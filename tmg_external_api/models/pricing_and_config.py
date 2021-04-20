@@ -12,19 +12,21 @@ class pricing_and_config(models.Model):
 #  Public functions
 # ------------------
 
-    # @api.model
-    # def AvailableLocations(self, style_rqs, variant_rqs):
-    #
-    #     sellable_product_ids = self.env['product.template'].get_product_saleable().ids
-    #     search_for_sellable = [('product_tmpl_id', 'in', sellable_product_ids)]
-    #     if style_rqs:
-    #         search_for_sellable.append(('product_style_number', '=', style_rqs))
-    #     elif variant_rqs:
-    #         return [dict(errorOdoo=dict(code=120,
-    #                                     message="If Variant number is requested, Style is also required"))]
-    #
-    #     export_locations = self._get_sellable_products(search_for_sellable, variant_rqs)
-    #     return export_locations
+    @api.model
+    def AvailableLocations(self, style_rqs):
+        product_decoration_locations = dict()
+
+        if style_rqs:
+            # make sure the product exists and is sellable
+            sellable_product_ids = self.env['product.template'].get_product_saleable().ids
+            product_search = [('product_style_number', '=', style_rqs),
+                              ('id', 'in', sellable_product_ids)]
+            product_decoration_locations = self._get_product_available_locations(product_search, style_rqs)
+        else:
+            product_decoration_locations = dict(errorOdoo=dict(code=120,
+                                                               message="Product Style Number is required")
+                                                )
+        return product_decoration_locations
 
     # @api.model
     # def DecorationColors(self, style_rqs, variant_rqs):
@@ -42,40 +44,52 @@ class pricing_and_config(models.Model):
 
     @api.model
     def FobPoints(self, style_rqs):
-        export_fobs = dict()
+        fob_points_and_products = dict()
 
         sellable_product_ids = self.env['product.template'].get_product_saleable().ids
         fobs_with_products = self._get_sql_warehouses_and_products(style_rqs, sellable_product_ids)
 
-        data = []
+        fob_points = []
         fob_prod_list = []
-        fp_level = 0
-        for fp in fobs_with_products:
-            if fp_level != 0 and fp_level != fp[0]:
-                data.append(self._load_warehouse_attributes(fp_level, sorted(fob_prod_list)))
-            product = fp[1]
-            fob_prod_list.append(product)
-            fp_level = fp[0]
+        fob_processing = 0
+        if fobs_with_products:
+            for fp in fobs_with_products:
+                fob = fp[0]
+                product_id = fp[1]
+                if fob_processing != 0 and fob_processing != fob:
+                    fob_points.append(self._load_warehouse_attributes(fob_processing, sorted(fob_prod_list)))
+                fob_prod_list.append(product_id)
+                fob_processing = fob
+            # Load the warehouse attributes for the final fob point
+            fob_points.append(self._load_warehouse_attributes(fob_processing, sorted(fob_prod_list)))
 
-        # Load the warehouse attributes for the final fob point
-        data.append(self._load_warehouse_attributes(fp_level, sorted(fob_prod_list)))
+            fob_points_and_products = dict(errorOdoo=dict(),
+                                           FobPointArray=fob_points)
+        elif style_rqs:
+            fob_points_and_products = dict(errorOdoo=dict(code=400,
+                                                          message=f"Fob points not found for product {style_rqs}")
+                                           )
+        else:
+            fob_points_and_products = dict(
+                errorOdoo=dict(code=999,
+                               message="UNEXPECTEDLY NO warehouses/FOBs were found in the system at all"
+                                       + " (the request for all FOB points for all products returned none)")
+            )
+        return fob_points_and_products
 
-        export_fobs = dict(errorOdoo=dict(),
-                           FobPointArray=data)
-        return export_fobs
+    @api.model
+    def AvailableCharges(self, style_rqs):
+        available_charges = dict()
 
-    # @api.model
-    # def AvailableCharges(self):
-    #     # determine closeout status from sellable products that are categorized "discontinued"
-    #     sellable_product_ids = self.env['product.template'].get_product_saleable().ids
-    #     category_discontinued_ids = \
-    #         self.env['product.category'].search([('complete_name', 'ilike', 'discontinued')]).ids
-    #     search_for_closeouts = [('product_tmpl_id', 'in', sellable_product_ids),
-    #                             ('product_tmpl_id.categ_id', 'in', category_discontinued_ids)]
-    #
-    #     export_charges = self._get_closeout_products(search_for_closeouts)
-    #
-    #     return export_charges
+        sellable_product_ids = self.env['product.template'].get_product_saleable().ids
+        product_search = [('id', 'in', sellable_product_ids)]
+        if style_rqs:
+            # make sure the product exists and is sellable
+            product_search.append(('product_style_number', '=', style_rqs))
+
+        available_charges = self._get_product_available_charges(product_search, style_rqs)
+
+        return available_charges
 
     @api.model
     def ConfigurationAndPricing(self, style_rqs):
@@ -88,10 +102,9 @@ class pricing_and_config(models.Model):
                               ('id', 'in', sellable_product_ids)]
             export_config = self._get_config_xml(product_search, style_rqs)
         else:
-            export_config = dict(
-                errorOdoo=dict(code=120,
-                               message="Product Style Number is required")
-            )
+            export_config = dict(errorOdoo=dict(code=120,
+                                                message="Product Style Number is required")
+                                 )
 
         return export_config
 
@@ -99,75 +112,103 @@ class pricing_and_config(models.Model):
 #  Private functions
 # ------------------
 
-    # def _get_sellable_products(self, search, variant):
-    #     sellable_products = []
-    #     sellable_list = self.env['product.product'].search_read(search, ['product_style_number', 'default_code'])
-    #     for s in sellable_list:
-    #         if not variant or s['default_code'] == variant:
-    #             data = dict(errorOdoo=dict(),
-    #                         styleNumber=s['product_style_number'],
-    #                         productVariant=s['default_code'])
-    #             sellable_products.append(data)
-    #     if len(sellable_products) == 0:
-    #         if len(sellable_list) == 0:
-    #             # not even the main product was found
-    #             sellable_products = [
-    #                 dict(errorOdoo=dict(code=130,
-    #                                     message="No sellable product data found (only sellable data is returned)"))]
-    #         else:
-    #             # variants were found but none matched the request
-    #             sellable_products = [
-    #                 dict(errorOdoo=dict(code=140,
-    #                                     message="Product " + sellable_list[0]['product_style_number']
-    #                                             + " has no variant that matches '" + variant + "'"))]
-    #
-    #     return sellable_products
+    def _get_product_available_locations(self, search, style):
+        data = dict()
+        product = self.env['product.template'].search(search).ids
+        if product:
+            locs_list = []
+            available_locations = self.env['product.template.decorationarea']\
+                .search_read([('product_tmpl_id', '=', product[0])], ['decoration_area_id'])
+            for al in available_locations:
+                # enter unique locations (by id)
+                if len(locs_list) < 1 or (al['decoration_area_id'][0]
+                                     not in list({k['locationId']: k for k in locs_list}.keys())):
+                    locs_list.append(dict(locationId=al['decoration_area_id'][0],
+                                          locationName=al['decoration_area_id'][1])
+                                     )
+            if locs_list:
+                data = dict(errorOdoo=dict(),
+                            AvailableLocatonsArray=locs_list)
+            else:
+                data = dict(errorOdoo=dict(code=400,
+                                           message=f"Available locations data not found for product {style}")
+                            )
+        else:
+            data = dict(errorOdoo=dict(code=400,
+                                       message=f"Product ID {style} not found")
+                        )
 
-    # def _get_closeout_products(self, search):
-    #     closeout_products = []
-    #     closeouts = self.env['product.product'].search_read(search, ['product_style_number', 'default_code'])
-    #     for co in closeouts:
-    #         data = dict(errorOdoo=dict(),
-    #                     styleNumber=co['product_style_number'],
-    #                     productVariant=co['default_code'])
-    #         closeout_products.append(data)
-    #     if len(closeout_products) == 0:
-    #         closeout_products = [
-    #             dict(errorOdoo=dict(code=130,
-    #                                 message="No closeout product data was found")
-    #                  )]
-    #
-    #     return closeout_products
+        return data
 
     def _get_sql_warehouses_and_products(self, style, sellables):
-        wh_and_prods = []
-        sql = """select sw.stock_warehouse_id, pt.product_style_number
+        # a/o 2021-04-01 if style# is specified, that single product alone is loaded to the product array per warehouse
+        whse_and_products = []
+        sql = f"""select sw.stock_warehouse_id, pt.product_style_number
                    from product_template_stock_warehouse_rel sw
                         inner
                    join product_template pt on sw.product_template_id = pt.id
-                  where sw.product_template_id in {} """.format(tuple(sellables))
+                  where sw.product_template_id in {tuple(sellables)} """
         if style:
-            sql += """ and pt.product_style_number = '{}' """.format(style)
+            sql += f""" and pt.product_style_number = '{style}' """
         sql += """ order by stock_warehouse_id, product_style_number;"""
         self.env.cr.execute(sql)
-        wh_and_prods = self.env.cr.fetchall()
-        return wh_and_prods
+        whse_and_products = self.env.cr.fetchall()
+        return whse_and_products
 
     def _load_warehouse_attributes(self, fob, products):
         warehouse = self.env['stock.warehouse'].search_read([('id', '=', fob)], ['name', 'partner_id'])
-        location = self.env['res.partner'].search_read([('id', '=', warehouse[0]['partner_id'][0])],
-                                                       ['city', 'zip', 'state_id', 'country_id'])
+        w_Address = self.env['res.partner'].search_read([('id', '=', warehouse[0]['partner_id'][0])],
+                                                        ['city', 'zip', 'state_id', 'country_id'])
         data = dict(fobId=warehouse[0]['name'],
-                    fobPostalCode=location[0]['zip'],
-                    fobCity=location[0]['city'],
+                    fobPostalCode=w_Address[0]['zip'],
+                    fobCity=w_Address[0]['city'],
                     fobState=self.env['res.country.state'].search([('id',
                                                                     '=',
-                                                                    location[0]['state_id'][0])]).code,
+                                                                    w_Address[0]['state_id'][0])]).code,
                     fobCountry=self.env['res.country'].search([('id',
                                                                 '=',
-                                                                location[0]['country_id'][0])]).code,
+                                                                w_Address[0]['country_id'][0])]).code,
                     CurrencySupportedArray=["USD"],
                     ProductArray=products)
+        return data
+
+    def _get_product_available_charges(self, search, style):
+        data = dict()
+        products = self.env['product.template'].search(search).ids
+        if products:
+            chgs_list = []
+            addl_charges = self.env['product.addl.charges']\
+                .search_read([('product_tmpl_id', '=', products[0])], ['addl_charge_product_id', 'charge_type'])
+            for ac in addl_charges:
+                # enter unique charges (by id)
+                if len(chgs_list) < 1 or (ac['id'] not in list({k['chargeId']: k for k in chgs_list}.keys())):
+                    chg_desc = self.env['product.template'].search_read([('id', '=', ac['addl_charge_product_id'][0])],
+                                                                        ['name', 'default_code'])
+                    chgs_list.append(dict(chargeId=ac['id'],
+                                     chargeName=chg_desc[0]['default_code'],
+                                     chargeType=ac['charge_type'],
+                                     chargeDescription=chg_desc[0]['name'])
+                                     )
+            if chgs_list:
+                data = dict(errorOdoo=dict(),
+                            AvailableChargesArray=chgs_list)
+            elif style:
+                data = dict(
+                    errorOdoo=dict(code=400,
+                                   message=f"Available charges data not found for product {style}")
+                )
+            else:
+                data = dict(
+                    errorOdoo=dict(code=999,
+                                   message="UNEXPECTEDLY, no available charges were found in the system at all"
+                                           + " (the request for all available charges for all products returned none)")
+                )
+        elif style:
+            data = dict(
+                errorOdoo=dict(code=400,
+                               message=f"Product ID {style} not found")
+            )
+
         return data
 
     def _get_config_xml(self, item_search, style):
@@ -211,12 +252,13 @@ class pricing_and_config(models.Model):
                     )
 
             else:
-                stored_export = dict(errorOdoo=dict(code=130,
-                                                    message="Product '" + style + "' not found"))
+                stored_export = dict(errorOdoo=dict(code=400,
+                                                    message=f'Product ID "{style}" not found'))
 
         else:
-            stored_export = dict(errorOdoo=dict(code=999,
-                                                message='Product Export Account "' + export_account_name
-                                                        + '" record is missing'))
+            stored_export = dict(
+                errorOdoo=dict(code=999,
+                               message=f'Product Export Account "{export_account_name}" record is missing')
+            )
 
         return stored_export
