@@ -247,6 +247,22 @@ class promostandards(models.Model):
         return data
 
     @api.model
+    def AvailableLocations(self, partner_str, style_rqs, request):
+        locations_dict = dict()
+        if not partner_str or not partner_str.strip():
+            locations_dict = dict(errorOdoo=dict(code=100,
+                                                 message="Invalid partner ID value: '" + partner_str + "'"))
+            return locations_dict
+        elif not self.check_call_cap(partner_str):
+            locations_dict = dict(errorOdoo=dict(code=999,
+                                                 message="Call Cap not found for partner ID " + partner_str))
+            return locations_dict
+        locations_obj = self.env['tmg_external_api.pricing_and_config']
+        locations_dict = locations_obj.AvailableLocations(style_rqs)
+        self.log_transaction(partner_str, request, "AvailableLocations")
+        return locations_dict
+
+    @api.model
     def FobPoints(self, partner_str, style_rqs, request):
         fob_dict = dict()
         if not partner_str or not partner_str.strip():
@@ -261,6 +277,22 @@ class promostandards(models.Model):
         fob_dict = fob_points_obj.FobPoints(style_rqs)
         self.log_transaction(partner_str, request, "FobPoints")
         return fob_dict
+
+    @api.model
+    def AvailableCharges(self, partner_str, style_rqs, request):
+        charges_dict = dict()
+        if not partner_str or not partner_str.strip():
+            charges_dict = dict(errorOdoo=dict(code=100,
+                                               message="Invalid partner ID value: '" + partner_str + "'"))
+            return charges_dict
+        elif not self.check_call_cap(partner_str):
+            charges_dict = dict(errorOdoo=dict(code=999,
+                                               message="Call Cap not found for partner ID " + partner_str))
+            return charges_dict
+        charges_obj = self.env['tmg_external_api.pricing_and_config']
+        charges_dict = charges_obj.AvailableCharges(style_rqs)
+        self.log_transaction(partner_str, request, "AvailableCharges")
+        return charges_dict
 
     # def OrderStatus(self, PONumber, SONumber, LastUpdate, Partner_id):
     #     if LastUpdate == '':
