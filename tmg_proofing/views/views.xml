@@ -24,6 +24,6 @@
 
     <menuitem id="menu_proof_settings" name="Holds"
                 action="tmg_proofing_proof_action"
-            parent="sale.menu_sales_config" sequence="40" />
+            parent="sale.menu_sales_config" sequence="50" />
   </data>
 </odoo>
