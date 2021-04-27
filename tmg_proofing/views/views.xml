@@ -17,7 +17,7 @@
 <!--	</record>-->
     <record id="tmg_proofing_proof_action" model="ir.actions.act_window">
       <field name="name">Proofing</field>
-      <field name="res_model">tmg_proofing.tmg_proofing</field>
+      <field name="res_model">sale.tmg_proofing</field>
       <field name="view_type">form</field>
       <field name="view_mode">tree,form</field>
    </record>
