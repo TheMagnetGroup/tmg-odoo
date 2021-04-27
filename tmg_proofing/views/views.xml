@@ -6,12 +6,8 @@
 		<field name="arch" type="xml">
 			<tree string="Proofs">
 				<field name="name"/>
-				<field name="art_ref"/>
-				<field name="sale_order_id" string="Sale Order"/>
-				<field name="product_tmpl_id" string="Product"/>
-				<field name="qty"/>
-				<field name="date_planned_start"/>
-				<field name="status"/>
+
+				<field name="state"/>
 			</tree>
 		</field>
 	</record>
