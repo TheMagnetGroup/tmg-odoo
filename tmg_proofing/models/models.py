@@ -12,8 +12,12 @@ class tmg_proofing(models.Model):
     sale_order = fields.Many2one('sale.order',related='sale.line.order_id')
     proofing_link = fields.Char(string = "Proof Link")
     original_date = fields.Datetime(string= "Original Date")
-
-    description = fields.Text()
+    notes = fields.Html('Order Notes')
+    state = fields.Selection(
+        [("pending", "Pending"), ("approved", "Approved"), ("rejected", "Rejected"), ("approved_with_changes", "Approved With Changes")],
+        "Proof State",
+        default="pending",
+    )
 
     @api.depends('value')
     def _value_pc(self):
