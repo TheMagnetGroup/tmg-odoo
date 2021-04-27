@@ -13,9 +13,10 @@ class APILogging(models.Model):
 
     @api.depends('api_name', 'partner_id')
     def _get_order_name(self):
-        name = self.api_name or ''
-        partner_name = self.partner_id.name or ''
-        self.name = partner_name + "," + name
+        for record in self:
+            name = record.api_name or ''
+            partner_name = record.partner_id.name or ''
+            record.name = partner_name + "," + name
 
     @api.multi
     def write(self, vals):
