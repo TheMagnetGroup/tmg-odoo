@@ -3,22 +3,17 @@
 from odoo import models, fields, api
 
 class tmg_proofing(models.Model):
-    _name = 'sale.tmg_proofing'
+    _name = 'tmg_proofing.tmg_proofing'
     id = fields.Integer(string="ID")
 
     name = fields.Char(string="Name")
-
+    art_file = fields.Many2one("ir.attachments", string="ArtFiles")
     sale_line = fields.Many2one("sale.order.line", string = "Sale Line")
-    sale_order = fields.Many2one('sale.order',related='sale_line.order_id')
-    art_file = fields.Many2one("ir.attachment", string="ArtFiles", domain="[('res_id','in',[sale_order]),('res_model', '=', 'sale.order')]")
+    sale_order = fields.Many2one('sale.order',related='sale.line.order_id')
     proofing_link = fields.Char(string = "Proof Link")
     original_date = fields.Datetime(string= "Original Date")
-    notes = fields.Html('Order Notes')
-    state = fields.Selection(
-        [("pending", "Pending"), ("approved", "Approved"), ("rejected", "Rejected"), ("approved_with_changes", "Approved With Changes")],
-        "Proof State",
-        default="pending",
-    )
+
+    description = fields.Text()
 
     @api.depends('value')
     def _value_pc(self):
