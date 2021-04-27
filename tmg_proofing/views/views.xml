@@ -1,0 +1,60 @@
+<odoo>
+  <data>
+    <!-- explicit list view definition -->
+    <!--
+    <record model="ir.ui.view" id="tmg_proofing.list">
+      <field name="name">tmg_proofing list</field>
+      <field name="model">tmg_proofing.tmg_proofing</field>
+      <field name="arch" type="xml">
+        <tree>
+          <field name="name"/>
+          <field name="value"/>
+          <field name="value2"/>
+        </tree>
+      </field>
+    </record>
+    -->
+
+    <!-- actions opening views on models -->
+    <!--
+    <record model="ir.actions.act_window" id="tmg_proofing.action_window">
+      <field name="name">tmg_proofing window</field>
+      <field name="res_model">tmg_proofing.tmg_proofing</field>
+      <field name="view_mode">tree,form</field>
+    </record>
+    -->
+
+    <!-- server action to the one above -->
+    <!--
+    <record model="ir.actions.server" id="tmg_proofing.action_server">
+      <field name="name">tmg_proofing server</field>
+      <field name="model_id" ref="model_tmg_proofing_tmg_proofing"/>
+      <field name="state">code</field>
+      <field name="code">
+        action = {
+          "type": "ir.actions.act_window",
+          "view_mode": "tree,form",
+          "res_model": self._name,
+        }
+      </field>
+    </record>
+    -->
+
+    <!-- Top menu item -->
+    <!--
+    <menuitem name="tmg_proofing" id="tmg_proofing.menu_root"/>
+    -->
+    <!-- menu categories -->
+    <!--
+    <menuitem name="Menu 1" id="tmg_proofing.menu_1" parent="tmg_proofing.menu_root"/>
+    <menuitem name="Menu 2" id="tmg_proofing.menu_2" parent="tmg_proofing.menu_root"/>
+    -->
+    <!-- actions -->
+    <!--
+    <menuitem name="List" id="tmg_proofing.menu_1_list" parent="tmg_proofing.menu_1"
+              action="tmg_proofing.action_window"/>
+    <menuitem name="Server to list" id="tmg_proofing" parent="tmg_proofing.menu_2"
+              action="tmg_proofing.action_server"/>
+    -->
+  </data>
+</odoo>
