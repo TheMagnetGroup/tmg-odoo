@@ -3,7 +3,7 @@
 from odoo import models, fields, api
 
 class tmg_proofing(models.Model):
-    _name = 'tmg_proofing.tmg_proofing'
+    _name = 'sale.tmg_proofing'
     id = fields.Integer(string="ID")
 
     name = fields.Char(string="Name")
