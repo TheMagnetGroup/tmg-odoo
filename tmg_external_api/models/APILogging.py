@@ -19,11 +19,12 @@ class APILogging(models.Model):
 
     @api.multi
     def write(self, vals):
-        if vals.get('request'):
-            data = vals.get('request')
-            data = self._redact_password(data)
-            vals['request'] = data
-        res = super(APILogging, self).write(vals)
+        for record in self
+            if vals.get('request'):
+                data = vals.get('request')
+                data = self._redact_password(data)
+                vals['request'] = data
+            res = super(APILogging, self).write(vals)
 
     @api.model
     def create(self, vals):
