@@ -29,22 +29,22 @@ class StockMove(models.Model):
     # Modify the existing search picking method so that
     # partner and origin are take into consideration when it is a split move
     # this way we split stock.picking when the partner is different
-    def _search_picking_for_assignation(self):
-        self.ensure_one()
-        if self.is_split_move:
-            picking = self.env['stock.picking'].search([
-                ('group_id', '=', self.group_id.id),
-                ('location_id', '=', self.location_id.id),
-                ('location_dest_id', '=', self.location_dest_id.id),
-                ('picking_type_id', '=', self.picking_type_id.id),
-                ('printed', '=', False),
-                ('state', 'in', ['draft', 'confirmed', 'waiting', 'partially_available', 'assigned']),
-                ('partner_id', '=', self.partner_id.id),
-                ('origin', '=', self.origin)
-            ], limit=1)
-            return picking
-        else:
-            return super(StockMove, self)._search_picking_for_assignation()
+    # def _search_picking_for_assignation(self):
+    #     self.ensure_one()
+    #     if self.is_split_move:
+    #         picking = self.env['stock.picking'].search([
+    #             ('group_id', '=', self.group_id.id),
+    #             ('location_id', '=', self.location_id.id),
+    #             ('location_dest_id', '=', self.location_dest_id.id),
+    #             ('picking_type_id', '=', self.picking_type_id.id),
+    #             ('printed', '=', False),
+    #             ('state', 'in', ['draft', 'confirmed', 'waiting', 'partially_available', 'assigned']),
+    #             ('partner_id', '=', self.partner_id.id),
+    #             ('origin', '=', self.origin)
+    #         ], limit=1)
+    #         return picking
+    #     else:
+    #         return super(StockMove, self)._search_picking_for_assignation()
 
     # new helper funtion to check if a move should be split
     def _check_if_move_should_be_split(self):
@@ -82,9 +82,26 @@ class StockMove(models.Model):
             # this is necessary so that recursion don't punish us later
             self.is_split_move = True
 
-    def _assign_picking(self):
+    # def _assign_picking(self):
         # apply the split before assigning picking
-        for move in self:
-            move._split_move_before_assigning_picking()
+        # for move in self:
+        #     move._split_move_before_assigning_picking()
+        # return super(StockMove, self)._assign_picking()
+
+    def _prepare_procurement_values(self):
+        values = super(StockMove, self)._prepare_procurement_values()
+        if self._context.get('update_deliveries'):
+            self = self.with_context(update_deliveries=False)
+            values.update({'skip_procurement': True})
+        return values
+
+    def _assign_picking(self):
+        if self._context.get('update_deliveries'):
+            self = self.with_context(tracking_disable=True)
         return super(StockMove, self)._assign_picking()
 
+    def _assign_picking_post_process(self, new=False):
+        if self._context.get('update_deliveries'):
+            pass
+        else:
+            super(StockMove, self)._assign_picking_post_process(new=new)

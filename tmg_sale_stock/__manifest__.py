@@ -170,7 +170,7 @@
     'license': 'OEEL-1',
     'author': 'Odoo Inc',
     'version': '0.2',
-    'depends': ['sale_management', 'sale_stock', 'mrp'],
+    'depends': ['sale_management', 'sale_stock', 'mrp', 'delivery'],
     'data': [
         'security/ir.model.access.csv',
         'wizard/sale_order_line_delivery_wizard.xml',

@@ -180,6 +180,8 @@ class SaleOrder(models.Model):
     @api.multi
     def CheckHolds(self):
         for order in self:
+            if order.state == 'draft':
+                return
             hasShippingBlock = False
             hasProductionBlock = False
             if len(order.order_holds) > 0:
@@ -190,26 +192,7 @@ class SaleOrder(models.Model):
                         hasProductionBlock = True
                     if hold.blocks_delivery:
                         hasShippingBlock = True
-                # if hasShippingBlock:
-                #
-                #     order.on_hold = True
-                # else:
-                #     for pi in self.picking_ids:
-                #         order.picking_ids.write({'on_hold': False})
-                #         order.picking_ids.write({'on_hold_text': ''})
-                # if hasProductionBlock:
-                #     for li in self.order_line:
-                #         li.job_id.write({'on_hold': True})
-                #         # for mo in li.job_id.mfg_order_ids:
-                #         #     mo.on_hold = True
-                #     order.on_production_hold = True
-                #     order.on_hold = True
-                # else:
-                #     for li in self.order_line:
-                #         li.job_id.write({'on_hold': False})
-                #         # for mo in li.job_id.mfg_order_ids:
-                #         #     mo.on_hold = False
-                #     order.on_production_hold = False
+
             self.set_holds(hasShippingBlock, hasProductionBlock)
             if hasProductionBlock and hasShippingBlock:
                 order.on_production_hold = True
