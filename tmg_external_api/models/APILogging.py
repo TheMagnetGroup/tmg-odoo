@@ -19,7 +19,7 @@ class APILogging(models.Model):
 
     @api.multi
     def write(self, vals):
-        for record in self
+        for record in self:
             if vals.get('request'):
                 data = vals.get('request')
                 data = self._redact_password(data)
