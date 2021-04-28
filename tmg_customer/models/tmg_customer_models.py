@@ -19,7 +19,11 @@ class tmg_customer(models.Model):
 
     Rebate = fields.Boolean()
     buying_group_id = fields.Many2one('partner.buying.group', string='Buying Group', track_visibility='onchange', copy=False)
+    legacy_customer_number = fields.Char('Legacy Customer Number', copyf=False, required=False)
 
+    _sql_constraints = [
+        ('customer_number_uniq', 'unique (legacy_customer_number)', "Legacy customer number already exists!"),
+    ]
 
 class SaleOrder(models.Model):
     _inherit = 'sale.order'

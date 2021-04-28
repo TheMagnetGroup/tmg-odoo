@@ -18,6 +18,15 @@
             </xpath>
         </template>
 
+        <template id="tmg_contact_name" inherit_id="base.contact_name">
+            <!-- Suppress the parent name from printing -->
+            <xpath expr="//t[1]/div[1]/t[1]" position="replace">
+                <t t-if="object.name">
+                    <span itemprop="name" t-esc="object.name"/>
+                </t>
+            </xpath>
+        </template>
+
         <template id="tmg_report_invoice_document" inherit_id="account.report_invoice_document" priority="31">
             <!-- Flip the partner id/ship to at the top of the invoice and add 1in between the company and partner address-->
             <xpath expr="//address//parent::t" position="replace">
