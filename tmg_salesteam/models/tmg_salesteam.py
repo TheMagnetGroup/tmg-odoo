@@ -22,3 +22,9 @@ class tmg_salesteam(models.Model):
         for team in self:
             result.append((team.id, "%s (%s)" % (team.name, team.user_id.name if team.user_id.name else "N/A")))
         return result
+
+
+class tmg_team_users(models.Model):
+    _inherit = 'res.users'
+
+    user_team_ids = fields.Many2many('crm.team', 'team_member_id_rel', 'user_id', 'member_id', string='User Teams')

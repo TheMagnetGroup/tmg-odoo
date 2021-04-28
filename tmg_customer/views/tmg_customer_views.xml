@@ -45,6 +45,17 @@
       </field>
     </record>
 
+    <record id="tmg_customer_legacy_acct_view" model="ir.ui.view">
+      <field name="name">tmg.customer.legacy.acct.view</field>
+      <field name="model">res.partner</field>
+      <field name="inherit_id" ref="base.view_partner_form"/>
+      <field name="arch" type="xml">
+        <xpath expr="//field[@name='vat']" position="after">
+          <field name="legacy_customer_number" attrs="{'invisible': [('customer','=',False)]}"/>
+        </xpath>
+      </field>
+    </record>
+
     <record id="tmg_customer_buyinggroup_view_acct" model="ir.ui.view">
       <field name="name">tmg.customer.buyinggroup.view.accounting</field>
       <field name="model">res.partner</field>
