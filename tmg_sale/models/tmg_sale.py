@@ -7,6 +7,7 @@ class SaleOrderLine(models.Model):
     _inherit = 'sale.order.line'
 
     decoration_method = fields.Char('Decoration Method', compute='_get_deco_method', store=True, help='Decoration method used on the sale order line')
+    quick_ship = fields.Boolean("Quick Ship", copy=False)
     # printed_date = fields.Datetime(string="Date")
     @api.multi
     @api.depends('product_no_variant_attribute_value_ids')
