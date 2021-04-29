@@ -11,6 +11,10 @@
 			</tree>
 		</field>
 	</record>
+        <menuitem id="menu_tmg_proof_settings" name="Proofs"
+                action="tmg_proofing_proof_action"
+                parent="sale.menu_sales_config" sequence="60" />
+
     <record id="tmg_proofing_proof_action" model="ir.actions.act_window">
       <field name="name">Proofing</field>
       <field name="res_model">sale.tmg_proofing</field>
@@ -18,8 +22,6 @@
       <field name="view_mode">tree,form</field>
    </record>
 
-    <menuitem id="menu_proof_settings" name="Proofs"
-                action="tmg_proofing_proof_action"
-            parent="sale.menu_sales_config" sequence="50" />
+
   </data>
 </odoo>
