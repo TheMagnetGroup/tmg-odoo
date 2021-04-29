@@ -10,14 +10,15 @@ class StockMove(models.Model):
                                    help='This is a technical field to detect if a move is a split move')
 
     @api.multi
-    @api.depends('reserved_availablility')
+    @api.depends('reserved_availability')
     def _notify_backorder_picking(self):
-        picking = self.picking_id
-        if self.reserved_availability > 0:
-            if picking:
-                if picking.backorder_id:
-                    self.action_send_notification(picking.backorder_id)
-                    picking.backorder_id.sale_id.printed_date = ''
+        for record in self:
+            picking = record.picking_id
+            if picking.reserved_availability > 0:
+                if picking:
+                    if picking.backorder_id:
+                        self.action_send_notification(picking.backorder_id)
+                        picking.backorder_id.sale_id.printed_date = ''
 
     @api.multi
     def action_send_notification(self, backorder_id):
