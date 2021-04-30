@@ -2,29 +2,67 @@
 from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError
 
+class StockMoveLine(models.Model):
+    _inherit = 'stock.move.line'
+
+
 
 class StockMove(models.Model):
     _inherit = 'stock.move'
 
     is_split_move = fields.Boolean('Is a Split Move',
                                    help='This is a technical field to detect if a move is a split move')
+    new_state = fields.Char("New State")
+    old_state = fields.Char("Old State")
 
-    @api.multi
-    @api.depends('reserved_availability')
+
     def _notify_backorder_picking(self):
         for record in self:
             picking = record.picking_id
-            if picking.reserved_availability > 0:
-                if picking:
-                    if picking.backorder_id:
-                        self.action_send_notification(picking.backorder_id)
-                        picking.backorder_id.sale_id.printed_date = ''
+            self.action_send_notification(picking.backorder_id)
+            if picking.backorder_id.sale_id:
+                picking.backorder_id.sale_id.printed_date = ''
+
+    @api.depends('state')
+    def notify_backorder(self):
+        for move in self:
+            if move.picking_id:
+                if move.picking_id.backorder_id:
+                    if move.state == 'partially_available':
+                        self._notify_backorder_picking()
+                    if move.state == 'assigned':
+                        self._notify_backorder_picking()
+
+
+    # @api.depends('move_line_ids.product_qty')
+    # def _compute_reserved_availability(self):
+    #     old_availability = self.reserved_availability
+    #     if not any(self._ids):
+    #         # onchange
+    #         for move in self:
+    #             reserved_availability = sum(move.move_line_ids.mapped('product_qty'))
+    #             move.reserved_availability = move.product_id.uom_id._compute_quantity(
+    #                 reserved_availability, move.product_uom, rounding_method='HALF-UP')
+    #     else:
+    #         # compute
+    #         result = {data['move_id'][0]: data['product_qty'] for data in
+    #                   self.env['stock.move.line'].read_group([('move_id', 'in', self.ids)], ['move_id', 'product_qty'],
+    #                                                          ['move_id'])}
+    #         for move in self:
+    #             move.reserved_availability = move.product_id.uom_id._compute_quantity(
+    #                 result.get(move.id, 0.0), move.product_uom, rounding_method='HALF-UP')
+    #     for move in self:
+    #         if old_availability < move.reserved_availability:
+    #             self.notify_backorder_picking()
+
+    # def write(self, vals):
+    #     result = super(StockMove, self).write(vals)
 
     @api.multi
     def action_send_notification(self, backorder_id):
         warehouse = backorder_id.location_id.warehouse_id
-        if warehouse.backorder_channel:
-            channel_id = warehouse.backorder_channel
+        if warehouse.backorder_channel_id:
+            channel_id = warehouse.backorder_channel_id
             channel_id.message_post(subject='Backorder Inventory Reservation',
                                     body="The following backorder has an inventory reservation " + backorder_id,
                                     subtype='mail.mt_comment')
@@ -33,6 +71,9 @@ class StockMove(models.Model):
         res = super(StockMove, self)._prepare_procurement_values()
         res.update({'sale_line_id': self.sale_line_id.id})
         return res
+
+
+            
 
     # we want to add the is_split_move_flag into the super
     # we also change the new move's partner_id when partner_id_int is passed in
