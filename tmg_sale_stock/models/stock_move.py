@@ -23,40 +23,12 @@ class StockMove(models.Model):
             if picking.backorder_id.sale_id:
                 picking.backorder_id.sale_id.printed_date = ''
 
-    @api.depends('state')
-    def notify_backorder(self):
-        for move in self:
+    def _action_assign(self):
+        res = super(StockMove, self)._action_assign()
+        for move in self.filtered(lambda x: x.backorder_id and x.state == 'assigned'):
             if move.picking_id:
-                if move.picking_id.backorder_id:
-                    if move.state == 'partially_available':
-                        self._notify_backorder_picking()
-                    if move.state == 'assigned':
-                        self._notify_backorder_picking()
-
-
-    # @api.depends('move_line_ids.product_qty')
-    # def _compute_reserved_availability(self):
-    #     old_availability = self.reserved_availability
-    #     if not any(self._ids):
-    #         # onchange
-    #         for move in self:
-    #             reserved_availability = sum(move.move_line_ids.mapped('product_qty'))
-    #             move.reserved_availability = move.product_id.uom_id._compute_quantity(
-    #                 reserved_availability, move.product_uom, rounding_method='HALF-UP')
-    #     else:
-    #         # compute
-    #         result = {data['move_id'][0]: data['product_qty'] for data in
-    #                   self.env['stock.move.line'].read_group([('move_id', 'in', self.ids)], ['move_id', 'product_qty'],
-    #                                                          ['move_id'])}
-    #         for move in self:
-    #             move.reserved_availability = move.product_id.uom_id._compute_quantity(
-    #                 result.get(move.id, 0.0), move.product_uom, rounding_method='HALF-UP')
-    #     for move in self:
-    #         if old_availability < move.reserved_availability:
-    #             self.notify_backorder_picking()
-
-    # def write(self, vals):
-    #     result = super(StockMove, self).write(vals)
+                self._notify_backorder_picking()
+        return res
 
     @api.multi
     def action_send_notification(self, backorder_id):
@@ -64,7 +36,7 @@ class StockMove(models.Model):
         if warehouse.backorder_channel_id:
             channel_id = warehouse.backorder_channel_id
             channel_id.message_post(subject='Backorder Inventory Reservation',
-                                    body="The following backorder has an inventory reservation " + backorder_id,
+                                    body="The following backorder has an inventory reservation : "  + str(backorder_id.id),
                                     subtype='mail.mt_comment')
     # we need to pass the sale_line_id info for the sake of figuring out splitting
     def _prepare_procurement_values(self):
