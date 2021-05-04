@@ -36,7 +36,7 @@ class StockMove(models.Model):
         if warehouse.backorder_channel_id:
             channel_id = warehouse.backorder_channel_id
             channel_id.message_post(subject='Backorder Inventory Reservation',
-                                    body="The following backorder has an inventory reservation : "  + str(backorder_id.id),
+                                    body="The following backorder has an inventory reservation : "  + str(backorder_id.name),
                                     subtype='mail.mt_comment')
     # we need to pass the sale_line_id info for the sake of figuring out splitting
     def _prepare_procurement_values(self):
