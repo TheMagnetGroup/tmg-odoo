@@ -36,7 +36,7 @@ class StockMove(models.Model):
         if warehouse.backorder_channel_id:
             channel_id = warehouse.backorder_channel_id
             notification = ('<a href="#" data-oe-id="%s" data-oe-model="stock.picking">%s</a>') % \
-                           (backorder_id.id, backorder_id.name,)
+                           (self.id, self.name,)
             # channel_id.message_post(
             #     body='Order has been placed: ' + str(backorder_id.id) + ' ' + notification + ' by: ' + str(
             #         self.env['res.users'].search([('id', '=', backorder_id.create_uid.id)]).name) + '',
