@@ -20,8 +20,8 @@ class StockMove(models.Model):
         for record in self:
             picking = record.picking_id
             self.action_send_notification(picking.backorder_id)
-            if picking.backorder_id.sale_id:
-                picking.backorder_id.sale_id.printed_date = ''
+            # if picking.backorder_id.sale_id:
+            #     # picking.backorder_id.sale_id.printed_date = ''
 
     def _action_assign(self):
         res = super(StockMove, self)._action_assign()
@@ -35,8 +35,14 @@ class StockMove(models.Model):
         warehouse = backorder_id.location_id.warehouse_id
         if warehouse.backorder_channel_id:
             channel_id = warehouse.backorder_channel_id
+            notification = ('<a href="#" data-oe-id="%s" data-oe-model="stock.picking">%s</a>') % \
+                           (backorder_id.id, backorder_id.name,)
+            # channel_id.message_post(
+            #     body='Order has been placed: ' + str(backorder_id.id) + ' ' + notification + ' by: ' + str(
+            #         self.env['res.users'].search([('id', '=', backorder_id.create_uid.id)]).name) + '',
+            #     subtype='mail.mt_comment')
             channel_id.message_post(subject='Backorder Inventory Reservation',
-                                    body="The following backorder has an inventory reservation : "  + str(backorder_id.name),
+                                    body='Backorder has been allocated inventory: ' + ' ' + notification ,
                                     subtype='mail.mt_comment')
     # we need to pass the sale_line_id info for the sake of figuring out splitting
     def _prepare_procurement_values(self):
