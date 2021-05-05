@@ -19,7 +19,7 @@ class StockMove(models.Model):
     def _notify_backorder_picking(self):
         for record in self:
             picking = record.picking_id
-            self.action_send_notification(picking.backorder_id)
+            self.action_send_notification(picking.backorder_id, picking)
             # if picking.backorder_id.sale_id:
             #     # picking.backorder_id.sale_id.printed_date = ''
 
@@ -31,12 +31,12 @@ class StockMove(models.Model):
         return res
 
     @api.multi
-    def action_send_notification(self, backorder_id):
+    def action_send_notification(self, backorder_id, picking_id):
         warehouse = backorder_id.location_id.warehouse_id
         if warehouse.backorder_channel_id:
             channel_id = warehouse.backorder_channel_id
             notification = ('<a href="#" data-oe-id="%s" data-oe-model="stock.picking">%s</a>') % \
-                           (self.id, self.name,)
+                           (picking_id.id, picking_id.name,)
             # channel_id.message_post(
             #     body='Order has been placed: ' + str(backorder_id.id) + ' ' + notification + ' by: ' + str(
             #         self.env['res.users'].search([('id', '=', backorder_id.create_uid.id)]).name) + '',
