@@ -7,9 +7,10 @@ class tmg_proofing(models.Model):
     id = fields.Integer(string="ID")
 
     name = fields.Char(string="Name")
-    art_file = fields.Many2one("ir.attachments", string="ArtFiles")
+
     sale_line = fields.Many2one("sale.order.line", string = "Sale Line")
     sale_order = fields.Many2one('sale.order',related='sale_line.order_id')
+    art_file = fields.Many2one("ir.attachment", string="ArtFiles", domain="[('res_id','in',[sale_order]),('res_model', '=', 'sale.order')]")
     proofing_link = fields.Char(string = "Proof Link")
     original_date = fields.Datetime(string= "Original Date")
     notes = fields.Html('Order Notes')
