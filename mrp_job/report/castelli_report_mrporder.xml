@@ -146,6 +146,17 @@
                            Pickings
                         </strong>
                      </div>
+                     <t t-foreach="o.production_ids" t-as="prodids">
+                        <t t-set="has_unallocated" t-value="any(prodids.picking_ids.filtered(lambda x: x.state == 'waiting'))"/>
+                        <t t-if="has_unallocated">
+                           <div>
+                              <br/>
+                              <br/>
+                              <span><b>*** Allocated Inventory Less Than Ordered ***</b></span>
+                           </div>
+                        </t>
+                     </t>
+
                      <table class="table table-sm">
                         <tr>
                            <th>MO</th>
