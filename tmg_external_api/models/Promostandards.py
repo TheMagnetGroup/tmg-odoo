@@ -263,6 +263,22 @@ class promostandards(models.Model):
         return locations_dict
 
     @api.model
+    def DecorationColors(self, partner_str, style_rqs, location_rqs, decoration_rqs, request):
+        decoration_colors_dict = dict()
+        if not partner_str or not partner_str.strip():
+            decoration_colors_dict = dict(errorOdoo=dict(code=100,
+                                                         message="Invalid partner ID value: '" + partner_str + "'"))
+            return decoration_colors_dict
+        elif not self.check_call_cap(partner_str):
+            decoration_colors_dict = dict(errorOdoo=dict(code=999,
+                                                         message="Call Cap not found for partner ID " + partner_str))
+            return decoration_colors_dict
+        decoration_colors_obj = self.env['tmg_external_api.pricing_and_config']
+        decoration_colors_dict = decoration_colors_obj.DecorationColors(style_rqs, location_rqs, decoration_rqs)
+        self.log_transaction(partner_str, request, "DecorationColors")
+        return decoration_colors_dict
+
+    @api.model
     def FobPoints(self, partner_str, style_rqs, request):
         fob_dict = dict()
         if not partner_str or not partner_str.strip():
