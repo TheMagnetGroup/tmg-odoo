@@ -2,6 +2,20 @@
 
 from odoo import models, fields, api
 
+class SaleOrder(models.Model):
+    _inherit = 'sale.order'
+
+    quick_ship = fields.Boolean("Quick Ship Order")
+
+    @api.multi
+    @api.depends('order_line.quick_ship')
+    def _compute_quick_ship(self):
+        for record in self:
+            if any(l.quick_ship and l.product_uom_qty > l.qty_invoiced for l in record.order_line):
+                record.quick_ship = True
+            else:
+                record.quick_ship = False
+
 
 class SaleOrderLine(models.Model):
     _inherit = 'sale.order.line'

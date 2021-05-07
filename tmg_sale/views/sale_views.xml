@@ -29,6 +29,9 @@
         <xpath expr="//button[@name='action_done']" position="after">
                     <button name="%(ship_date_assign_action)d" type="action" string="Update Ship Date"  attrs="{'invisible': [('state', 'not in', ['sale'])]}"/> />
                 </xpath>
+          <xpath expr="//field[@name='customer_lead']" position="after">
+                    <field name="quick_ship"/>
+                </xpath>
       </field>
    </record>
   </data>
