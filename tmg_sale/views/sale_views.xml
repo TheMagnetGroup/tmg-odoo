@@ -32,7 +32,7 @@
           <xpath expr="//field[@name='customer_lead']" position="after">
                     <field name="quick_ship" string="Quick Ship"/>
                 </xpath>
-          <xpath expr="//field[@name='shipping_reference_2']" position="after">
+          <xpath expr="//field[@name='carrier_id']" position="after">
                     <field name="quick_ship" string="Quick Ship"/>
                 </xpath>
       </field>
