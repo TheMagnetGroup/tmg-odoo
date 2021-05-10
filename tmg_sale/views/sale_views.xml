@@ -26,7 +26,7 @@
       <field name="model">sale.order</field>
       <field name="inherit_id" ref="sale.view_order_form" />
       <field name="arch" type="xml">
-          <xpath expr="//field[@name='customer_lead']" position="after">
+          <xpath expr="//field[@name='margin_percentage']" position="after">
                     <field name="quick_ship" string="Quick Ship"/>
                 </xpath>
         <xpath expr="//button[@name='action_done']" position="after">
