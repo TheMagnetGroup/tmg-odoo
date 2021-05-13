@@ -32,9 +32,9 @@ class StockMove(models.Model):
 
     @api.multi
     def action_send_notification(self, backorder_id, picking_id):
-        warehouse = backorder_id.location_id.warehouse_id
-        if warehouse.backorder_channel_id:
-            channel_id = warehouse.backorder_channel_id
+        picking_type = backorder_id.picking_type_id
+        if picking_type.backorder_channel_id:
+            channel_id = picking_type.backorder_channel_id
             notification = ('<a href="#" data-oe-id="%s" data-oe-model="stock.picking">%s</a>') % \
                            (picking_id.id, picking_id.name,)
             # channel_id.message_post(

@@ -12,12 +12,12 @@
 		multi="False"
 		context="{}"/>
 
-   <record id="warehouse_view_inherit" model="ir.ui.view">
-      <field name="name">warehouse.sale.stock.inherit</field>
-      <field name="model">stock.warehouse</field>
-      <field name="inherit_id" ref="stock.view_warehouse" />
+   <record id="picking_type_view_inherit" model="ir.ui.view">
+      <field name="name">picking.type.channel.inherit</field>
+      <field name="model">stock.picking.type</field>
+      <field name="inherit_id" ref="stock.view_picking_type_form" />
       <field name="arch" type="xml">
-         <xpath expr="//field[@name='pbm_loc_id']" position="after">
+         <xpath expr="//field[@name='barcode']" position="after">
             <field name="backorder_channel_id" string="Backorder Channel"  />
          </xpath>
       </field>
