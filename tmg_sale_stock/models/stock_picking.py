@@ -2,6 +2,10 @@
 from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError
 
+class StockPickingType(models.Model):
+    _inherit = 'stock.picking.type'
+    backorder_channel_id = fields.Many2one('mail.channel', 'Backorder Channel')
+
 class StockQuantPackage(models.Model):
     _inherit = 'stock.quant.package'
     alt_picking_id = fields.Many2one('stock.picking', ondelete='cascade', string='Alt Picking')
