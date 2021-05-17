@@ -34,12 +34,7 @@
 
 
                 <xpath expr="//form[1]/sheet[1]/notebook[1]/page[@name='order_lines']/field[@name='order_line']/form[1]//delivery_ids" position="before">
-<!--                    <div attrs="{'invisible':['|', ('display_type', '=', 'line_section'), ('display_type', '=', 'line_note')]}">-->
-<!--                        <div class="mt8">-->
-<!--                            &lt;!&ndash; <label for="delivery_ids"/>  this label is redundant because it repeats text already existing in the column label for shipping_partner_id &ndash;&gt;-->
-<!--                            <button name="%(action_open_sale_line_delivery_wizard)d" type="action" string="Upload File" class="btn-sm btn-primary" style="float:right;"/>-->
-<!--                            <button name="action_unlink_all_additional_delivery_addresses" type="object" string="Remove All" confirm="This will delete all the additional addresses for this sale order line, confirm?" class="btn-sm btn-secondary" attrs="{'invisible': ['|', ('delivery_ids', '=', False), ('parent.state', 'in', ('sale', 'done'))]}" style="float:right;"/>-->
-<!--                        </div>-->
+
 					<div>
 						<field name ="proofing_lines" mode="tree">
 							<tree>
@@ -48,18 +43,10 @@
 
 							</tree>
 						</field>
-<!--                        <field name="delivery_ids" mode="tree" editable="bottom" context="{'default_sale_line_id': active_id}">-->
-<!--                            <tree editable="bottom">-->
-<!--                                <field name="shipping_partner_id" attrs="{'required': 1}"/>-->
-<!--                                <field name="qty"/>-->
-<!--                            </tree>-->
-<!--                        </field>-->
+
                     </div>
                 </xpath>
-                <!--<xpath expr="//form[1]/sheet[1]/notebook[1]/page[@name='order_lines']/field[@name='order_line']/tree[1]" position="inside">-->
-                    <!--<field name="delivery_ids" readonly="0"/>-->
-                    <!--<field name="delivery_qty_sum"/>-->
-                <!--</xpath>-->
+
             </field>
         </record>
 
@@ -70,67 +57,11 @@
 			<form string="Proofing">
 				<header>
 					<button name="send_proof" type="object" string="Send Proof" attrs="{'invisible': [('state', '!=', 'pending')]}"/>
-<!--					<button name="action_reserve_all" type="object" string="Reserve All" attrs="{'invisible': [('status', 'in', ['draft', 'done', 'cancel'])]}"/>-->
-<!--					<button name="action_plan_all" type="object" string="Plan All" attrs="{'invisible': [('status', 'in', ['done', 'cancel'])]}"/>-->
-<!--					<button name="action_move_to_printed" type="object" string="Printed" attrs="{'invisible': [('status', 'in', ['done', 'cancel', 'draft', 'planned', 'in_progress', 'job_printed'])]}"/>-->
+
 					<field name="state" widget="statusbar"/>
 				</header>
 				<sheet>
-<!--					<div class="oe_button_box" name="button_box">-->
-<!--                        <button name="go_to_mrp_job_pickings" type="object" class="oe_stat_button" icon="fa-truck">-->
-<!--                            <field name="picking_count" string="Pickings" widget="statinfo"/>-->
-<!--                        </button>-->
-<!--                    </div>-->
-<!--                    <h1 class="d-none d-md-block">-->
-<!--                        <field name="name" attrs="{'invisible': [('name','=','')]}" readonly="1"/>-->
-<!--                    </h1>-->
-					<group>
-						<group>
-                            <field name="name"/>
-							<field name="sale_line"/>
-							<field name="sale_order"/>
-						</group>
-						<group>
-							<field name="art_file"/>
-							<field name="proofing_link"  widget="url"/>
-                            <field name="original_date"/>
-                            <field name="notes"/>
-						</group>
-					</group>
-<!--					<notebook>-->
-<!--						<page name="mfg_order" string="Manufacturing Orders">-->
-<!--							<field name="mfg_order_ids">-->
-<!--								<tree>-->
-<!--									<field name="name"/>-->
-<!--									<field name="product_id"/>-->
-<!--									<field name="product_qty"/>-->
-<!--									<field name="availability"/>-->
-<!--									<field name="state"/>-->
-<!--									<field name="date_planned_start"/>-->
-<!--									<field name="unreserve_visible" invisible="1"/>-->
-<!--									<field name="is_locked" invisible="1"/>-->
-<!--									<button type="object" name="action_assign" icon="fa-refresh" help="Check Availability" attrs="{'invisible': ['|', ('availability', 'in', ('assigned', 'none')), ('is_locked', '=', False)]}" title="Check Availability: Try to reserve components for this order"/>-->
-<!--									<button type="object" name="button_unreserve" icon="fa-minus" help="Unreserve" attrs="{'invisible': [('unreserve_visible', '=', False)]}" title="Unreserve"/>-->
-<!--									<button type="object" name="produce_product" icon="fa-cogs" title="Record Production" attrs="{'invisible': [('state', 'in', ['done', 'cancel'])]}"/>-->
-<!--								</tree>-->
-<!--							</field>-->
-<!--						</page>-->
-<!--						<page name="mfg_workorders" string="Workorders" attrs="{'invisible': [('workorder_ids', '=', [])]}">-->
-<!--							<field name="workorder_ids">-->
-<!--								<tree>-->
-<!--									<field name="name"/>-->
-<!--									<field name="workcenter_id"/>-->
-<!--									<field name="product_id"/>-->
-<!--									<field name="qty_production"/>-->
-<!--									<field name="state"/>-->
-<!--									<button name="process_order" type="object" string="Process"/>-->
-<!--								</tree>-->
-<!--							</field>-->
-<!--						</page>-->
-<!--						<page name="so_note" string="Notes">-->
-<!--							<field name="so_notes" widget="text"/>-->
-<!--						</page>-->
-<!--					</notebook>-->
+
 				</sheet>
 			</form>
 		</field>
