@@ -5,7 +5,8 @@
 		<field name="model">sale.tmg_proofing</field>
 		<field name="arch" type="xml">
 			<tree string="Proofs">
-				<field name="name"/>
+				<field name="id"/>
+                <field name="original_date"/>
 				<field name="state"/>
 			</tree>
 		</field>
@@ -33,11 +34,13 @@
 
 
 
-                <xpath expr="//form[1]/sheet[1]/notebook[1]/page[@name='order_lines']/field[@name='order_line']/form[1]//delivery_ids" position="before">
+                <xpath expr="//form[1]/sheet[1]/notebook[1]/page[@name='order_lines']/field[@name='order_line']/form[1]//field[@name='art_ref']" position="after">
 
 					<div>
+						<h3>Proofing</h3>
+						<button name="%(action_open_send_proof_wizard)d" type="action" string="Create Proof" class="btn-sm btn-primary" />
 						<field name ="proofing_lines" mode="tree">
-							<tree>
+							<tree string="Proofs">
 								<field name="original_date"/>
 								<field name="state"/>
 
@@ -49,7 +52,15 @@
 
             </field>
         </record>
-
+	  <act_window id="action_open_send_proof_wizard"
+            name="Sale Line Proof Wizard"
+            src_model="sale.order.line"
+            res_model="sale.order.line.send.proof.wizard"
+            target="new"
+            view_mode="form"
+            view_id="wizard_create_proof"
+            multi="False"
+            context="{}"/>
       <record id="tmg_proofing_form" model="ir.ui.view">
 		<field name="name">tmg.proofing.form</field>
 		<field name="model">sale.tmg_proofing</field>
@@ -60,11 +71,59 @@
 
 					<field name="state" widget="statusbar"/>
 				</header>
-				<sheet>
+                <sheet>
+				<group>
 
-				</sheet>
+                    <field name="id" readonly='1'/>
+                    <field name="sale_line" readonly="1"/>
+                    <field name="sale_order" readonly="1"/>
+                    <field name="proofing_link" readonly="1" widget="url"/>
+                    <field name="original_date" readonly="1"/>
+                    <field name="notes" widget="html" readonly="1"/>
+				</group>
+                </sheet>
 			</form>
 		</field>
 	</record>
+
+        <record model="ir.ui.view" id="tmg_proofing_view_search">
+            <field name="name">tmg.proofing.so.search</field>
+            <field name="model">sale.tmg_proofing</field>
+            <field name="arch" type="xml">
+                <search string="Proof Search">
+                    <field name="sale_order" string="Sale Order"/>
+                </search>
+            </field>
+        </record>
+
+    <record id="proofing_to_so_act" model="ir.actions.act_window">
+      <field name="name">Proofs</field>
+      <field name="res_model">sale.tmg_proofing</field>
+      <field name="view_type">form</field>
+      <field name="view_mode">tree,form,graph</field>
+      <field name="search_view_id" ref="tmg_proofing_view_search"/>
+      <field name="domain">[('sale_order', '=' ,active_id)]</field>
+<!--      <field name="context">{'default_sale_line_order_id': active_id}</field>-->
+    </record>
+
+    <record id="tmg_order_form_inherits_proofing" model="ir.ui.view">
+    <field name="arch" type="xml">
+    <xpath expr="//button[@name='action_view_invoice']" position="before">
+
+        <button type="action"
+                 name="%(proofing_to_so_act)d"
+                class="oe_stat_button"
+                attrs="{'invisible': [('proofing_count', '=', 0)]}"
+                icon="fa-tasks">
+            <field string="Proofs" name="proofing_count" widget="statinfo"/>
+        </button>
+      </xpath>
+    </field>
+
+    <field name="inherit_id" ref="sale.view_order_form"/>
+    <field name="model">sale.order</field>
+    <field name="name">tmg.sales.order.form</field>
+    <field name="priority">30</field>
+    </record>
   </data>
 </odoo>
