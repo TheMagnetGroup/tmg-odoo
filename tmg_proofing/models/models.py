@@ -57,7 +57,7 @@ class tmg_proofing(models.Model):
 
 class SaleOrderLine(models.Model):
     _inherit = "sale.order.line"
-    proofing_lines = fields.One2many("sale.tmg_proofing.line","sale_line", string="Sale Line")
+    proofing_lines = fields.One2many("sale.tmg_proofing","sale_line", string="Sale Line")
 
 
 
