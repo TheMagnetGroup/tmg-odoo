@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record model="ir.ui.view" id="wizard_create_proof">
+            <field name="name">Create Proof</field>
+            <field name="model">sale.order.line.send.proof.wizard</field>
+            <field name="priority">16</field>
+            <field name="type">form</field>
+            <field name="arch" type="xml">
+                <form string="Create Proof" create="true">
+                    <sheet>
+                        <group>
+                            <field name="sale_line_id"  readonly="1"/>
+                            <field name="art_file" />
+                            <field name="sale_order" readonly="1"/>
+
+<!--                            The following was removed to move shipping to the delivery order level. Uncomment to re-add these fields-->
+<!--                            <field name="carrier_id"/>-->
+<!--                            <field name="ups_bill_my_account" invisible="1"/>-->
+<!--                            <field name="fedex_bill_my_account" invisible="1"/>-->
+<!--                            <field name="fedex_carrier_account" invisible="1" attrs="{'invisible': [('fedex_bill_my_account', '!=', True)], 'required':[('fedex_bill_my_account', '!=', False)]}"/>-->
+<!--                            <field name="ups_carrier_account" invisible="1" attrs="{'invisible': [('ups_bill_my_account', '!=', True)], 'required':[('ups_bill_my_account', '!=', False)]}"/>-->
+<!--                            <field name="ups_service_type" invisible="1" attrs="{'invisible': [('ups_bill_my_account', '!=', True)]}"/>-->
+                        </group>
+                    </sheet>
+                    <footer>
+                        <button string="Create" type="object" name="action_create_proof" class="oe_highlight"/>
+                        <button string="Cancel" special="cancel" class="oe_link"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+    </data>
+</odoo>

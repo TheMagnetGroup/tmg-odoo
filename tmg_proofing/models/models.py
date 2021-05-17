@@ -13,6 +13,17 @@ import base64
 import os
 import traceback
 
+class SaleOrder(models.Model):
+    _inherit = 'sale.order'
+    proofing_count = fields.Integer(compute="_get_proofing_count")
+
+    def _get_proofing_count(self):
+        proofsObj = self.env['sale.tmg_proofing']
+        proofs = proofsObj.search([("sale_order.id", "=", self.id)])
+        if proofs:
+            self.proofing_count = len(proofs)
+
+
 class tmg_proofing(models.Model):
     _name = 'sale.tmg_proofing'
     id = fields.Integer(string="ID")
@@ -33,7 +44,7 @@ class tmg_proofing(models.Model):
 
     def build_xml(self):
         proof_ele = ET.Element('Proof')
-        proofName = ET.SubElement(proof_ele,"Name").text = self.name
+
 
         artFile = ET.SubElement(proof_ele, "ProofLink").text = self.art_file.url
         # artFile.text = self.art_file.url
