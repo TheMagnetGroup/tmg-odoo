@@ -65,7 +65,7 @@ class pricing_and_config(models.Model):
             decoration_colors = dict(errorOdoo=dict(code=125,
                                                     message="Decoration method ID is not supported UNLESS a valid"
                                                             + " product number and location ID are also provided"))
-        # if no product/location/decoration parms are specified, provide all decoration colors for all products
+        # if no specific product/location/decoration parms, provide all decoration colors for all sellable products
         else:
             product_colors_search = [('product_tmpl_id', 'in', sellable_product_ids)]
 
@@ -139,8 +139,7 @@ class pricing_and_config(models.Model):
             export_config = self._get_config_xml(product_search, style_rqs)
         else:
             export_config = dict(errorOdoo=dict(code=120,
-                                                message="Product Style Number is required")
-                                 )
+                                                message="Product Style Number is required"))
 
         return export_config
 
@@ -187,7 +186,6 @@ class pricing_and_config(models.Model):
                              fields=['product_tmpl_id', 'decoration_area_id', 'decoration_method_id'])
 
         if product_locations_data:
-            decoration_and_colors = dict()
             product_key = 0
             location_values = dict(ColorArray=[],
                                    productId='',
@@ -198,7 +196,12 @@ class pricing_and_config(models.Model):
                                    )
             product_location_decorations_list = []
             for pld in product_locations_data:
-                decoration_color_data = dict()
+                decoration_and_colors = dict(decorationId=0,
+                                             decorationName='',
+                                             pms=False,
+                                             fullcolor=False,
+                                             colors=[]
+                                             )
                 # collect/accumulate location decoration/color data till a location-level break occurs
                 if ((product_key != 0 and product_key != pld['product_tmpl_id'][0])
                     or (location_values['locationId'] != 0
@@ -222,8 +225,14 @@ class pricing_and_config(models.Model):
                 if decoration_and_colors \
                         and decoration_and_colors['colors'] \
                         and len(decoration_and_colors['colors']) > 0:
-                    location_values['fullColor'] = True if decoration_and_colors['fullcolor'] else False
-                    location_values['pmsMatch'] = True if decoration_and_colors['pms'] else False
+
+                    # availability for full color and pms match for a location will be considered "true" if any
+                    # one single decoration for that location has "true".  Once set to true for a location
+                    # do not allow any subsequent decoration to set it back to false at that same location.
+                    if not location_values['fullColor']:
+                        location_values['fullColor'] = True if decoration_and_colors['fullcolor'] else False
+                    if not location_values['pmsMatch']:
+                        location_values['pmsMatch'] = True if decoration_and_colors['pms'] else False
 
                     if (len(location_values['DecorationMethodArray']) < 1
                             or (decoration_and_colors['decorationId'] not in
@@ -320,23 +329,18 @@ class pricing_and_config(models.Model):
 
     def _get_decoration_color_data(self, product_id, decometh_id):
         decoration_color_data = dict()
-        decocolors = []
         decodata = self.env['product.template.decorationmethod']\
             .search_read([('product_tmpl_id', '=', product_id), ('decoration_method_id', '=', decometh_id)],
                          ['pms', 'full_color'])
         if decodata:
             deconame = self.env['product.attribute.value'].search_read([('id', '=', decometh_id)], ['name'])
             decoration_colors = self._get_applicable_colors('impcolor', product_id, decometh_id)
-            for dc in decoration_colors:
-                if dc:
-                    color = dict(colorId=dc[0],
-                                 colorName=dc[1])
-                    decocolors.append(color)
+
             decoration_color_data = dict(decorationId=decometh_id,
                                          decorationName=deconame[0]['name'],
                                          pms=decodata[0]['pms'],
                                          fullcolor=decodata[0]['full_color'],
-                                         colors=decocolors
+                                         colors=decoration_colors
                                          )
 
         return decoration_color_data
@@ -357,7 +361,8 @@ class pricing_and_config(models.Model):
         # filter the colors by exclusion to leave only the ones that apply to the current decoration method
         for dcx in decoration_colors_category_color_list:
             if dcx['id'] not in list({k[0]: k for k in product_decoration_color_exclusions}.keys()):
-                color = [dcx['id'], dcx['name']]
+                color = dict(colorId=dcx['id'],
+                             colorName=dcx['name'])
                 applicable_colors.append(color)
 
         return applicable_colors
