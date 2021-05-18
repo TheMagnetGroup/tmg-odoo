@@ -30,7 +30,8 @@ class pricing_and_config(models.Model):
 
     @api.model
     def DecorationColors(self, style_rqs, location_rqs, decoration_rqs):
-        decoration_colors = dict()
+        decoration_colors = dict(errorOdoo=dict(),
+                                 DecorationColors=[])
         product_colors_search = []
         pt_id_rqs = []
         sellable_product_ids = self.env['product.template'].get_product_saleable().ids
@@ -44,6 +45,16 @@ class pricing_and_config(models.Model):
                     product_colors_search.append(('decoration_area_id', '=', location_rqs))
                     if decoration_rqs:
                         product_colors_search.append(('decoration_method_id', '=', decoration_rqs))
+                # decoration ID must also include a valid location ID
+                elif decoration_rqs:
+                    decoration_colors = dict(
+                        errorOdoo=dict(code=125,
+                                       message="Decoration method ID is not supported UNLESS a valid"
+                                               + " product number and location ID are also provided")
+                    )
+            else:
+                decoration_colors = dict(errorOdoo=dict(code=400,
+                                                        message=f"Product ID {style_rqs} not found or is not saleable"))
         # location ID request must also include a specific product ID
         elif location_rqs:
             decoration_colors = dict(errorOdoo=dict(code=125,
@@ -58,10 +69,12 @@ class pricing_and_config(models.Model):
         else:
             product_colors_search = [('product_tmpl_id', 'in', sellable_product_ids)]
 
-        decoration_colors = self._get_product_decoration_colors(product_colors_search,
-                                                                style_rqs,
-                                                                location_rqs,
-                                                                decoration_rqs)
+        # load decoration_colors object(dictionary) if not already populated with an error message
+        if not decoration_colors or not decoration_colors['errorOdoo']:
+            decoration_colors = self._get_product_decoration_colors(product_colors_search,
+                                                                    style_rqs,
+                                                                    location_rqs,
+                                                                    decoration_rqs)
         return decoration_colors
 
     @api.model
@@ -160,14 +173,13 @@ class pricing_and_config(models.Model):
             data = dict(errorOdoo=dict(code=400,
                                        message=f"Product ID {style} not found")
                         )
-
         return data
 
     def _get_product_decoration_colors(self, search, style, decoloc, decometh):
-        data = dict()
+        data = dict(errorOdoo=dict(),
+                    DecorationColors=[])
         errorcode = 0
         errormsg = ''
-        product_location_decorations_list = []
         product_locations_data = \
             self.env['product.template.decorationarea']\
                 .search_read(search,
@@ -176,58 +188,62 @@ class pricing_and_config(models.Model):
 
         if product_locations_data:
             decoration_and_colors = dict()
-            location_decorations_list = []
-            location_colors_list = []
-            product_processing = 0
-            location_processing = 0
-            location_full_color_available = False
-            location_pms_match_available = False
+            product_key = 0
+            location_values = dict(ColorArray=[],
+                                   productId='',
+                                   locationId=0,
+                                   DecorationMethodArray=[],
+                                   pmsMatch=False,
+                                   fullColor=False
+                                   )
+            product_location_decorations_list = []
             for pld in product_locations_data:
                 decoration_color_data = dict()
                 # collect/accumulate location decoration/color data till a location-level break occurs
-                if ((product_processing != 0 and product_processing != pld['product_tmpl_id'])
-                        or (location_processing != 0 and location_processing != pld['decoration_area_id'])):
-                    product_location_decorations_list = \
-                        self._apply_location_level_decorations(product_processing,
-                                                               location_processing,
-                                                               location_full_color_available,
-                                                               location_pms_match_available,
-                                                               location_decorations_list,
-                                                               location_colors_list,
-                                                               product_location_decorations_list
-                                                               )
-                product_processing = pld['product_tmpl_id'][0]
-                location_processing = pld['decoration_area_id'][0]
+                if ((product_key != 0 and product_key != pld['product_tmpl_id'][0])
+                    or (location_values['locationId'] != 0
+                        and location_values['locationId'] != pld['decoration_area_id'][0])
+                ):
+                    location_values, product_location_decorations_list = \
+                        self._apply_location_values(location_values, product_location_decorations_list)
+
+                product_key = pld['product_tmpl_id'][0]
+                # supply product_style_number as "productId" and load the collected location data to the list
+                if style:
+                    location_values['productId'] = style
+                else:
+                    location_values['productId'] = \
+                        self.env['product.template'].search_read([('id', '=', product_key)],
+                                                                 ['product_style_number'])[0]['product_style_number']
+                location_values['locationId'] = pld['decoration_area_id'][0]
 
                 decoration_and_colors = self._get_decoration_color_data(pld['product_tmpl_id'][0],
                                                                         pld['decoration_method_id'][0])
                 if decoration_and_colors \
                         and decoration_and_colors['colors'] \
                         and len(decoration_and_colors['colors']) > 0:
-                    location_full_color_available = True if decoration_and_colors['fullcolor'] else False
-                    location_pms_match_available = True if decoration_and_colors['pms'] else False
+                    location_values['fullColor'] = True if decoration_and_colors['fullcolor'] else False
+                    location_values['pmsMatch'] = True if decoration_and_colors['pms'] else False
 
-                    if (len(location_decorations_list) < 1
+                    if (len(location_values['DecorationMethodArray']) < 1
                             or (decoration_and_colors['decorationId'] not in
-                                list({k['decorationId']: k for k in location_decorations_list}.keys()))
+                                list({k['decorationId']: k for k in location_values['DecorationMethodArray']}.keys()))
                     ):
-                        location_decorations_list.append(dict(decorationId=decoration_and_colors['decorationId'],
-                                                              decorationName=decoration_and_colors['decorationName']))
+                        location_values['DecorationMethodArray'].append(
+                            dict(decorationId=decoration_and_colors['decorationId'],
+                                 decorationName=decoration_and_colors['decorationName'])
+                        )
 
                     for c in decoration_and_colors['colors']:
-                        if len(location_colors_list) < 1 or (c['colorId'] not in
-                                                             list({k['colorId']: k for k in location_colors_list}.keys())):
-                            location_colors_list.append(c)
+                        if (len(location_values['ColorArray']) < 1
+                            or (c['colorId'] not in
+                                list({k['colorId']: k for k in location_values['ColorArray']}.keys()))
+                        ):
+                            location_values['ColorArray'].append(c)
 
-            # after the final product/location data has been read, append any remaining location data to the array
-            product_location_decorations_list = self._apply_location_level_decorations(product_processing,
-                                                                                       location_processing,
-                                                                                       location_full_color_available,
-                                                                                       location_pms_match_available,
-                                                                                       location_decorations_list,
-                                                                                       location_colors_list,
-                                                                                       product_location_decorations_list
-                                                                                       )
+            # after reading the final product/location data, append any remaining location decoration data to the array
+            location_values, product_location_decorations_list = \
+                self._apply_location_values(location_values, product_location_decorations_list)
 
             # return the list of products/locations/decorations/colors or begin error assessment
             if product_location_decorations_list:
@@ -251,7 +267,7 @@ class pricing_and_config(models.Model):
         if errormsg:
             if decometh or decoloc or style:
                 errorcode = 400    # use error 400 to represent "not found" for specified requests
-                errormsg += ' was not found for requested'
+                errormsg += ' was not found for the requested'
                 if decometh:
                     errormsg += f' Decoration Method ID {str(decometh)}'
                 if decoloc:
@@ -267,54 +283,40 @@ class pricing_and_config(models.Model):
 
         return data
 
-    def _apply_location_level_decorations(self,
-                                          product,
-                                          location,
-                                          fullcolor,
-                                          pms,
-                                          decorations,
-                                          colors,
-                                          location_decoration_color_list):
+    def _apply_location_values(self, location_values, location_decoration_color_list):
         """
         # this method is designed to be invoked only if the caller determines that a location-level break has occurred;
         # its purpose is to format the input parameter values as a decoration colors object and then load/append
         # that decoration colors object to the "location_decoration_color_list"
-        :param product:
-        :param location:
-        :param fullcolor:
-        :param pms:
-        :param decorations:
-        :param colors:
-        :param location_decoration_color_list:
-        :return: return the contents of parm "location_decoration_color_list" whether the conditions determined
-                 that appending data to this list is appropriate or not.
+        :param location_values: dict() of the current location-level break accumulated values
+        :param location_decoration_color_list: [] list of the products with corresponding location decoration colors
+        :return: 1) reset and return the location-level break accumulators
+                 2) return the "location_decoration_color_list" whether the conditions determined that appending
+                    data to this list is appropriate or not.
         """
-        # the product/location must be unique in the list, and there must exist decoration color data to return;
-        # ...otherwise simply return the location_decoration_color_list unchanged as-is
-        if (((product not in list({k['productId']: k for k in location_decoration_color_list}.keys()))
-             or (location not in list({k['locationId']: k for k in location_decoration_color_list}.keys()))
-            )
-            and
-            ((colors and len(colors) > 0) and (decorations and len(decorations) > 0))
-           ):
-            decoration_color_object = dict(
-                ColorArray=colors,
-                productId=product,
-                locationId=location,
-                DecorationMethodArray=decorations,
-                pmsMatch=pms,
-                fullColor=fullcolor
-            )
-            location_decoration_color_list.append(decoration_color_object)
-        # reset the location-level break accumulators regardless of appended data or not
-        product = 0
-        location = 0
-        fullcolor = False
-        pms = False
-        colors = []
-        decorations = []
 
-        return location_decoration_color_list
+        # the product/location must be unique in the list, and there must exist decoration color data;
+        # ...otherwise simply return the location_decoration_color_list unchanged as-is and reset level break values
+        if (((location_values['productId'] not in
+              list({k['productId']: k for k in location_decoration_color_list}.keys()))
+             or (location_values['locationId']
+                 not in list({k['locationId']: k for k in location_decoration_color_list}.keys()))
+        )
+                and
+                ((location_values['ColorArray'] and len(location_values['ColorArray']) > 0)
+                 and (location_values['DecorationMethodArray'] and len(location_values['DecorationMethodArray']) > 0))
+        ):
+            location_decoration_color_list.append(location_values)
+
+        # reset the location-level break accumulators regardless of appended data or not
+        location_values = dict(ColorArray=[],
+                               productId='',
+                               locationId=0,
+                               DecorationMethodArray=[],
+                               pmsMatch=False,
+                               fullColor=False
+                               )
+        return location_values, location_decoration_color_list
 
     def _get_decoration_color_data(self, product_id, decometh_id):
         decoration_color_data = dict()
@@ -362,13 +364,13 @@ class pricing_and_config(models.Model):
 
     def _get_sql_color_exclusions(self, product, decoration):
         """
-        # because of the somewhat complex task of joining to product.template.attribute twice, once to 1) obtain
-        # the exclusion list ID that applies to the specific decoration method, and then again to 2) obtain the actual
-        # color IDs associated with that list that are to be excluded from that decoration method, I utilized
-        # direct SQL syntax via postgreSQL.
+        # because of the somewhat complex task of joining to product.template.attribute twice, once for 1) obtaining
+        # the exclusion list ID that applies to the specific decoration method, and then again for 2) obtaining the
+        # actual color IDs associated with that list that are to be excluded from that decoration method, I utilized
+        # direct SQL access via postgreSQL.
         :param product:
         :param decoration:
-        :return:
+        :return: [] list of decoration colors to be excluded from the current decoration for this product
         """
         sql = f"""select tv.product_attribute_value_id
                     from product_template_attribute_value tv
