@@ -79,6 +79,7 @@
                     <field name="sale_order" readonly="1"/>
                     <field name="proofing_link" readonly="1" widget="url"/>
                     <field name="original_date" readonly="1"/>
+                    <field name="art_file"/>
                     <field name="notes" widget="html" readonly="1"/>
 				</group>
                 </sheet>
