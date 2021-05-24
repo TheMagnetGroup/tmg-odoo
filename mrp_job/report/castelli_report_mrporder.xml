@@ -469,7 +469,7 @@
                                           <td><span t-field="prod.product_uom_qty"/></td>
                                           <td style="text-align:right"><span t-field="prod.quantity_done"/></td>
                                           <t t-if="not prod.move_orig_ids">
-                                          <td><span t-field="location_id"/></td>
+                                          <td><span t-field="prod.location_id"/></td>
                                        </t>
                                        </tr>
                                     </t>
