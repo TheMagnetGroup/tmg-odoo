@@ -460,7 +460,7 @@
                                        <th>Quantity</th>
                                        <th style="text-align:right">Quantity Done</th>
 <!--                                       <t t-if="not ship1.move_orig_ids">-->
-                                          <th>Location</th>
+                                          <th style="text-align:right">Location</th>
 <!--                                       </t>-->
                                     </tr>
                                     <t t-foreach="ship1.move_ids_without_package" t-as="prod">
@@ -469,7 +469,7 @@
                                           <td><span t-field="prod.product_uom_qty"/></td>
                                           <td style="text-align:right"><span t-field="prod.quantity_done"/></td>
                                           <t t-if="not prod.move_orig_ids">
-                                          <td><span t-field="prod.location_id"/></td>
+                                          <td style="text-align:right"><span t-field="prod.location_id"/></td>
                                        </t>
                                        </tr>
                                     </t>
