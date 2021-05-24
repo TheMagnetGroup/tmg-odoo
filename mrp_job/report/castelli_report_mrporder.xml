@@ -459,7 +459,7 @@
                                        <th style="width=90px">Product</th>
                                        <th>Quantity</th>
                                        <th style="text-align:right">Quantity Done</th>
-                                       <t t-if="not prod.move_orig_ids'">
+                                       <t t-if="not prod.move_orig_ids">
                                           <th>Location</th>
                                        </t>
                                     </tr>
@@ -468,7 +468,7 @@
                                           <td><span t-field="prod.product_id.display_name"/></td>
                                           <td><span t-field="prod.product_uom_qty"/></td>
                                           <td style="text-align:right"><span t-field="prod.quantity_done"/></td>
-                                          <t t-if="not prod.move_orig_ids'">
+                                          <t t-if="not prod.move_orig_ids">
                                           <td><span t-field="location_id"/></td>
                                        </t>
                                        </tr>
