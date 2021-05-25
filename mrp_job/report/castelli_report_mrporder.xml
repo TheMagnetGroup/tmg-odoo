@@ -152,7 +152,7 @@
                            <div>
                               <br/>
                               <br/>
-                              <span><b>*** Allocated Inventory Less Than Ordered ***</b></span>
+                              <h2>*** Allocated Inventory Less Than Ordered ***</h2>
                            </div>
                         </t>
                      </t>
