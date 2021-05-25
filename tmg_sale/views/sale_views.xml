@@ -26,7 +26,7 @@
       <field name="model">sale.order</field>
       <field name="inherit_id" ref="sale.view_order_form" />
       <field name="arch" type="xml">
-          <xpath expr="//field[@name='art_ref']" position="before">
+          <xpath expr="//field[@name='order_line']//form//field[@name='art_ref']" position="before">
               <div>
                     <field name="quick_ship" string="Quick Ship"/>
               </div>
