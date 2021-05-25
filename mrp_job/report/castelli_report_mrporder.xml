@@ -154,12 +154,12 @@
                         <t t-if="has_unallocated">
                               <div>
 
-                                 <h2>*** Allocated Inventory Less Than Ordered ***</h2>
+                   o              <h2>*** Allocated Inventory Less Than Ordered ***</h2>
                               </div>
 <!--                              <t t-esc="prodids"/>-->
-                           </t>
-                           </t>
-<!--                        </t>-->
+<!--                           </t>-->
+<!--                           </t>-->
+                        </t>
 
 
 
