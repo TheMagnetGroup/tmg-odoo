@@ -147,8 +147,8 @@
                         </strong>
                      </div>
                      <t t-foreach="o.production_ids" t-as="prodids">
-                        <t t-foreach="prodids.picking_ids">
-                           <t t-if="has_unallocated">
+                        <t t-foreach="prodids.picking_ids" t-as="pickings">
+                           <t t-if="pickings.state == 'waiting'">
                               <div>
                                  <br/>
                                  <br/>
