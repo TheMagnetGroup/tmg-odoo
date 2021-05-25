@@ -26,8 +26,10 @@
       <field name="model">sale.order</field>
       <field name="inherit_id" ref="sale.view_order_form" />
       <field name="arch" type="xml">
-          <xpath expr="//field[@name='margin_percentage']" position="after">
+          <xpath expr="//field[@name='art_ref']" position="before">
+              <div>
                     <field name="quick_ship" string="Quick Ship"/>
+              </div>
                 </xpath>
         <xpath expr="//button[@name='action_done']" position="after">
                     <button name="%(ship_date_assign_action)d" type="action" string="Update Ship Date"  attrs="{'invisible': [('state', 'not in', ['sale'])]}"/> />
