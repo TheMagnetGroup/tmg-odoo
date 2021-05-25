@@ -27,9 +27,9 @@
       <field name="inherit_id" ref="sale.view_order_form" />
       <field name="arch" type="xml">
           <xpath expr="//form[1]/sheet[1]/notebook[1]/page[@name='order_lines']/field[@name='order_line']/form[1]/group[1]/group[1]/field[@name='product_id']" position="before">
-              <div>
-                    <field name="quick_ship" string="Quick Ship"/>
-              </div>
+
+                    <field name="quick_ship" />
+
                 </xpath>
         <xpath expr="//button[@name='action_done']" position="after">
                     <button name="%(ship_date_assign_action)d" type="action" string="Update Ship Date"  attrs="{'invisible': [('state', 'not in', ['sale'])]}"/> />

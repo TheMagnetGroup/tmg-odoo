@@ -13,6 +13,7 @@
         * Christian Dunn - 2020/01/27 -   Adds wizard to allow user to change ship date on MO, SO, and
         * Jonas Temple - 2020/01/23 -   Add On Hold and On Production Hold to the sale.report model.
         * Christi Moses - 2020/09/01    Add delivery method to sale order report
+        * Christian Dunn - 2021/05/25    Add quick ship to order and order line
     """,
 
     'author': "The Magnet Group",
