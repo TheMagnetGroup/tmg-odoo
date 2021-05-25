@@ -146,17 +146,17 @@
                            Pickings
                         </strong>
                      </div>
-                     <t t-foreach="o.production_ids" t-as="prodids">
-                        <t t-foreach="prodids.picking_ids" t-as="pickings">
-                           <t t-if="pickings.state == 'waiting'">
+<!--                     <t t-foreach="o.production_ids" t-as="prodids">-->
+<!--                        <t t-foreach="prodids.picking_ids" t-as="pickings">-->
+<!--                           <t t-if="pickings.state == 'waiting'">-->
                               <div>
 
                                  <h2>*** Allocated Inventory Less Than Ordered ***</h2>
                               </div>
-                              <t t-esc="prodids"/>
-                           </t>
-                           </t>
-                        </t>
+<!--                              <t t-esc="prodids"/>-->
+<!--                           </t>-->
+<!--                           </t>-->
+<!--                        </t>-->
 <!--                        <t t-set="has_unallocated" t-value="any(o.production_ids.filtered(lambda x: x.picking_ids.filtered(lambda x: x.state == 'waiting')))"/>-->
 <!--&lt;!&ndash;                        <t t-set="has_unallocated" t-value="any(prodids.picking_ids.filtered(lambda x: x.state == 'waiting'))"/>&ndash;&gt;-->
 <!--                        <t t-if="has_unallocated">-->
