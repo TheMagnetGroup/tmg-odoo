@@ -150,8 +150,7 @@
                         <t t-foreach="prodids.picking_ids" t-as="pickings">
                            <t t-if="pickings.state == 'waiting'">
                               <div>
-                                 <br/>
-                                 <br/>
+
                                  <h2>*** Allocated Inventory Less Than Ordered ***</h2>
                               </div>
                               <t t-esc="prodids"/>
