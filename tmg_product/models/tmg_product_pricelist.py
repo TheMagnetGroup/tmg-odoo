@@ -2,10 +2,30 @@
 
 from odoo import models, fields, api, _
 from odoo.addons import decimal_precision as dp
+from odoo.exceptions import ValidationError
 
 
 class PriceList(models.Model):
     _inherit = 'product.pricelist'
+
+    default_catalog_pricelist = fields.Boolean(string='Default Catalog Pricelist', copy=False, help='This is the default catalog pricelist')
+    default_net_pricelist = fields.Boolean(string='Default Net Pricelist', copy=False, help='This is the default net pricelist')
+
+    @api.constrains('default_catalog_pricelist')
+    def _check_def_catalog_pricelst(self):
+        if self.env['product.pricelist'].search_count([('company_id', '=', self.company_id.id), ('default_catalog_pricelist', '=', True)]) > 1:
+            raise ValidationError('Only one price list can be the default catalog price list!')
+        if self.default_catalog_pricelist and self.default_net_pricelist:
+            raise ValidationError('Price list cannot be both the default catalog and default net price list')
+        return True
+
+    @api.constrains('default_net_pricelist')
+    def _check_def_net_pricelst(self):
+        if self.env['product.pricelist'].search_count([('company_id', '=', self.company_id.id), ('default_net_pricelist', '=', True)]) > 1:
+            raise ValidationError('Only one price list can be the default net price list!')
+        if self.default_catalog_pricelist and self.default_net_pricelist:
+            raise ValidationError('Price list cannot be both the default catalog and default net price list')
+        return True
 
     @api.multi
     def _compute_price_rule(self, products_qty_partner, date=False, uom_id=False):
@@ -161,10 +181,15 @@ class ProductTemplate(models.Model):
     #       "expiration_dates" : [list_of_dates],
     #       "published": [list_of_published_flags]
     #   }
-    def _build_price_grid(self, catalog_pricelist='Catalog', net_pricelist='Net', published_only=True):
+    def _build_price_grid(self, catalog_pricelist=False, net_pricelist=False, published_only=True):
+        # If the catalog_pricelist was not passed get the default catalog pricelist for this company
+        if not catalog_pricelist:
+            catalog_pricelist = self.env['product.pricelist'].search([('default_catalog_pricelist', '=', True),('company_id', '=', self.company_id.id)])
+        if not net_pricelist:
+            net_pricelist = self.env['product.pricelist'].search([('default_net_pricelist', '=', True),('company_id', '=', self.company_id.id)])
         # Get the passed catalog/net pricelists or the default
-        cat = self.env['product.pricelist'].search([('name', '=', catalog_pricelist)])
-        net = self.env['product.pricelist'].search([('name', '=', net_pricelist)])
+        # cat = self.env['product.pricelist'].search([('name', '=', catalog_pricelist)])
+        # net = self.env['product.pricelist'].search([('name', '=', net_pricelist)])
         price_grid_dict = {}
         cat_prices = []
         net_prices = []
@@ -173,24 +198,24 @@ class ProductTemplate(models.Model):
         expiration_dates = []
         published = []
         # If we have both
-        if cat and net:
+        if catalog_pricelist and net_pricelist:
             for product in self:
                 # Get the published quantities from the catalog pricelist, assuming current date as effectivity
-                quantities = cat.get_product_quantities(product, published_only=published_only)
+                quantities = catalog_pricelist.get_product_quantities(product, published_only=published_only)
                 if len(quantities):
-                    price_grid_dict['catalog_pricelist'] = cat.name
-                    price_grid_dict['catalog_currency'] = cat.currency_id.name
-                    price_grid_dict['net_pricelist'] = net.name
-                    price_grid_dict['net_currency'] = net.currency_id.name
+                    price_grid_dict['catalog_pricelist'] = catalog_pricelist.name
+                    price_grid_dict['catalog_currency'] = catalog_pricelist.currency_id.name
+                    price_grid_dict['net_pricelist'] = net_pricelist.name
+                    price_grid_dict['net_currency'] = net_pricelist.currency_id.name
                     price_grid_dict['quantities'] = quantities
                     for qty in quantities:
-                        cat_price = cat.get_product_price_rule(self, qty, None)
+                        cat_price = catalog_pricelist.get_product_price_rule(self, qty, None)
                         cat_prices.append(cat_price[0])
                         # Get the catalog price rule to get the published flag
                         cpi = self.env['product.pricelist.item'].browse(cat_price[1])
                         if cpi:
                             published.append(cpi.published)
-                        net_price = net.get_product_price_rule(self, qty, None)
+                        net_price = net_pricelist.get_product_price_rule(self, qty, None)
                         net_prices.append(net_price[0])
                         # Get the rule ID that generated this pricing
                         pi = self.env['product.pricelist.item'].browse(net_price[1])

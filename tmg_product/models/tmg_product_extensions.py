@@ -1222,7 +1222,8 @@ class ProductTemplate(models.Model):
                     ET.SubElement(blank_elem, "full_color").text = str(method.full_color)
                     ET.SubElement(blank_elem, "max_colors").text = str(method.max_colors)
                     # Build the price grid for blank pricing
-                    price_grid_dict = self._build_price_grid(net_pricelist='Blank')
+                    blank_pricelist = self.env['product.pricelist'].search([('name', '=', 'Blank'), ('company_id', '=', self.company_id.id)])
+                    price_grid_dict = self._build_price_grid(net_pricelist=blank_pricelist)
                     if price_grid_dict:
                         ET.SubElement(blank_elem, "currency_id").text = price_grid_dict['catalog_currency']
                         quantities_elem = ET.SubElement(blank_elem, "quantities")

@@ -8,6 +8,7 @@ class tmg_product_pricelist_grid_wizard(models.TransientModel):
     _description = "Product Pricelist Grid Inquiry"
 
     product_id = fields.Many2one("product.pricelist.inquiry.wizard", string="Product", ondelete="cascade")
+    product_variant_name = fields.Char(string="Product Variant")
     catalog_pricelist = fields.Char(string="Catalog Pricelist")
     net_pricelist = fields.Char(string="Net Pricelist")
     quantity = fields.Float(string="Quantity")
