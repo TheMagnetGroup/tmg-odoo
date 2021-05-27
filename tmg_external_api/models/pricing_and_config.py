@@ -23,8 +23,8 @@ class pricing_and_config(models.Model):
                               ('id', 'in', sellable_product_ids)]
             product_decoration_locations = self._get_product_available_locations(product_search, style_rqs)
         else:
-            product_decoration_locations = dict(errorOdoo=dict(code=120,
-                                                               message="Product Style Number is required")
+            product_decoration_locations = dict(ErrorMessage=dict(code=120,
+                                                                  description="Product Style Number is required")
                                                 )
         return product_decoration_locations
 
@@ -138,8 +138,8 @@ class pricing_and_config(models.Model):
                               ('id', 'in', sellable_product_ids)]
             export_config = self._get_config_xml(product_search, style_rqs)
         else:
-            export_config = dict(errorOdoo=dict(code=120,
-                                                message="Product Style Number is required"))
+            export_config = dict(ErrorMessage=dict(code=120,
+                                                   description="Product Style Number is required"))
 
         return export_config
 
@@ -148,29 +148,27 @@ class pricing_and_config(models.Model):
 # ------------------
 
     def _get_product_available_locations(self, search, style):
-        data = dict()
+        data = dict(AvailableLocationArray=[],
+                    ErrorMessage=dict())
         product = self.env['product.template'].search(search).ids
         if product:
-            locs_list = []
             available_locations = self.env['product.template.decorationarea']\
                 .search_read([('product_tmpl_id', '=', product[0])], ['decoration_area_id'])
             for al in available_locations:
                 # enter unique locations (by id)
-                if len(locs_list) < 1 or (al['decoration_area_id'][0]
-                                          not in list({k['locationId']: k for k in locs_list}.keys())):
-                    locs_list.append(dict(locationId=al['decoration_area_id'][0],
-                                          locationName=al['decoration_area_id'][1])
-                                     )
-            if locs_list:
-                data = dict(errorOdoo=dict(),
-                            AvailableLocatonsArray=locs_list)
-            else:
-                data = dict(errorOdoo=dict(code=400,
-                                           message=f"Available locations data not found for product {style}")
+                if len(data['AvailableLocationArray']) < 1 \
+                        or (al['decoration_area_id'][0]
+                            not in list({k['locationId']: k for k in data['AvailableLocationArray']}.keys())):
+                    data['AvailableLocationArray'].append(dict(locationId=al['decoration_area_id'][0],
+                                                                locationName=al['decoration_area_id'][1])
+                                                           )
+            if not data['AvailableLocationArray']:
+                data = dict(ErrorMessage=dict(code=400,
+                                              description=f"Available locations data not found for product {style}")
                             )
         else:
-            data = dict(errorOdoo=dict(code=400,
-                                       message=f"Product ID {style} not found")
+            data = dict(ErrorMessage=dict(code=400,
+                                          description=f"Product ID {style} not found")
                         )
         return data
 
@@ -228,7 +226,7 @@ class pricing_and_config(models.Model):
 
                     # availability for full color and pms match for a location will be considered "true" if any
                     # one single decoration for that location has "true".  Once set to true for a location
-                    # do not allow any subsequent decoration to set it back to false at that same location.
+                    # do not allow any subsequent decoration to set it back to false at that same location level.
                     if not location_values['fullColor']:
                         location_values['fullColor'] = True if decoration_and_colors['fullcolor'] else False
                     if not location_values['pmsMatch']:
@@ -310,10 +308,11 @@ class pricing_and_config(models.Model):
               list({k['productId']: k for k in location_decoration_color_list}.keys()))
              or (location_values['locationId']
                  not in list({k['locationId']: k for k in location_decoration_color_list}.keys()))
-        )
-                and
-                ((location_values['ColorArray'] and len(location_values['ColorArray']) > 0)
-                 and (location_values['DecorationMethodArray'] and len(location_values['DecorationMethodArray']) > 0))
+            )
+            and
+            ((location_values['ColorArray'] and len(location_values['ColorArray']) > 0)
+             and (location_values['DecorationMethodArray'] and len(location_values['DecorationMethodArray']) > 0)
+            )
         ):
             location_decoration_color_list.append(location_values)
 
@@ -501,22 +500,22 @@ class pricing_and_config(models.Model):
                 if stored_xml_64:
                     # Odoo stores large data (e.g. images) in base64 so decode to bytes, then decode bytes to a string
                     product_config_xml_str = base64.b64decode(stored_xml_64.datas).decode("utf-8")
-                    product_config_data = dict(errorOdoo=dict(),
-                                               xmlString=product_config_xml_str.replace("\n", ""))
+                    product_config_data = dict(xmlString=product_config_xml_str.replace("\n", ""),
+                                               ErrorMessage=dict())
                 else:
                     product_config_data = dict(
-                        errorOdoo=dict(code=999,
-                                       message="Pricing and Configuration XML data was expected but NOT found")
+                        ErrorMessage=dict(code=999,
+                                          description="Pricing and Configuration XML data was expected but NOT found")
                     )
-
             else:
-                product_config_data = dict(errorOdoo=dict(code=400,
-                                                          message=f'Product ID "{style}" not found'))
-
+                product_config_data = dict(
+                    ErrorMessage=dict(code=400,
+                                      description=f'Product ID "{style}" not found')
+                )
         else:
             product_config_data = dict(
-                errorOdoo=dict(code=999,
-                               message=f'Product Export Account "{export_account_name}" record is missing')
+                ErrorMessage=dict(code=999,
+                                  description=f'Product Export Account "{export_account_name}" record is missing')
             )
 
         return product_config_data
