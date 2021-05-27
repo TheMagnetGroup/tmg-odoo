@@ -436,5 +436,16 @@
             </field>
         </record>
 
+        <record id="tmg_product_pricelist_form" model="ir.ui.view">
+            <field name="name">tmg.product.pricelist.form</field>
+            <field name="model">product.pricelist</field>
+            <field name="inherit_id" ref="product.product_pricelist_view"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='company_id']" position="after">
+                    <field name="default_catalog_pricelist"/>
+                    <field name="default_net_pricelist"/>
+                </xpath>
+            </field>
+        </record>
     </data>
 </odoo>
