@@ -24,10 +24,7 @@ class SaleOrderLine(models.Model):
     quick_ship = fields.Boolean(string="Quick Ship")
     # printed_date = fields.Datetime(string="Date")
 
-    @api.model
-    def create(self, vals):
 
-        res = super(SaleOrderLine, self).create(vals)
 
 
         # if any(l.quick_ship and l.product_uom_qty > l.qty_invoiced for l in self.order_id.order_line):
