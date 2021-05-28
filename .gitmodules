@@ -7,3 +7,8 @@
 	path = ftp/ftp
 	url = git@github.com:odoo-sh/ftp.git
 	branch = 12.0
+
+[submodule "themagnetgroup"]
+	path = themagnetgroup
+	url = git@github.com:odoo-sh/themagnetgroup.git
+	branch = 12.0
