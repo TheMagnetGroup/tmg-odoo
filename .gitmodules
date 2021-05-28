@@ -12,3 +12,8 @@
 	path = themagnetgroup
 	url = git@github.com:odoo-sh/themagnetgroup.git
 	branch = 12.0
+
+[submodule "sale-workflow"]
+	path = sale-workflow
+	url = git@github.com:odoo-sh/sale-workflow.git
+	branch = 12.0
