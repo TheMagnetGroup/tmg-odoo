@@ -338,7 +338,7 @@
                                           <!--                                                <span t-esc="ml.product_uom_qty" t-if="ml.state !='done'"/>-->
                                           <!--                                                <span t-esc="ml.qty_done"  t-if="ml.state =='done'"/>-->
                                           <span t-field="line.product_qty"/>
-                                          <span t-field="ml.product_uom_id" groups="uom.group_uom"/>
+                                          <span t-field="ml.product_uom"/>
                                        </td>
                                        <!--                                            <td>-->
                                        <!--                                                <span t-if="has_location">-->
