@@ -35,12 +35,14 @@ class tmg_proofing(models.Model):
     art_file = fields.Many2one("ir.attachment", string="ArtFiles", domain="[('res_id','in',[sale_order]),('res_model', '=', 'sale.order')]")
     proofing_link = fields.Char(string = "Proof Link")
     original_date = fields.Datetime(string= "Original Date", default=datetime.today())
+    suggested_layout = fields.Boolean(string="Suggested Layout")
     notes = fields.Html('Order Notes')
     state = fields.Selection(
         [("pending", "Pending"), ("approved", "Approved"), ("rejected", "Rejected"), ("approved_with_changes", "Approved With Changes")],
         "Proof State",
         default="pending",
     )
+    processed = fields.Boolean("Processed")
 
     def build_xml(self):
         proof_ele = ET.Element('Proof')
@@ -56,6 +58,8 @@ class tmg_proofing(models.Model):
         # saleLineID.text = self.sale_line.id
         return ET.tostring(proof_ele, pretty_print= True)
 
+    def mark_processed(self):
+        self.processed = True
 
     def send_proof(self):
         session = ftplib.FTP('ftp.magnetonline.com', 'cdunn', 'magnet123')

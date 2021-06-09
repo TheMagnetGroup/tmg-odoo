@@ -8,6 +8,7 @@
 				<field name="id"/>
                 <field name="original_date"/>
 				<field name="state"/>
+                <field name="processed"/>
 			</tree>
 		</field>
 	</record>
@@ -68,19 +69,21 @@
 			<form string="Proofing">
 				<header>
 					<button name="send_proof" type="object" string="Send Proof" attrs="{'invisible': [('state', '!=', 'pending')]}"/>
-
+                    <button name="mark_processed" type="object" string="Mark Processed" attrs="{'invisible':['|', ('state', '!=', 'pending'), ('processed', '=', False)]}}"/>
 					<field name="state" widget="statusbar"/>
 				</header>
                 <sheet>
 				<group>
 
-                    <field name="id" readonly='1'/>
+<!--                    <field name="id" readonly='1'/>-->
                     <field name="sale_line" readonly="1"/>
                     <field name="sale_order" readonly="1"/>
                     <field name="proofing_link" readonly="1" widget="url"/>
                     <field name="original_date" readonly="1"/>
                     <field name="art_file"/>
                     <field name="notes" widget="html" readonly="1"/>
+                    <field name="processed" readonly="1"/>
+                    <field name="suggested_layout" readonly="1"/>
 				</group>
                 </sheet>
 			</form>
