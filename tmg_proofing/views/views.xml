@@ -43,7 +43,7 @@
 
 
 
-                <xpath expr="//form[1]/sheet[1]/notebook[1]/page[@name='order_lines']/field[@name='order_line']/form[1]//field[@name='art_ref']" position="after">
+                <xpath expr="//page[@name='order_lines']//field[@name='order_line']/form[1]//field[@name='art_ref']" position="after">
 
 					<div>
 						<h3>Proofing</h3>
@@ -70,7 +70,7 @@
 			<form string="Proofing">
 				<header>
 					<button name="send_proof" type="object" string="Send Proof" attrs="{'invisible': [('state', '!=', 'pending')]}"/>
-                    <button name="mark_processed" type="object" string="Mark Processed" attrs="{'invisible':['|', ('state', '!=', 'pending'), ('processed', '=', False)]}}"/>
+                    <button name="mark_processed" type="object" string="Mark Processed" attrs="{'invisible':['|', ('state', '!=', 'pending'), ('processed', '=', False)]}"/>
 					<field name="state" widget="statusbar"/>
 				</header>
                 <sheet>
