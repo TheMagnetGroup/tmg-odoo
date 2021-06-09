@@ -1,5 +1,5 @@
 <odoo>
-  <data>
+
     <record id="tmg_proofing_proof_view_tree" model="ir.ui.view">
 		<field name="name">tmg.sale.proofing.view.tree</field>
 		<field name="model">sale.tmg_proofing</field>
@@ -12,7 +12,15 @@
 			</tree>
 		</field>
 	</record>
-
+    <act_window id="action_open_send_proof_wizard"
+            name="Sale Line Proof Wizard"
+            src_model="sale.order.line"
+            res_model="sale.order.line.send.proof.wizard"
+            target="new"
+            view_mode="form"
+            view_id="wizard_create_proof"
+            multi="False"
+            context="{}"/>
 
     <record id="tmg_proofing_proof_action" model="ir.actions.act_window">
       <field name="name">Proofing</field>
@@ -53,15 +61,8 @@
 
             </field>
         </record>
-	  <act_window id="action_open_send_proof_wizard"
-            name="Sale Line Proof Wizard"
-            src_model="sale.order.line"
-            res_model="sale.order.line.send.proof.wizard"
-            target="new"
-            view_mode="form"
-            view_id="wizard_create_proof"
-            multi="False"
-            context="{}"/>
+
+
       <record id="tmg_proofing_form" model="ir.ui.view">
 		<field name="name">tmg.proofing.form</field>
 		<field name="model">sale.tmg_proofing</field>
@@ -129,5 +130,5 @@
     <field name="name">tmg.sales.order.form</field>
     <field name="priority">30</field>
     </record>
-  </data>
+
 </odoo>
