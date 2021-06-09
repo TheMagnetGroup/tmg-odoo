@@ -37,7 +37,7 @@
 	<record id="view_sale_view_order_form_inherit_proofing" model="ir.ui.view">
             <field name="name">sale_view_order_form_inherit_proofing</field>
             <field name="model">sale.order</field>
-            <field name="inherit_id" ref="sale.view_order_form"/>
+            <field name="inherit_id" ref="mrp_job.sale_order_form_inherit_mrp_job"/>
             <field name="arch" type="xml">
 
 
