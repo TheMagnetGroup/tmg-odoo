@@ -17,7 +17,7 @@
     'version': '0.1',
 
     # any module necessary for this one to work correctly
-    'depends': ['tmg_sale'],
+    'depends': ['tmg_sale, mrp_job'],
 
     # always loaded
     'data': [
