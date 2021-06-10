@@ -61,8 +61,18 @@ class tmg_proofing(models.Model):
     def mark_processed(self):
         self.processed = True
 
+    def _get_lookup_value(self, name, category):
+        cont = self.env['tmg_external_api.tmg_reference']
+        val = cont.search([('category', '=', category), ('name', '=', name)])
+        return val.value
+
     def send_proof(self):
-        session = ftplib.FTP('ftp.magnetonline.com', 'odooftpconnector@themagnetgroup.com', 'FTP4Sw1tch')
+
+        ftpSite = self._get_lookup_value("Site", "Proofing")
+        ftpUser = self._get_lookup_value("Username", "Proofing")
+        ftpPassword = self._get_lookup_value("Password", "Proofing")
+
+        session = ftplib.FTP(ftpSite, ftpUser, ftpPassword)
         xml = self.build_xml()
         session.mkd("/Proofing/" + str(self.id))
         filePath = "/Proofing/" + str(self.id) + "/" + str(self.id) + ".xml"
