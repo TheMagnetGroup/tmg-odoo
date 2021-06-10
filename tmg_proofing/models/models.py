@@ -62,7 +62,7 @@ class tmg_proofing(models.Model):
         self.processed = True
 
     def send_proof(self):
-        session = ftplib.FTP('ftp.magnetonline.com', 'cdunn', 'magnet123')
+        session = ftplib.FTP('ftp.magnetonline.com', 'odooftpconnector@themagnetgroup.com', 'FTP4Sw1tch')
         xml = self.build_xml()
         session.mkd("/Proofing/" + str(self.id))
         filePath = "/Proofing/" + str(self.id) + "/" + str(self.id) + ".xml"
