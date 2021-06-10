@@ -47,6 +47,9 @@ class PriceList(models.Model):
 
         # First call Odoo's base _compute_price_rule to get the price without applying price extras
         result = super(PriceList, self)._compute_price_rule(products_qty_partner, date=date, uom_id=uom_id)
+        # Append a default "0" for price extras
+        for r in result:
+            result[r] = result[r][0], result[r][1], 0
 
         # If there were attribute ids that don't create variants
         if no_create_variant_attribute_ids:
@@ -78,7 +81,8 @@ class PriceList(models.Model):
                             # if (val.attribute_id, val.product_attribute_value_id.id) in d:
                             #     result[pid] = result[pid][0] + d[(val.attribute_id,val.product_attribute_value_id.id)], result[pid][1]
                             if (val.attribute_id, val.id) in d:
-                                result[pid] = result[pid][0] + d[(val.attribute_id,val.id)], result[pid][1]
+                                result[pid] = result[pid][0] + d[(val.attribute_id,val.id)], result[pid][1], d[(val.attribute_id,val.id)]
+
 
 
         return result
@@ -180,6 +184,7 @@ class ProductTemplate(models.Model):
     #       "effective_dates" : [list_of_dates],
     #       "expiration_dates" : [list_of_dates],
     #       "published": [list_of_published_flags]
+    #       "price_extras": [list_of_price_extra_charges]
     #   }
     def _build_price_grid(self, catalog_pricelist=False, net_pricelist=False, published_only=True):
         # If the catalog_pricelist was not passed get the default catalog pricelist for this company
@@ -197,6 +202,7 @@ class ProductTemplate(models.Model):
         effective_dates = []
         expiration_dates = []
         published = []
+        price_extras = []
         # If we have both
         if catalog_pricelist and net_pricelist:
             for product in self:
@@ -215,6 +221,8 @@ class ProductTemplate(models.Model):
                         cpi = self.env['product.pricelist.item'].browse(cat_price[1])
                         if cpi:
                             published.append(cpi.published)
+                        price_extras.append(cat_price[2])
+                        # Get the price extras that applied to this pricing
                         net_price = net_pricelist.get_product_price_rule(self, qty, None)
                         net_prices.append(net_price[0])
                         # Get the rule ID that generated this pricing
@@ -223,6 +231,10 @@ class ProductTemplate(models.Model):
                             discount_codes.append(pi.discount_code)
                             effective_dates.append(pi.date_start)
                             expiration_dates.append(pi.date_end)
+                        else:
+                            discount_codes.append("")
+                            effective_dates.append(None)
+                            expiration_dates.append(None)
 
                     price_grid_dict['catalog_prices'] = cat_prices
                     price_grid_dict['net_prices'] = net_prices
@@ -230,6 +242,7 @@ class ProductTemplate(models.Model):
                     price_grid_dict['effective_dates'] = effective_dates
                     price_grid_dict['expiration_dates'] = expiration_dates
                     price_grid_dict['published'] = published
+                    price_grid_dict['price_extras'] = price_extras
 
             return price_grid_dict
 
