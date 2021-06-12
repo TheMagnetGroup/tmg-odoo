@@ -579,6 +579,7 @@ class ProductTemplate(models.Model):
                                                  data=json.dumps(sage_json).encode('utf-8'),
                                                  method='POST')
             # General catch all
+            sageresponsedict = {}
             try:
                 with urllib.request.urlopen(sagerequest) as sageresponse:
                     # Read the entire response
