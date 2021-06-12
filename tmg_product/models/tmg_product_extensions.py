@@ -580,6 +580,7 @@ class ProductTemplate(models.Model):
                                                  method='POST')
             # General catch all
             sageresponsedict = {}
+            sageresponsestr = ""
             try:
                 with urllib.request.urlopen(sagerequest) as sageresponse:
                     # Read the entire response
@@ -594,7 +595,7 @@ class ProductTemplate(models.Model):
                 export_error = True
                 export_message = "An exception occurred updating the SAGE product date: {0}".format(traceback.format_exc())
 
-            # If the Responses element was not in the reponse from SAGE then grab the error message as the entire response
+            # If the Responses element was not in the response from SAGE then grab the error message as the entire response
             if not 'Responses' in sageresponsedict:
                 export_error = True
                 export_message = sageresponsestr
