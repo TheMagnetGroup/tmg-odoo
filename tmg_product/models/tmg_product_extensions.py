@@ -600,7 +600,7 @@ class ProductTemplate(models.Model):
                 export_error = True
                 export_message = sageresponsestr
 
-            print(sageresponsestr)
+            _logger.info("SAGE Response: {0]".format(sageresponsestr))
 
             # At this point if there were any errors we will update all export accounts with the same error since they apply
             # to the entire batch
