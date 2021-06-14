@@ -514,7 +514,7 @@ class ProductTemplate(models.Model):
             product_export_accounts = self.env['product.export.account'].search([('export_account_id', '=', export_account.id),
                                                                                  ('export_product_data', '=', True)])
             # Now we'll send the sage updates in chunks of 25
-            for account_split in split_every(100, product_export_accounts):
+            for account_split in split_every(25, product_export_accounts):
                 self._export_sage(account_split)
 
     def _export_sage(self, export_accounts):
