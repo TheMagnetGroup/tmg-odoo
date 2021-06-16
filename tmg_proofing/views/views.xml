@@ -20,8 +20,9 @@
             view_mode="form"
             view_id="wizard_create_proof"
             multi="False"
-            context="{}"/>
-    
+            context="{}"
+            />
+
     <record id="tmg_proof_view_search" model="ir.ui.view">
             <field name="name">tmg.sale.proof.view.search</field>
             <field name="model">sale.tmg_proofing</field>
@@ -30,7 +31,7 @@
 
                     <field name="id"/>
                     <field name="sale_order"/>
-                    <filter string="Unprocessed Proofs" name="todo_jobs" domain="[('state', 'not in', ('pending'),('processed', '=', False))]"/>
+                    <filter string="Unprocessed Proofs" name="todo_jobs" domain="[('state', '!=', 'pending'),('processed', '=', False)]"/>
 
                 </search>
             </field>
@@ -40,6 +41,8 @@
       <field name="res_model">sale.tmg_proofing</field>
       <field name="view_type">form</field>
       <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="tmg_proof_view_search"/>
+
    </record>
 
         <menuitem id="menu_tmg_proof_settings" name="Proofs"

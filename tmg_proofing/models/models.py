@@ -28,7 +28,7 @@ class tmg_proofing(models.Model):
     _name = 'sale.tmg_proofing'
     id = fields.Integer(string="ID")
 
-    name = fields.Char(string="Name")
+    name = fields.Char(string="Name", default='Proof')
 
     sale_line = fields.Many2one("sale.order.line", string = "Sale Line")
     sale_order = fields.Many2one('sale.order',related='sale_line.order_id')
