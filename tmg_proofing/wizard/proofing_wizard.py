@@ -19,7 +19,8 @@ class SaleOrderLineSendProofWizard(models.TransientModel):
     attachment_ids = fields.One2many('ir.attachment', compute='_compute_attachment_ids',
                                       string="Main Attachments")
 
-    art_file = fields.Many2one("ir.attachment", string="ArtFiles", domain="[('id','in',attachment_ids),('res_model', '=', 'sale.order')]")
+    art_file = fields.Many2one("ir.attachment", string="ArtFiles",
+                               domain="[('res_id','in',[sale_order]),('type', '=', 'url')]")
 
     # @api.constrains('ups_service_type')
     # def _validate_account(self):
