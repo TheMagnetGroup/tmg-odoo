@@ -14,11 +14,12 @@ class SaleOrderLineSendProofWizard(models.TransientModel):
     # explicitly pass in context
     def _default_sol(self):
         return self.env['sale.order.line'].browse(self.env.context.get('active_ids'))[0]
-
-
     sale_line_id = fields.Many2one('sale.order.line', string='Active SOLs', ondelete='cascade', required=True, default=_default_sol)
     sale_order = fields.Many2one('sale.order', related='sale_line_id.order_id')
-    art_file = fields.Many2one("ir.attachment", string="ArtFiles", domain="[('id','in',[sale_order.attachment_ids]),('res_model', '=', 'sale.order')]")
+    attachment_ids = fields.One2many('ir.attachment', compute='_compute_attachment_ids',
+                                      string="Main Attachments")
+
+    art_file = fields.Many2one("ir.attachment", string="ArtFiles", domain="[('id','in',attachment_ids),('res_model', '=', 'sale.order')]")
 
     # @api.constrains('ups_service_type')
     # def _validate_account(self):
@@ -32,6 +33,15 @@ class SaleOrderLineSendProofWizard(models.TransientModel):
         if proofs:
             raise UserError('Please resolve pending proofs before creating new ones.')
 
+    def _compute_attachment_ids(self):
+        for order in self:
+            soID = self._default_sol().order_id
+            attachment_idss = self.env['ir.attachment'].search([('res_id', '=', soID.id), ('res_model', '=', 'sale.order')]).ids
+            message_attachment_ids = soID.mapped('message_ids.attachment_ids').ids  # from mail_thread
+            ids = list(set(attachment_idss) - set(message_attachment_ids))
+            attachmentObj = self.env['ir.attachment'].browse(ids)
+            self.attachment_ids = attachmentObj
+            return attachmentObj
 
     def action_create_proof(self):
         self.ensure_one()

@@ -32,10 +32,9 @@ class tmg_proofing(models.Model):
 
     sale_line = fields.Many2one("sale.order.line", string = "Sale Line")
     sale_order = fields.Many2one('sale.order',related='sale_line.order_id')
-    attachment_ids = fields.One2many('ir.attachment', compute='_compute_attachment_ids',
-                                     inverse='_inverse_category_tags', string="Main Attachments")
+
     art_file = fields.Many2one("ir.attachment", string="ArtFiles",
-                               domain="[('id','in',[attachment_ids]),('type', '=', 'url')]")
+                               domain="[('res_id','in',[sale_order]),('type', '=', 'url')]")
     proofing_link = fields.Char(string = "Proof Link")
     original_date = fields.Datetime(string= "Original Date", default=datetime.today())
     suggested_layout = fields.Boolean(string="Suggested Layout")
@@ -47,11 +46,7 @@ class tmg_proofing(models.Model):
     )
     processed = fields.Boolean("Processed")
 
-    def _compute_attachment_ids(self):
-        for order in self:
-            attachment_ids = self.env['ir.attachment'].search([('res_id', '=', self.sale_order.id), ('res_model', '=', 'sale.order')]).ids
-            message_attachment_ids = self.sale_order.mapped('message_ids.attachment_ids').ids  # from mail_thread
-            self.attachment_ids = list(set(attachment_ids) - set(message_attachment_ids))
+
 
     def build_xml(self):
         proof_ele = ET.Element('Proof')
