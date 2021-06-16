@@ -14,7 +14,8 @@ class pricing_and_config(models.Model):
 
     @api.model
     def AvailableLocations(self, style_rqs):
-        product_decoration_locations = dict()
+        product_decoration_locations = dict(AvailableLocationArray=[],
+                                            ErrorMessage=dict())
 
         if style_rqs:
             # make sure the product exists and is sellable
@@ -30,56 +31,42 @@ class pricing_and_config(models.Model):
 
     @api.model
     def DecorationColors(self, style_rqs, location_rqs, decoration_rqs):
-        decoration_colors = dict(errorOdoo=dict(),
-                                 DecorationColors=[])
-        product_colors_search = []
-        pt_id_rqs = []
-        sellable_product_ids = self.env['product.template'].get_product_saleable().ids
-        # specified product/style ID is optional; if not specified, all colors for all products are returned
-        if style_rqs:
+        decoration_colors = dict(DecorationColors=dict(),
+                                 ErrorMessage=dict())
+
+        if not style_rqs:
+            decoration_colors = dict(
+                ErrorMessage=dict(code=120,
+                                  description="A valid product ID is required."))
+        elif not location_rqs:
+            decoration_colors = dict(
+                ErrorMessage=dict(code=120,
+                                  description="A valid product ID and location ID are both required"))
+        else:
+            sellable_product_ids = self.env['product.template'].get_product_saleable().ids
             pt_id_rqs = self.env['product.template'].search([('product_style_number', '=', style_rqs),
                                                              ('id', 'in', sellable_product_ids)]).ids
-            if pt_id_rqs:
-                product_colors_search = [('product_tmpl_id', '=', pt_id_rqs[0])]
-                if location_rqs:
-                    product_colors_search.append(('decoration_area_id', '=', location_rqs))
-                    if decoration_rqs:
-                        product_colors_search.append(('decoration_method_id', '=', decoration_rqs))
-                # decoration ID must also include a valid location ID
-                elif decoration_rqs:
-                    decoration_colors = dict(
-                        errorOdoo=dict(code=125,
-                                       message="Decoration method ID is not supported UNLESS a valid"
-                                               + " product number and location ID are also provided")
-                    )
+            if not pt_id_rqs:
+                decoration_colors = dict(
+                    ErrorMessage=dict(code=400,
+                                      description=f"Product ID {style_rqs} not found or is not saleable"))
             else:
-                decoration_colors = dict(errorOdoo=dict(code=400,
-                                                        message=f"Product ID {style_rqs} not found or is not saleable"))
-        # location ID request must also include a specific product ID
-        elif location_rqs:
-            decoration_colors = dict(errorOdoo=dict(code=125,
-                                                    message="Location ID is not supported UNLESS a valid product number"
-                                                            + " is also provided"))
-        # decoration ID request must also include a specific product ID and location ID
-        elif decoration_rqs:
-            decoration_colors = dict(errorOdoo=dict(code=125,
-                                                    message="Decoration method ID is not supported UNLESS a valid"
-                                                            + " product number and location ID are also provided"))
-        # if no specific product/location/decoration parms, provide all decoration colors for all sellable products
-        else:
-            product_colors_search = [('product_tmpl_id', 'in', sellable_product_ids)]
+                product_colors_search = [('product_tmpl_id', '=', pt_id_rqs[0]),
+                                         ('decoration_area_id', '=', location_rqs)]
+                if decoration_rqs:
+                    product_colors_search.append(('decoration_method_id', '=', decoration_rqs))
 
-        # load decoration_colors object(dictionary) if not already populated with an error message
-        if not decoration_colors or not decoration_colors['errorOdoo']:
-            decoration_colors = self._get_product_decoration_colors(product_colors_search,
-                                                                    style_rqs,
-                                                                    location_rqs,
-                                                                    decoration_rqs)
+                # load decoration_colors object(dictionary) if not already populated with an error message
+                decoration_colors = self._get_product_decoration_colors(product_colors_search,
+                                                                        style_rqs,
+                                                                        location_rqs,
+                                                                        decoration_rqs)
         return decoration_colors
 
     @api.model
     def FobPoints(self, style_rqs):
-        fob_points_and_products = dict()
+        fob_points_and_products = dict(FobPointArray=[],
+                                       ErrorMessage=dict())
 
         sellable_product_ids = self.env['product.template'].get_product_saleable().ids
         fobs_with_products = self._get_sql_warehouses_and_products(style_rqs, sellable_product_ids)
@@ -92,30 +79,38 @@ class pricing_and_config(models.Model):
                 fob = fp[0]
                 product_id = fp[1]
                 if fob_processing != 0 and fob_processing != fob:
-                    fob_points.append(self._load_warehouse_object(fob_processing, sorted(fob_prod_list)))
+                    fob_points.append(self._load_warehouse_object(fob_processing, fob_prod_list))
                     fob_prod_list = []   # reset the list of products for processing the next fob
                 fob_processing = fob
-                fob_prod_list.append(product_id)
+                fob_prod_list.append(dict(productId=product_id))
             # Load the warehouse data for the final fob point
-            fob_points.append(self._load_warehouse_object(fob_processing, sorted(fob_prod_list)))
+            fob_points.append(self._load_warehouse_object(fob_processing, fob_prod_list))
 
-            fob_points_and_products = dict(errorOdoo=dict(),
-                                           FobPointArray=fob_points)
+            fob_points_and_products = dict(FobPointArray=fob_points,
+                                           ErrorMessage=dict())
         elif style_rqs:
-            fob_points_and_products = dict(errorOdoo=dict(code=400,
-                                                          message=f"Fob points not found for product {style_rqs}")
-                                           )
+            product = self.env['product.template'].search([('product_style_number', '=', style_rqs),
+                                                           ('id', 'in', sellable_product_ids)])
+            if product[0]:
+                fob_points_and_products = dict(
+                    ErrorMessage=dict(code=403,
+                                      message=f"Fob points not found for product {style_rqs}"))
+            else:
+                fob_points_and_products = dict(
+                    ErrorMessage=dict(code=400,
+                                      message=f"Product Data not found for product {style_rqs}"))
         else:
             fob_points_and_products = dict(
-                errorOdoo=dict(code=999,
-                               message="UNEXPECTEDLY NO warehouses/FOBs were found in the system at all"
-                                       + " (the request for all FOB points for all products returned none)")
+                ErrorMessage=dict(code=999,
+                                  message="UNEXPECTEDLY NO warehouses/FOBs were found in the system at all"
+                                          + " (the request for all FOB points for all products returned none)")
             )
         return fob_points_and_products
 
     @api.model
     def AvailableCharges(self, style_rqs):
-        available_charges = dict()
+        available_charges = dict(AvailableChargeArray=[],
+                                 ErrorMessage=dict())
 
         sellable_product_ids = self.env['product.template'].get_product_saleable().ids
         product_search = [('id', 'in', sellable_product_ids)]
@@ -160,8 +155,8 @@ class pricing_and_config(models.Model):
                         or (al['decoration_area_id'][0]
                             not in list({k['locationId']: k for k in data['AvailableLocationArray']}.keys())):
                     data['AvailableLocationArray'].append(dict(locationId=al['decoration_area_id'][0],
-                                                                locationName=al['decoration_area_id'][1])
-                                                           )
+                                                               locationName=al['decoration_area_id'][1])
+                                                          )
             if not data['AvailableLocationArray']:
                 data = dict(ErrorMessage=dict(code=400,
                                               description=f"Available locations data not found for product {style}")
@@ -172,9 +167,9 @@ class pricing_and_config(models.Model):
                         )
         return data
 
-    def _get_product_decoration_colors(self, search, style, decoloc, decometh):
-        data = dict(errorOdoo=dict(),
-                    DecorationColors=[])
+    def _get_product_decoration_colors(self, search, style, decoloco, decometh):
+        data = dict(DecorationColors=dict(),
+                    ErrorMessage=dict())
         errorcode = 0
         errormsg = ''
         product_locations_data = \
@@ -192,7 +187,7 @@ class pricing_and_config(models.Model):
                                    pmsMatch=False,
                                    fullColor=False
                                    )
-            product_location_decorations_list = []
+            # product_location_decorations_list = []
             for pld in product_locations_data:
                 decoration_and_colors = dict(decorationId=0,
                                              decorationName='',
@@ -200,16 +195,17 @@ class pricing_and_config(models.Model):
                                              fullcolor=False,
                                              colors=[]
                                              )
-                # collect/accumulate location decoration/color data till a location-level break occurs
-                if ((product_key != 0 and product_key != pld['product_tmpl_id'][0])
-                    or (location_values['locationId'] != 0
-                        and location_values['locationId'] != pld['decoration_area_id'][0])
-                ):
-                    location_values, product_location_decorations_list = \
-                        self._apply_location_values(location_values, product_location_decorations_list)
+                # a/o ORIGINAL RELEASE (July 2021) the limit TO 1 PRODUCT/1 LOCATION MAKES THIS ROUTINE REDUNDANT
+                # # collect/accumulate location decoration/color data till a location-level break occurs
+                # if ((product_key != 0 and product_key != pld['product_tmpl_id'][0])
+                #     or (location_values['locationId'] != 0
+                #         and location_values['locationId'] != pld['decoration_area_id'][0])
+                # ):
+                #     location_values, product_location_decorations_list = \
+                #         self._apply_location_values(location_values, product_location_decorations_list)
 
                 product_key = pld['product_tmpl_id'][0]
-                # supply product_style_number as "productId" and load the collected location data to the list
+                # supply product_style_number as "productId" and load the collected location data
                 if style:
                     location_values['productId'] = style
                 else:
@@ -248,83 +244,83 @@ class pricing_and_config(models.Model):
                         ):
                             location_values['ColorArray'].append(c)
 
-            # after reading the final product/location data, append any remaining location decoration data to the array
-            location_values, product_location_decorations_list = \
-                self._apply_location_values(location_values, product_location_decorations_list)
-
-            # return the list of products/locations/decorations/colors or begin error assessment
-            if product_location_decorations_list:
-                data = dict(errorOdoo=dict(),
-                            DecorationColors=product_location_decorations_list)
+            # a/o ORIGINAL RELEASE (July 2021) RESULT SET IS LIMITED TO 1 PRODUCT/1 LOCATION; THIS ROUTINE IS REDUNDANT
+            # # after reading the final product/location data, append remaining location decoration data to the array
+            # # location_values, product_location_decorations_list = \
+            # #     self._apply_location_values(location_values, product_location_decorations_list)
+            #
+            # # return the list of products/locations/decorations/colors or begin error assessment
+            # if product_location_decorations_list:
+            #     data = dict(DecorationColors=product_location_decorations_list,
+            #                 ErrorMessage=dict())
+            if location_values:
+                data = dict(DecorationColors=location_values,
+                            ErrorMessage=dict())
+                errormsg = ''
             else:
                 errormsg = 'Decoration Colors data'
 
         # otherwise if no product/location data was found, begin assessing the error conditions
         else:
-            if decometh:
-                errormsg = 'Decoration Method ID'
-            elif decoloc:
-                errormsg = 'Location ID'
-            elif style:
-                errormsg = 'Product'
-            else:
-                errormsg = '<replace this>'
+            errormsg = 'Decoration Colors data'
 
         # if error message was begun, complete the appropriate indications
         if errormsg:
-            if decometh or decoloc or style:
+            if decometh or decoloco or style:
                 errorcode = 400    # use error 400 to represent "not found" for specified requests
                 errormsg += ' was not found for the requested'
                 if decometh:
                     errormsg += f' Decoration Method ID {str(decometh)}'
-                if decoloc:
-                    errormsg += f' Location ID {str(decoloc)}'
+                if decoloco:
+                    errormsg += f' Location ID {str(decoloco)}'
                 if style:
                     errormsg += f' Product ID {style}'
-            else:
-                errorcode = 999    # use error 999 to indicate an abnormal system condition of NO DATA found
-                errormsg = ("UNEXPECTEDLY, NO Decoration Colors data was found AT ALL"
-                            + " (request was for ALL decoration colors for ALL products)")
-            data = dict(errorOdoo=dict(code=errorcode,
-                                       message=errormsg))
+            # a/o ORIGINAL RELEASE (July 2021) the limit to 1 PRODUCT/1 LOCATION MAKES THIS CONDITION REDUNDANT
+            # else:
+            #     errorcode = 999    # use error 999 to indicate an abnormal system condition of NO DATA found
+            #     errormsg = ("UNEXPECTEDLY, NO Decoration Colors data was found AT ALL"
+            #                 + " (request was for ALL decoration colors for ALL products)")
+            data = dict(ErrorMessage=dict(code=errorcode,
+                                          message=errormsg))
 
         return data
 
-    def _apply_location_values(self, location_values, location_decoration_color_list):
-        """
-        # this method is designed to be invoked only if the caller determines that a location-level break has occurred;
-        # its purpose is to format the input parameter values as a decoration colors object and then load/append
-        # that decoration colors object to the "location_decoration_color_list"
-        :param location_values: dict() of the current location-level break accumulated values
-        :param location_decoration_color_list: [] list of the products with corresponding location decoration colors
-        :return: 1) reset and return the location-level break accumulators
-                 2) return the "location_decoration_color_list" whether the conditions determined that appending
-                    data to this list is appropriate or not.
-        """
-
-        # the product/location must be unique in the list, and there must exist decoration color data;
-        # ...otherwise simply return the location_decoration_color_list unchanged as-is and reset level break values
-        if (((location_values['productId'] not in
-              list({k['productId']: k for k in location_decoration_color_list}.keys()))
-             or (location_values['locationId']
-                 not in list({k['locationId']: k for k in location_decoration_color_list}.keys()))
-            )
-            and
-            ((location_values['ColorArray'] and len(location_values['ColorArray']) > 0)
-             and (location_values['DecorationMethodArray'] and len(location_values['DecorationMethodArray']) > 0)
-            )
-        ):
-            location_decoration_color_list.append(location_values)
-
-        # reset the location-level break accumulators regardless of appended data or not
-        location_values = dict(ColorArray=[],
-                               productId='',
-                               locationId=0,
-                               DecorationMethodArray=[],
-                               pmsMatch=False,
-                               fullColor=False
-                               )
-        return location_values, location_decoration_color_list
+    # a/o ORIGINAL RELEASE (July 2021) RESULT SET IS LIMITED TO 1 PRODUCT WITH 1 LOCATION; THIS FUNCTION IS REDUNDANT
+    # def _apply_location_values(self, location_values, location_decoration_color_list):
+    #     """
+    #     # this method is designed to be invoked only if the caller has a location-level break;
+    #     # its purpose is to format the input parameter values as a decoration colors object and then load/append
+    #     # that decoration colors object to the "location_decoration_color_list"
+    #     :param location_values: dict() of the current location-level break accumulated values
+    #     :param location_decoration_color_list: [] list of the products with corresponding location decoration colors
+    #     :return: 1) reset and return the location-level break accumulators
+    #              2) return the "location_decoration_color_list" whether the conditions determined that appending
+    #                 data to this list is appropriate or not.
+    #     """
+    #
+    #     # the product/location must be unique in the list, and there must exist decoration color data;
+    #     # ...otherwise simply return the location_decoration_color_list unchanged as-is and reset level break values
+    #     if (((location_values['productId'] not in
+    #           list({k['productId']: k for k in location_decoration_color_list}.keys()))
+    #          or (location_values['locationId']
+    #              not in list({k['locationId']: k for k in location_decoration_color_list}.keys()))
+    #         )
+    #         and
+    #         ((location_values['ColorArray'] and len(location_values['ColorArray']) > 0)
+    #          and (location_values['DecorationMethodArray'] and len(location_values['DecorationMethodArray']) > 0)
+    #         )
+    #     ):
+    #         location_decoration_color_list.append(location_values)
+    #
+    #     # reset the location-level break accumulators regardless of appended data or not
+    #     location_values = dict(ColorArray=[],
+    #                            productId='',
+    #                            locationId=0,
+    #                            DecorationMethodArray=[],
+    #                            pmsMatch=False,
+    #                            fullColor=False
+    #                            )
+    #     return location_values, location_decoration_color_list
 
     def _get_decoration_color_data(self, product_id, decometh_id):
         decoration_color_data = dict()
@@ -427,12 +423,14 @@ class pricing_and_config(models.Model):
                     fobCountry=self.env['res.country'].search([('id',
                                                                 '=',
                                                                 w_address[0]['country_id'][0])]).code,
-                    CurrencySupportedArray=["USD"],
-                    ProductArray=products)
+                    CurrencySupportedArray=[dict(currency="USD")],
+                    ProductArray=sorted(products, key=lambda k: k['productId']))
+        # NOTE: a/o 2021-06-02 USD is the only supported currency
         return data
 
     def _get_product_available_charges(self, search, style):
-        data = dict()
+        data = dict(AvailableChargeArray=[],
+                    ErrorMessage=dict())
         products = self.env['product.template'].search(search).ids
         if products:
             chgs_list = []
@@ -449,21 +447,21 @@ class pricing_and_config(models.Model):
                                      chargeDescription=chg_desc[0]['name'])
                                      )
             if chgs_list:
-                data = dict(errorOdoo=dict(),
-                            AvailableChargesArray=chgs_list)
+                data = dict(AvailableChargeArray=chgs_list,
+                            ErrorMessage=dict())
             elif style:
-                data = dict(errorOdoo=dict(code=400,
-                                           message=f"Available charges data not found for product {style}")
+                data = dict(ErrorMessage=dict(code=400,
+                                              message=f"Available charges data not found for product {style}")
                             )
             else:
                 data = dict(
-                    errorOdoo=dict(code=999,
-                                   message="UNEXPECTEDLY, no available charges were found in the system at all"
+                    ErrorMessage=dict(code=999,
+                                      message="UNEXPECTEDLY, no available charges were found in the system at all"
                                            + " (the request for all available charges for all products returned none)")
                 )
         elif style:
-            data = dict(errorOdoo=dict(code=400,
-                                       message=f"Product ID {style} not found")
+            data = dict(ErrorMessage=dict(code=400,
+                                          message=f"Product ID {style} not found")
                         )
 
         return data
