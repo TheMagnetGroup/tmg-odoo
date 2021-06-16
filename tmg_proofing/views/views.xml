@@ -21,7 +21,20 @@
             view_id="wizard_create_proof"
             multi="False"
             context="{}"/>
+    
+    <record id="tmg_proof_view_search" model="ir.ui.view">
+            <field name="name">tmg.sale.proof.view.search</field>
+            <field name="model">sale.tmg_proofing</field>
+            <field name="arch" type="xml">
+                <search>
 
+                    <field name="id"/>
+                    <field name="sale_order"/>
+                    <filter string="Unprocessed Proofs" name="todo_jobs" domain="[('state', 'not in', ('pending'),('processed', '=', False))]"/>
+
+                </search>
+            </field>
+        </record>
     <record id="tmg_proofing_proof_action" model="ir.actions.act_window">
       <field name="name">Proofing</field>
       <field name="res_model">sale.tmg_proofing</field>
@@ -37,26 +50,27 @@
 	<record id="view_sale_view_order_form_inherit_proofing" model="ir.ui.view">
             <field name="name">sale_view_order_form_inherit_proofing</field>
             <field name="model">sale.order</field>
-            <field name="inherit_id" ref="mrp_job.sale_order_form_inherit_mrp_job"/>
+            <field name="inherit_id" ref="tmg_sale_stock.view_sale_view_order_form_inherit_tmg"/>
             <field name="arch" type="xml">
 
 
 
 
-                <xpath expr="//page[@name='order_lines']//field[@name='order_line']/form[1]//field[@name='art_ref']" position="after">
-
-					<div>
-						<h3>Proofing</h3>
+                <xpath expr="//page[@name='order_lines']//field[@name='order_line']/form[1]//page[@name='delivery_ids']" position="after">
+                <page name="proofing_lines" string="Proofing">
+                    <div>
+<!--						<h3>Proofing</h3>-->
 						<button name="%(action_open_send_proof_wizard)d" type="action" string="Create Proof" class="btn-sm btn-primary" />
 						<field name ="proofing_lines" mode="tree">
-							<tree string="Proofs">
+							<tree string="Proofs" default_order="original_date">
 								<field name="original_date"/>
 								<field name="state"/>
 
 							</tree>
 						</field>
-
                     </div>
+                </page>
+
                 </xpath>
 
             </field>
@@ -69,7 +83,7 @@
 		<field name="arch" type="xml">
 			<form string="Proofing">
 				<header>
-					<button name="send_proof" type="object" string="Send Proof" attrs="{'invisible': [('state', '!=', 'pending')]}"/>
+<!--					<button name="send_proof" type="object" string="Send Proof" attrs="{'invisible': [('state', '!=', 'pending')]}"/>-->
                     <button name="mark_processed" type="object" string="Mark Processed" attrs="{'invisible':['|', ('state', '!=', 'pending'), ('processed', '=', False)]}"/>
 					<field name="state" widget="statusbar"/>
 				</header>
