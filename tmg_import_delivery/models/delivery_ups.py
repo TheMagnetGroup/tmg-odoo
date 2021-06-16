@@ -59,7 +59,7 @@ class ProviderUPS(models.Model):
 
             }
             if picking.sale_id and picking.sale_id.carrier_id != picking.carrier_id:
-                ups_service_type = picking.carrier_id.ups_default_service_type or picking.ups_service_type or self.ups_default_service_type
+                ups_service_type = picking.ups_service_type or picking.carrier_id.ups_default_service_type or self.ups_default_service_type
             else:
                 ups_service_type = picking.ups_service_type or self.ups_default_service_type
             ups_carrier_account = picking.ups_carrier_account

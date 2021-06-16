@@ -13,6 +13,7 @@
         * Jonas Temple   - 2020/06/08 -   Added attention to to the sale order report
         * Christian Dunn - 2020/09/29 -   Fixed bug causing the Bill_My_Account to have issues.
         * Christian Dunn - 2020/10/23 -   Added code to update delivery line at shipment.
+        * Christian Dunn - 2021/06/11 -   Fixed order of default for UPS shipments.
     """,
 
     "author": "The Magnet Group",

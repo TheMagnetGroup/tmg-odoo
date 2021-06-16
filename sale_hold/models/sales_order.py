@@ -101,29 +101,30 @@ class SaleOrder(models.Model):
                         note_list.append('Removed Hold ' + cache.name)
                        # message_text = message_text + 'Removed Hold ' + cache.name + ' <br/>'
             'Check to see if one of the changed holds is an addition'
-            for item in changed_holds[0][2]:
-                old = any(item == hol.id for hol in order.order_holds)
-                if not old:
-                    'if it is an additional hold, load the hold object from its ID'
-                    hold_obj = self.env['sale.hold']
-                    holds = hold_obj.search([('id', '=',item)])
-                    if holds.credit_hold == True:
-                        values.update({'had_credit_hold': True})
-
-                    'if it is an addition, check to see if the current user has permission to add'
-                    for hold in holds:
-                        hasGroup = self.checkSecurity(hold)
-                        if not hasGroup:
-                            if self.is_automated_hold and hold.credit_hold:
-                                nothold = True
+            if changed_holds:
+                for item in changed_holds[0][2]:
+                    old = any(item == hol.id for hol in order.order_holds)
+                    if not old:
+                        'if it is an additional hold, load the hold object from its ID'
+                        hold_obj = self.env['sale.hold']
+                        holds = hold_obj.search([('id', '=',item)])
+                        if holds.credit_hold == True:
+                            values.update({'had_credit_hold': True})
+    
+                        'if it is an addition, check to see if the current user has permission to add'
+                        for hold in holds:
+                            hasGroup = self.checkSecurity(hold)
+                            if not hasGroup:
+                                if self.is_automated_hold and hold.credit_hold:
+                                    nothold = True
+                                else:
+                                    raise Warning('Cannot add hold due to security on hold.')
+    
+    
                             else:
-                                raise Warning('Cannot add hold due to security on hold.')
-
-
-                        else:
-                            note_list.append('Added Hold ' + hold.name)
-                            #message_text = message_text + 'Added Hold ' + hold.name + ' <br/>'
-                    values.update({'is_automated_hold': False})
+                                note_list.append('Added Hold ' + hold.name)
+                                #message_text = message_text + 'Added Hold ' + hold.name + ' <br/>'
+                        values.update({'is_automated_hold': False})
             # if had_credit_hold:
             #     if not has_credit_hold:
             #         order.approved_credit = False

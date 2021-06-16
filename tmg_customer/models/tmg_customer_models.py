@@ -68,6 +68,29 @@ class AccountInvoice(models.Model):
 
     buying_group_id = fields.Many2one('partner.buying.group', string='Buying Group')
 
+    @api.onchange('partner_id', 'company_id')
+    def _onchange_partner_id(self):
+        res = super(AccountInvoice, self)._onchange_partner_id()
+
+        bg_id = False
+        p_id = self.partner_id
+        while p_id:
+            if p_id.buying_group_id:
+                bg_id = p_id.buying_group_id.id
+                break
+            p_id = p_id.parent_id
+        self.buying_group_id = bg_id
+
+        return res
+
+    @api.model
+    def _prepare_refund(self, invoice, date_invoice=None, date=None, description=None, journal_id=None):
+        values = super(AccountInvoice, self)._prepare_refund(invoice, date_invoice, date, description, journal_id)
+
+        # Set the buying group on the invoice credit note
+        values['buying_group_id'] = invoice.buying_group_id.id
+
+        return values
 
 # class SaleReport(models.Model):
 #     _inherit = 'sale.report'

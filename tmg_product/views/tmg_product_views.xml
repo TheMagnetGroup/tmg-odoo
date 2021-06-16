@@ -136,7 +136,7 @@
                         </group>
                         <group string = "Decoration Methods">
                             <field name="decoration_method_ids" widget="one2many_list" context="{'show_attribute': False}"
-                                   modifiers="{'readonly':'false'}">
+                                   modifiers="{'readonly':'false'}" nolabel="1">
                                 <tree editable="bottom">
 <!--                                    <field name="decoration_method_id" options="{'no_create_edit':True}"-->
 <!--                                            domain="[('product_tmpl_id.id','=',parent.id),('attribute_id.category','=','decoration')]"-->
@@ -158,7 +158,7 @@
                         </group>
                         <group string="Decoration Areas">
                             <field name="decoration_area_ids" widget="one2many_list" context="{'show_attribute': False}"
-                                   modifiers="{'readonly':'false'}">
+                                   modifiers="{'readonly':'false'}" nolabel="1">
                                 <tree editable="bottom">
 <!--                                    <field name="decoration_area_id" options="{'no_create_edit':True}"-->
 <!--                                            domain="[('product_tmpl_id.id','=',parent.id),('attribute_id.category','=','location')]"-->
@@ -176,12 +176,13 @@
                                     <field name="width"/>
                                     <field name="shape"/>
                                     <field name="diameter"/>
+                                    <field name="default_decoration"/>
                                 </tree>
                             </field>
                         </group>
                         <group string="Additional Charges">
                             <field name="addl_charge_product_ids" widget="one2many_list" context="{'show_attribute': False}"
-                                   modifiers="{'readonly':'false'}">
+                                   modifiers="{'readonly':'false'}" nolabel="1">
                                 <tree editable="bottom">
                                     <field name="addl_charge_product_id" options="{'no_create_edit':True}"
                                             domain="[('type','in',['service','consu']),('id','!=',parent.id)]"/>
@@ -195,6 +196,7 @@
                                             />
                                     <field name="charge_type"/>
                                     <field name="charge_yuom"/>
+                                    <field name="repeat_product_id"/>
                                 </tree>
                             </field>
                         </group>
@@ -355,6 +357,7 @@
                     <field name="shape"/>
                     <field name="diameter"/>
                     <field name="dimensions"/>
+                    <field name="default_decoration"/>
                 </tree>
             </field>
         </record>
@@ -436,5 +439,16 @@
             </field>
         </record>
 
+        <record id="tmg_product_pricelist_form" model="ir.ui.view">
+            <field name="name">tmg.product.pricelist.form</field>
+            <field name="model">product.pricelist</field>
+            <field name="inherit_id" ref="product.product_pricelist_view"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='company_id']" position="after">
+                    <field name="default_catalog_pricelist"/>
+                    <field name="default_net_pricelist"/>
+                </xpath>
+            </field>
+        </record>
     </data>
 </odoo>

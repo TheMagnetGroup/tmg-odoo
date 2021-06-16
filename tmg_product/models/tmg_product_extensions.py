@@ -297,6 +297,7 @@ class ProductDecorationMethod(models.Model):
                                 help='Maximum number of colors that can be used for this product and decoration method',
                                 required=True)
 
+
     @api.depends('decoration_method_id')
     def _set_name(self):
         for method in self:
@@ -327,6 +328,8 @@ class ProductDecorationArea(models.Model):
     ], string='Decoration Shape', required=True)
     diameter = fields.Float(string='Decoration Diameter', help='The diameter of the decoration area in inches.')
     dimensions = fields.Char(string='Dimensions', compute='_compute_dimensions', store=False)
+    default_decoration = fields.Boolean(string='Default Decoration/Location',
+                                        help='Check if this decoration location/method is included in the base price')
 
     @api.depends('width', 'height')
     def _compute_dimensions(self):
@@ -347,6 +350,11 @@ class ProductDecorationArea(models.Model):
             if area.shape == 'circle' and area.diameter == 0:
                 raise ValidationError("If the shape is a circle then diameter cannot be 0!")
 
+    @api.constrains('default_decoration')
+    def _check_def_decoration(self):
+        if self.env['product.template.decorationarea'].search_count([('product_tmpl_id', '=', self.product_tmpl_id.id), ('default_decoration', '=', True)]) > 1:
+            raise ValidationError('Only one decoration method/area can be marked as the default!')
+        return True
 
 class ProductAdditonalCharges(models.Model):
     _name = 'product.addl.charges'
@@ -360,6 +368,8 @@ class ProductAdditonalCharges(models.Model):
     #                                          string='Decoration Methods')
     decoration_method_ids = fields.Many2many(comodel_name='product.attribute.value',
                                              string='Decoration Methods')
+    repeat_product_id = fields.Many2one(comodel_name='product.template', string='Repeat Product')
+
     charge_type = fields.Selection([
         ('order', 'Order'),
         ('run', 'Run'),
@@ -569,6 +579,8 @@ class ProductTemplate(models.Model):
                                                  data=json.dumps(sage_json).encode('utf-8'),
                                                  method='POST')
             # General catch all
+            sageresponsedict = {}
+            sageresponsestr = ""
             try:
                 with urllib.request.urlopen(sagerequest) as sageresponse:
                     # Read the entire response
@@ -583,7 +595,7 @@ class ProductTemplate(models.Model):
                 export_error = True
                 export_message = "An exception occurred updating the SAGE product date: {0}".format(traceback.format_exc())
 
-            # If the Responses element was not in the reponse from SAGE then grab the error message as the entire response
+            # If the Responses element was not in the response from SAGE then grab the error message as the entire response
             if not 'Responses' in sageresponsedict:
                 export_error = True
                 export_message = sageresponsestr
@@ -856,6 +868,18 @@ class ProductTemplate(models.Model):
                         # Ensure discount code were supplied
                         if not ac_price_grid_dict['discount_codes'] or not ac_price_grid_dict['discount_codes'][0]:
                             messages.append("<li>Discount codes not set for additional charge item '{0}'</li>".format(ac.addl_charge_product_id.name))
+                    # if there is a repeat product for this charge then ensure pricing exists
+                    if ac.repeat_product_id:
+                        ac_price_grid_dict = ac.repeat_product_id._build_price_grid()
+                        if not ac_price_grid_dict:
+                            messages.append("<li>No pricing found for additional charge repeat item '{0}'</li>".format(
+                                ac.repeat_product_id.name))
+                        else:
+                            # Ensure discount code were supplied
+                            if not ac_price_grid_dict['discount_codes'] or not ac_price_grid_dict['discount_codes'][0]:
+                                messages.append(
+                                    "<li>Discount codes not set for additional charge repeat item '{0}'</li>".format(
+                                        ac.repeat_product_id.name))
 
             # Ensure that any attribute attached to a product has a category
             if self.attribute_line_ids:
@@ -1149,6 +1173,7 @@ class ProductTemplate(models.Model):
                     ET.SubElement(method_elem, "full_color").text = str(deco_method.full_color)
                     # ET.SubElement(method_elem, "max_colors").text = str(location.decoration_method_id.max_colors)
                     ET.SubElement(method_elem, "max_colors").text = str(deco_method.max_colors)
+                    ET.SubElement(method_elem, "default_location").text = str(location.default_decoration)
 
                     # Now write the prices.  First get the pricing grid
                     prices_elem = ET.SubElement(method_elem, "prices")
@@ -1176,8 +1201,10 @@ class ProductTemplate(models.Model):
                         ET.SubElement(quantity_elem, "net_price").text = "{price:.{dp}f}".format(price=price_grid_dict['net_prices'][idx], dp=price_digits)
                         ET.SubElement(quantity_elem, "date_start").text = str(price_grid_dict['effective_dates'][idx])
                         ET.SubElement(quantity_elem, "date_end").text = str(price_grid_dict['expiration_dates'][idx])
+                        ET.SubElement(quantity_elem, "price_extra").text = "{price:.{dp}f}".format(price=price_grid_dict['price_extras'][idx], dp=price_digits)
 
                     # Now write the additional charges that apply to this product/decoration method combination
+                    addl_charges_elem = None
                     if self.addl_charge_product_ids:
                         addl_charges_elem = ET.SubElement(method_elem, "additional_charges")
                         for addl_charge_id in self.addl_charge_product_ids:
@@ -1204,6 +1231,18 @@ class ProductTemplate(models.Model):
                                     ET.SubElement(addl_charge_elem, "net_price").text = "{price:.{dp}f}".format(price=ac_price_grid_dict['net_prices'][0], dp=price_digits)
                                     ET.SubElement(addl_charge_elem, "date_start").text = str(ac_price_grid_dict['effective_dates'][0])
                                     ET.SubElement(addl_charge_elem, "date_end").text = str(ac_price_grid_dict['expiration_dates'][0])
+                                # If there is a repeat product specified then get the price grid for the repeat product
+                                if addl_charge_id.repeat_product_id:
+                                    ac_price_grid_dict = addl_charge_id.repeat_product_id._build_price_grid()
+                                    if ac_price_grid_dict:
+                                        ET.SubElement(addl_charge_elem, "repeat_catalog_price").text = "{price:.{dp}f}".format(price=ac_price_grid_dict['catalog_prices'][0], dp=price_digits)
+                                        ET.SubElement(addl_charge_elem, "repeat_discount_code").text = str(ac_price_grid_dict['discount_codes'][0])
+                                        ET.SubElement(addl_charge_elem, "repeat_net_price").text = "{price:.{dp}f}".format(price=ac_price_grid_dict['net_prices'][0], dp=price_digits)
+                                else:
+                                    ET.SubElement(addl_charge_elem, "repeat_catalog_price").text = ""
+                                    ET.SubElement(addl_charge_elem, "repeat_discount_code").text = ""
+                                    ET.SubElement(addl_charge_elem, "repeat_net_price").text = ""
+
 
             # If "Blank" is included in the decoration method table then we need to write out blank pricing for this item
             for method in self.decoration_method_ids:
@@ -1222,7 +1261,8 @@ class ProductTemplate(models.Model):
                     ET.SubElement(blank_elem, "full_color").text = str(method.full_color)
                     ET.SubElement(blank_elem, "max_colors").text = str(method.max_colors)
                     # Build the price grid for blank pricing
-                    price_grid_dict = self._build_price_grid(net_pricelist='Blank')
+                    blank_pricelist = self.env['product.pricelist'].search([('name', '=', 'Blank'), ('company_id', '=', self.company_id.id)])
+                    price_grid_dict = self._build_price_grid(net_pricelist=blank_pricelist)
                     if price_grid_dict:
                         ET.SubElement(blank_elem, "currency_id").text = price_grid_dict['catalog_currency']
                         quantities_elem = ET.SubElement(blank_elem, "quantities")

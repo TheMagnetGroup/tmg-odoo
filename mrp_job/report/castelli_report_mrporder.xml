@@ -90,43 +90,13 @@
                         </div>
 
                      </div>
-                     <!--                    <div class="row mt32 mb32">-->
-                     <!--                        <div class="col-3">-->
-                     <!--                            <strong>Finished Product:</strong><br/>-->
-                     <!--                            <span t-field="o.product_tmpl_id"/>-->
-                     <!--                        </div>-->
-                     <!--                        <div class="col-3">-->
-                     <!--                            <strong>Quantity to Produce:</strong><br/>-->
-                     <!--                            <span t-field="o.qty"/>-->
-                     <!--                        </div>-->
-                     <!--                        <div class="col-3">-->
-                     <!--                            <strong>Printing date:</strong><br/>-->
-                     <!--                            <span t-esc="time.strftime('%Y-%m-%d')"-->
-                     <!--                                  t-options='{"widget": "date"}'/>-->
-                     <!--                        </div>-->
-                     <!--                    </div>-->
-                     <!--                    <div class="row mt32 mb32">-->
-                     <!--                            <div class="col-3">-->
-                     <!--                                <strong>Product Description:</strong><br/>-->
-                     <!--                                <span t-field="o.sale_line_description"/>-->
-                     <!--                            </div>-->
-                     <!--                            <div class="col-3">-->
-                     <!--                                <strong>Attributes</strong><br/>-->
-                     <!--                                <t t-foreach="o.sale_line_attr_value_id" t-as="ml">-->
-                     <!--                                <span t-field="ml.name"/>-->
-                     <!--                                </t>-->
-                     <!--                            </div>-->
-                     <!--                    </div>-->
-<!--                     <div class="row mt32 mb32">-->
                         <div>
                            <strong>Order Notes</strong>
                            <br/>
                            <span t-field="o.order_notes"/>
                         </div>
 
-                     <t t-if="o.production_ids">
 
-                     </t>
 
 <!--                     </div>-->
                      <div>
@@ -167,6 +137,8 @@
                         </div>
 
                      </div>
+               <t t-if="o.production_ids">
+
 
                 <div>
                      <div>
@@ -174,6 +146,24 @@
                            Pickings
                         </strong>
                      </div>
+<!--                        <t t-foreach="o.production_ids" t-as="prodids">-->
+<!--                           <t t-foreach="prodids.picking_ids" t-as="pickings">-->
+<!--                              <t t-if="pickings.state in ['waiting', 'confirmed']">-->
+                   <t t-set="has_unallocated" t-value="any(o.production_ids.filtered(lambda x: x.picking_ids.filtered(lambda x: x.state in  ['waiting', 'confirmed'])))"/>
+<!--                        <t t-set="has_unallocated" t-value="any(prodids.picking_ids.filtered(lambda x: x.state == 'waiting'))"/>-->
+                        <t t-if="has_unallocated">
+                              <div>
+
+                                 <h2>*** Allocated Inventory Less Than Ordered ***</h2>
+                              </div>
+<!--                              <t t-esc="prodids"/>-->
+<!--                           </t>-->
+<!--                           </t>-->
+                        </t>
+
+
+
+
                      <table class="table table-sm">
                         <tr>
                            <th>MO</th>
@@ -220,6 +210,7 @@
                         </t>
                      </table>
                       </div>
+
                      <h2 t-field="o.name" style="page-break-before:always"/>
                       <div >
                      <div t-foreach="o.production_ids" t-as="mfg" style="border:1px solid black;">
@@ -347,7 +338,7 @@
                                           <!--                                                <span t-esc="ml.product_uom_qty" t-if="ml.state !='done'"/>-->
                                           <!--                                                <span t-esc="ml.qty_done"  t-if="ml.state =='done'"/>-->
                                           <span t-field="line.product_qty"/>
-                                          <span t-field="ml.product_uom_id" groups="uom.group_uom"/>
+                                          <span t-field="ml.product_uom"/>
                                        </td>
                                        <!--                                            <td>-->
                                        <!--                                                <span t-if="has_location">-->
@@ -397,7 +388,9 @@
                         </t>
 <!--                        End If-->
                      </div>
+
                       </div>
+                     </t>
 <!--                     <div>-->
 <!--                        <h3>Shipments</h3>-->
 <!--                        <table class="table table-sm">-->
@@ -473,12 +466,18 @@
                                        <th style="width=90px">Product</th>
                                        <th>Quantity</th>
                                        <th style="text-align:right">Quantity Done</th>
+<!--                                       <t t-if="not ship1.move_orig_ids">-->
+                                          <th style="text-align:right">Location</th>
+<!--                                       </t>-->
                                     </tr>
                                     <t t-foreach="ship1.move_ids_without_package" t-as="prod">
                                        <tr>
                                           <td><span t-field="prod.product_id.display_name"/></td>
                                           <td><span t-field="prod.product_uom_qty"/></td>
                                           <td style="text-align:right"><span t-field="prod.quantity_done"/></td>
+                                          <t t-if="not prod.move_orig_ids">
+                                          <td style="text-align:right"><span t-field="prod.location_id"/></td>
+                                       </t>
                                        </tr>
                                     </t>
                                  </table>

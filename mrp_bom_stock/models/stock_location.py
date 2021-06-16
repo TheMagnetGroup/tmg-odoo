@@ -6,8 +6,8 @@ from odoo import api, fields, models
 class StockLocation(models.Model):
     _inherit = "stock.location"
 
-    warehouse_id = fields.Many2one('stock.warehouse', 'Warehouse', default=lambda self: self.env['stock.warehouse'].sudo().search([], limit=1))
-
+    # warehouse_id = fields.Many2one('stock.warehouse', 'Warehouse', default=lambda self: self.env['stock.warehouse'].sudo().search([], limit=1))
+    warehouse_id = fields.Many2one('stock.warehouse', 'Warehouse')
     @api.model
     def create(self, vals):
         location = super(StockLocation, self).create(vals)
