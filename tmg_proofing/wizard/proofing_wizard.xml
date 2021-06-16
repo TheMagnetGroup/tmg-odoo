@@ -14,7 +14,7 @@
                             <field name="sale_line_id"  readonly="1"/>
 
                             <field name="sale_order" readonly="1"/>
-                            <field name="attachment_ids" />
+<!--                            <field name="attachment_ids" />-->
                             <field name="art_file" />
 
 
