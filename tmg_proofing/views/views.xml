@@ -87,7 +87,7 @@
 			<form string="Proofing">
 				<header>
 <!--					<button name="send_proof" type="object" string="Send Proof" attrs="{'invisible': [('state', '!=', 'pending')]}"/>-->
-                    <button name="mark_processed" type="object" string="Mark Processed" attrs="{'invisible':['|', ('state', '!=', 'pending'), ('processed', '=', False)]}"/>
+                    <button name="mark_processed" type="object" string="Mark Processed" attrs="{'invisible':['|', ('state', '=', 'pending'), ('processed', '=', True)]}"/>
 					<field name="state" widget="statusbar"/>
 				</header>
                 <sheet>
