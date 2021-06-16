@@ -232,21 +232,6 @@ class promostandards(models.Model):
         return data
 
     @api.model
-    def ConfigurationAndPricing(self, partner_str, style_rqs, request):
-        if not partner_str or not partner_str.strip():
-            data = [dict(errorOdoo=dict(code=100,
-                                        message="Invalid partner ID value: '" + partner_str + "'"))]
-            return data
-        elif not self.check_call_cap(partner_str):
-            data = [dict(errorOdoo=dict(code=999,
-                                        message="Call Cap not found for partner ID " + partner_str))]
-            return data
-        config_obj = self.env['tmg_external_api.pricing_and_config']
-        data = config_obj.ConfigurationAndPricing(style_rqs)
-        self.log_transaction(partner_str, request, "ConfigurationAndPricing")
-        return data
-
-    @api.model
     def AvailableLocations(self, partner_str, style_rqs, request):
         locations_dict = dict()
         if not partner_str or not partner_str.strip():
@@ -309,6 +294,21 @@ class promostandards(models.Model):
         charges_dict = charges_obj.AvailableCharges(style_rqs)
         self.log_transaction(partner_str, request, "AvailableCharges")
         return charges_dict
+
+    @api.model
+    def ConfigurationAndPricing(self, partner_str, style_rqs, request):
+        if not partner_str or not partner_str.strip():
+            data = [dict(errorOdoo=dict(code=100,
+                                        message="Invalid partner ID value: '" + partner_str + "'"))]
+            return data
+        elif not self.check_call_cap(partner_str):
+            data = [dict(errorOdoo=dict(code=999,
+                                        message="Call Cap not found for partner ID " + partner_str))]
+            return data
+        config_obj = self.env['tmg_external_api.pricing_and_config']
+        data = config_obj.ConfigurationAndPricing(style_rqs)
+        self.log_transaction(partner_str, request, "ConfigurationAndPricing")
+        return data
 
     # def OrderStatus(self, PONumber, SONumber, LastUpdate, Partner_id):
     #     if LastUpdate == '':
