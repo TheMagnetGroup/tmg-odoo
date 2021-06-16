@@ -12,8 +12,11 @@
                     <sheet>
                         <group>
                             <field name="sale_line_id"  readonly="1"/>
-                            <field name="art_file" />
+
                             <field name="sale_order" readonly="1"/>
+                            <field name="attachment_ids" />
+                            <field name="art_file" />
+
 
 <!--                            The following was removed to move shipping to the delivery order level. Uncomment to re-add these fields-->
 <!--                            <field name="carrier_id"/>-->
