@@ -16,6 +16,7 @@
                             <field name="sale_order" readonly="1"/>
 <!--                            <field name="attachment_ids" />-->
                             <field name="art_file" />
+                            <field name="suggested_layout"/>
 
 
 <!--                            The following was removed to move shipping to the delivery order level. Uncomment to re-add these fields-->

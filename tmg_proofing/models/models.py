@@ -45,8 +45,16 @@ class tmg_proofing(models.Model):
         default="pending",
     )
     processed = fields.Boolean("Processed")
+    proof_response_date = fields.Datetime(string="Response Date")
 
 
+    def update_proof(self, proof_id, state):
+        proof = self.env['sale.tmg_proofing'].browse(proof_id)
+        proof.write({
+                'state': state,
+                'proof_response_date': datetime.today(),
+            })
+        return "Success"
 
     def build_xml(self):
         proof_ele = ET.Element('Proof')
