@@ -9,6 +9,7 @@
                 <field name="original_date"/>
 				<field name="state"/>
                 <field name="processed"/>
+                <field name="proof_response_date"/>
 			</tree>
 		</field>
 	</record>
@@ -31,9 +32,11 @@
 
                     <field name="id"/>
                     <field name="sale_order"/>
+
                     <filter string="Unprocessed Proofs" name="todo_jobs" domain="[('state', '!=', 'pending'),('processed', '=', False)]"/>
                 <group expand="1" string="Group By">
                     <filter string="Original Date" name='groupby_orig_date' context="{'group_by':'original_date'}"/>
+                    <filter string="Response Date" name='groupby_resp_date' context="{'group_by':'proof_response_date'}"/>
                     <filter string="state" name="groupby_state" context="{'group_by': 'state'}"/>
                 </group>
                 </search>
@@ -71,7 +74,7 @@
 							<tree string="Proofs" default_order="original_date">
 								<field name="original_date"/>
 								<field name="state"/>
-
+                                <field name="proof_response_date"/>
 							</tree>
 						</field>
                     </div>
@@ -105,6 +108,7 @@
                     <field name="processed" readonly="1"/>
                     <field name="suggested_layout" readonly="1"/>
                     <field name="proof_response_date" readonly="1"/>
+                    <field name="suggested_layout_accepted" readonly="1"/>
 				</group>
                 </sheet>
 			</form>

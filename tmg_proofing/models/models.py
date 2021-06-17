@@ -45,14 +45,17 @@ class tmg_proofing(models.Model):
         default="pending",
     )
     processed = fields.Boolean("Processed")
+    suggested_layout_accepted = fields.Boolean(string="Suggested Layout Approved")
     proof_response_date = fields.Datetime(string="Response Date")
 
 
-    def update_proof(self, proof_id, state):
+    def update_proof(self, proof_id, state, notes, suggested = False):
         proof = self.env['sale.tmg_proofing'].browse(proof_id)
         proof.write({
                 'state': state,
                 'proof_response_date': datetime.today(),
+                'notes': notes,
+                'suggested_layout_accepted': suggested
             })
         return "Success"
 
