@@ -64,12 +64,12 @@ class tmg_proofing(models.Model):
 
 
         artFile = ET.SubElement(proof_ele, "ProofFile").text = self.art_file.datas
-        artFileName = ET.SubElement(proof_ele, "ProofFileName").text = self.art_file.Name
+        artFileName = ET.SubElement(proof_ele, "ProofFileName").text = self.art_file.store_fname
         # artFile.text = self.art_file.url
         saleOrderID = ET.SubElement(proof_ele, "SaleOrderID").text = str(self.sale_order.id)
         # saleOrderID.text = self.sale_order.id
         saleOrderName = ET.SubElement(proof_ele, "SaleOrderName").text = self.sale_order.name
-        # saleOrderName.text = self.sale_order.name
+
         saleLineID = ET.SubElement(proof_ele, "SaleLineID").text = str(self.sale_line.id)
         suggestedID = ET.SubElement(proof_ele, "Suggested").text = str(self.suggested_layout)
         # saleLineID.text = self.sale_line.id
