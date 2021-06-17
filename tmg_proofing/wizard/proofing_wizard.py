@@ -20,6 +20,7 @@ class SaleOrderLineSendProofWizard(models.TransientModel):
     #                                   string="Main Attachments")
     art_file = fields.Many2one("ir.attachment", string="ArtFiles",
                                domain="[('res_id','in',[sale_order]),('type', '=', 'url')]")
+    suggested_layout = fields.Boolean(string="Suggested Layout")
 
     # @api.constrains('ups_service_type')
     # def _validate_account(self):
@@ -51,6 +52,7 @@ class SaleOrderLineSendProofWizard(models.TransientModel):
                 'sale_line': self.sale_line_id.id,
                 'art_file': self.art_file.id,
                 'state': 'pending',
+                'suggested_layout': self.suggested_layout
             })
             proof.send_proof()
         return {'type': 'ir.actions.act_window_close'}
