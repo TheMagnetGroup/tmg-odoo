@@ -37,7 +37,7 @@ class tmg_proofing(models.Model):
                                domain="[('res_id','in',[sale_order]),('type', '=', 'url')]")
     proofing_link = fields.Char(string = "Proof Link")
     original_date = fields.Datetime(string= "Original Date", default=datetime.today())
-    suggested_layout = fields.Boolean(string="Suggested Layout")
+    suggested_layout = fields.Boolean(string="Sent Suggested Layout")
     notes = fields.Html('Order Notes')
     state = fields.Selection(
         [("pending", "Pending"), ("approved", "Approved"), ("rejected", "Rejected"), ("approved_with_changes", "Approved With Changes")],
@@ -70,6 +70,7 @@ class tmg_proofing(models.Model):
         saleOrderName = ET.SubElement(proof_ele, "SaleOrderName").text = self.sale_order.name
         # saleOrderName.text = self.sale_order.name
         saleLineID = ET.SubElement(proof_ele, "SaleLineID").text = str(self.sale_line.id)
+        suggestedID = ET.SubElement(proof_ele, "Suggested").text = str(self.suggested_layout)
         # saleLineID.text = self.sale_line.id
         return ET.tostring(proof_ele, pretty_print= True)
 
