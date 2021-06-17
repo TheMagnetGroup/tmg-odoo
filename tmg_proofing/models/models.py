@@ -63,7 +63,7 @@ class tmg_proofing(models.Model):
         proof_ele = ET.Element('Proof')
 
 
-        artFile = ET.SubElement(proof_ele, "ProofLink").text = self.art_file.url
+        artFile = ET.SubElement(proof_ele, "ProofLink").text = self.art_file.datas
         # artFile.text = self.art_file.url
         saleOrderID = ET.SubElement(proof_ele, "SaleOrderID").text = str(self.sale_order.id)
         # saleOrderID.text = self.sale_order.id
