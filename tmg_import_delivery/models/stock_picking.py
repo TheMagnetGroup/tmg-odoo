@@ -17,7 +17,7 @@ class StockPicking(models.Model):
     carrier_id = fields.Many2one('delivery.carrier', string="Carrier", track_visibility='onchange' )
     fedex_bill_my_account = fields.Boolean(related='carrier_id.fedex_bill_my_account', readonly=True)
     fedex_carrier_account = fields.Char(string='Fedex Carrier Account', readonly=False)
-    ups_carrier_account = fields.Char(string='UPS Carrier Account', readonly=False,track_visibility='onchange' )
+    ups_carrier_account = fields.Char(string='UPS Carrier Account', readonly=False )
     ups_service_type = fields.Selection(_get_ups_service_types, string="UPS Service Type",track_visibility='onchange' )
     fedex_service_type = fields.Selection(get_fedex_service_types, string="Fedex Service Type",track_visibility='onchange' )
     ups_bill_my_account = fields.Boolean(related='carrier_id.ups_bill_my_account', readonly=True)
