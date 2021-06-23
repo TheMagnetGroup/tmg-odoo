@@ -10,6 +10,7 @@ Manufacturing JOB: Muliple MO processing
     * Christian Dunn - 2020/04/23 -   Limited visibility of the printed button on Sale Order.
     * Christian Dunn - 2021/03/11 -   Changes to MRP Report
     * Christian Dunn - 2021/05/25 -   Added unallocated notice to report
+    * Christian Dunn - 2021/05/25 -   Added attention_to to castelli report
 """,
     "author": "Odoo Inc",
     'website': "https://www.odoo.com",
