@@ -94,15 +94,15 @@ class pricing_and_config(models.Model):
             if product[0]:
                 fob_points_and_products = dict(
                     ErrorMessage=dict(code=403,
-                                      message=f"Fob points not found for product {style_rqs}"))
+                                      description=f"Fob points not found for product {style_rqs}"))
             else:
                 fob_points_and_products = dict(
                     ErrorMessage=dict(code=400,
-                                      message=f"Product Data not found for product {style_rqs}"))
+                                      description=f"Product Data not found for product {style_rqs}"))
         else:
             fob_points_and_products = dict(
                 ErrorMessage=dict(code=999,
-                                  message="UNEXPECTEDLY NO warehouses/FOBs were found in the system at all"
+                                  description="UNEXPECTEDLY NO warehouses/FOBs were found in the system at all"
                                           + " (the request for all FOB points for all products returned none)")
             )
         return fob_points_and_products
@@ -281,7 +281,7 @@ class pricing_and_config(models.Model):
             #     errormsg = ("UNEXPECTEDLY, NO Decoration Colors data was found AT ALL"
             #                 + " (request was for ALL decoration colors for ALL products)")
             data = dict(ErrorMessage=dict(code=errorcode,
-                                          message=errormsg))
+                                          description=errormsg))
 
         return data
 
@@ -451,17 +451,17 @@ class pricing_and_config(models.Model):
                             ErrorMessage=dict())
             elif style:
                 data = dict(ErrorMessage=dict(code=400,
-                                              message=f"Available charges data not found for product {style}")
+                                              description=f"Available charges data not found for product {style}")
                             )
             else:
                 data = dict(
                     ErrorMessage=dict(code=999,
-                                      message="UNEXPECTEDLY, no available charges were found in the system at all"
+                                      description="UNEXPECTEDLY, no available charges were found in the system at all"
                                            + " (the request for all available charges for all products returned none)")
                 )
         elif style:
             data = dict(ErrorMessage=dict(code=400,
-                                          message=f"Product ID {style} not found")
+                                          description=f"Product ID {style} not found")
                         )
 
         return data
