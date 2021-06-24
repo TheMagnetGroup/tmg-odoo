@@ -235,12 +235,12 @@ class promostandards(models.Model):
     def AvailableLocations(self, partner_str, style_rqs, request):
         locations_dict = dict()
         if not partner_str or not partner_str.strip():
-            locations_dict = dict(errorOdoo=dict(code=100,
-                                                 message="Invalid partner ID value: '" + partner_str + "'"))
+            locations_dict = dict(ErrorMessage=dict(code=100,
+                                                    description="Invalid partner ID value: '" + partner_str + "'"))
             return locations_dict
         elif not self.check_call_cap(partner_str):
-            locations_dict = dict(errorOdoo=dict(code=999,
-                                                 message="Call Cap not found for partner ID " + partner_str))
+            locations_dict = dict(ErrorMessage=dict(code=999,
+                                                    description="Call Cap not found for partner ID " + partner_str))
             return locations_dict
         locations_obj = self.env['tmg_external_api.pricing_and_config']
         locations_dict = locations_obj.AvailableLocations(style_rqs)
@@ -251,12 +251,14 @@ class promostandards(models.Model):
     def DecorationColors(self, partner_str, style_rqs, location_rqs, decoration_rqs, request):
         decoration_colors_dict = dict()
         if not partner_str or not partner_str.strip():
-            decoration_colors_dict = dict(errorOdoo=dict(code=100,
-                                                         message="Invalid partner ID value: '" + partner_str + "'"))
+            decoration_colors_dict = dict(
+                ErrorMessage=dict(code=100,
+                                  description="Invalid partner ID value: '" + partner_str + "'"))
             return decoration_colors_dict
         elif not self.check_call_cap(partner_str):
-            decoration_colors_dict = dict(errorOdoo=dict(code=999,
-                                                         message="Call Cap not found for partner ID " + partner_str))
+            decoration_colors_dict = dict(
+                ErrorMessage=dict(code=999,
+                                  description="Call Cap not found for partner ID " + partner_str))
             return decoration_colors_dict
         decoration_colors_obj = self.env['tmg_external_api.pricing_and_config']
         decoration_colors_dict = decoration_colors_obj.DecorationColors(style_rqs, location_rqs, decoration_rqs)
@@ -267,12 +269,12 @@ class promostandards(models.Model):
     def FobPoints(self, partner_str, style_rqs, request):
         fob_dict = dict()
         if not partner_str or not partner_str.strip():
-            fob_dict = dict(errorOdoo=dict(code=100,
-                                        message="Invalid partner ID value: '" + partner_str + "'"))
+            fob_dict = dict(ErrorMessage=dict(code=100,
+                                              description="Invalid partner ID value: '" + partner_str + "'"))
             return fob_dict
         elif not self.check_call_cap(partner_str):
-            fob_dict = dict(errorOdoo=dict(code=999,
-                                        message="Call Cap not found for partner ID " + partner_str))
+            fob_dict = dict(ErrorMessage=dict(code=999,
+                                              description="Call Cap not found for partner ID " + partner_str))
             return fob_dict
         fob_points_obj = self.env['tmg_external_api.pricing_and_config']
         fob_dict = fob_points_obj.FobPoints(style_rqs)
@@ -283,12 +285,12 @@ class promostandards(models.Model):
     def AvailableCharges(self, partner_str, style_rqs, request):
         charges_dict = dict()
         if not partner_str or not partner_str.strip():
-            charges_dict = dict(errorOdoo=dict(code=100,
-                                               message="Invalid partner ID value: '" + partner_str + "'"))
+            charges_dict = dict(ErrorMessage=dict(code=100,
+                                                  description="Invalid partner ID value: '" + partner_str + "'"))
             return charges_dict
         elif not self.check_call_cap(partner_str):
-            charges_dict = dict(errorOdoo=dict(code=999,
-                                               message="Call Cap not found for partner ID " + partner_str))
+            charges_dict = dict(ErrorMessage=dict(code=999,
+                                                  description="Call Cap not found for partner ID " + partner_str))
             return charges_dict
         charges_obj = self.env['tmg_external_api.pricing_and_config']
         charges_dict = charges_obj.AvailableCharges(style_rqs)
@@ -298,12 +300,12 @@ class promostandards(models.Model):
     @api.model
     def ConfigurationAndPricing(self, partner_str, style_rqs, request):
         if not partner_str or not partner_str.strip():
-            data = [dict(errorOdoo=dict(code=100,
-                                        message="Invalid partner ID value: '" + partner_str + "'"))]
+            data = [dict(ErrorMessage=dict(code=100,
+                                           description="Invalid partner ID value: '" + partner_str + "'"))]
             return data
         elif not self.check_call_cap(partner_str):
-            data = [dict(errorOdoo=dict(code=999,
-                                        message="Call Cap not found for partner ID " + partner_str))]
+            data = [dict(ErrorMessage=dict(code=999,
+                                           description="Call Cap not found for partner ID " + partner_str))]
             return data
         config_obj = self.env['tmg_external_api.pricing_and_config']
         data = config_obj.ConfigurationAndPricing(style_rqs)
