@@ -2,14 +2,16 @@
 <odoo>
     <data>
 
-        <record id="s3_document_view_form" model="ir.ui.view">
-            <field name="name">s3.attachment.form</field>
+        <record id="s3_document_view_forms" model="ir.ui.view">
+            <field name="name">s3.attachment.forms</field>
             <field name="model">ir.attachment</field>
             <field name="inherit_id" ref="documents.documents_view_form"/>
             <field name="arch" type="xml">
                 <field name="mimetype" position="after">
                     <field name="version_id"/>
+                    <button name="get_public_url" type="object" string="Mark Processed" />
                 </field>
+
             </field>
         </record>
 
