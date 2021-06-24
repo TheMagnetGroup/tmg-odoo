@@ -11,7 +11,7 @@
 						<group>
 							<button name="test_connection" string="Test Connection" type="object"/>
 							<button name="upload_all_existing" string="Upload All Existing" type="object"/>
-							
+							<button name="get_public_url" string="Get URL" type="object"/>
 						</group>
 						<group>
 							<field name="name" readonly="0"></field>
