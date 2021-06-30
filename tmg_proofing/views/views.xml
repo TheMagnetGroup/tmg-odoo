@@ -53,7 +53,7 @@
 
         <menuitem id="menu_tmg_proof_settings" name="Proofs"
                 action="tmg_proofing_proof_action"
-                parent="sale.menu_sales_config" sequence="70" />
+                parent="sale.sale_order_menu" sequence="70" />
 
 
 	<record id="view_sale_view_order_form_inherit_proofing" model="ir.ui.view">
