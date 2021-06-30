@@ -6,6 +6,7 @@
 		<field name="arch" type="xml">
 			<tree string="Proofs">
 				<field name="id"/>
+                <field name="sale_order"/>
                 <field name="original_date"/>
 				<field name="state"/>
                 <field name="processed"/>
