@@ -18,6 +18,7 @@
                             <field name="email_ids" widget="many2many_tags_email" context="{'force_email':True,'show_email':True}" required="1"/>
                             <field name="art_file" required="1" />
                             <field name="suggested_layout"/>
+                            <field name="send_attachments"/>
 
 
 <!--                            The following was removed to move shipping to the delivery order level. Uncomment to re-add these fields-->
