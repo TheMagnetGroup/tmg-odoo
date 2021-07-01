@@ -62,7 +62,7 @@ class tmg_proofing(models.Model):
 
     def build_xml(self):
         proof_ele = ET.Element('Proof')
-        emails = [o.email for o in self.email_ids].join(',')
+        emails = ','.join([o.email for o in self.email_ids])
 
         artFile = ET.SubElement(proof_ele, "ProofFile").text = self.art_file.get_public_url()
         artFileName = ET.SubElement(proof_ele, "ProofFileName").text = self.art_file.store_fname
