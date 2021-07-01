@@ -11,6 +11,7 @@
 				<field name="state"/>
                 <field name="processed"/>
                 <field name="proof_response_date"/>
+
 			</tree>
 		</field>
 	</record>
@@ -35,10 +36,12 @@
                     <field name="sale_order"/>
 
                     <filter string="Unprocessed Proofs" name="todo_jobs" domain="[('state', '!=', 'pending'),('processed', '=', False)]"/>
+                    <filter string="Processed Proofs" name="done_jobs" domain="[('state', '!=', 'pending'),('processed', '=', True)]"/>
                 <group expand="1" string="Group By">
                     <filter string="Original Date" name='groupby_orig_date' context="{'group_by':'original_date'}"/>
                     <filter string="Response Date" name='groupby_resp_date' context="{'group_by':'proof_response_date'}"/>
-                    <filter string="state" name="groupby_state" context="{'group_by': 'state'}"/>
+                    <filter string="Last Updated Date" name='groupby_updt_date' context="{'group_by':'write_date'}"/>
+                    <filter string="State" name="groupby_state" context="{'group_by': 'state'}"/>
                 </group>
                 </search>
             </field>
@@ -102,6 +105,7 @@
 <!--                    <field name="id" readonly='1'/>-->
                     <field name="sale_line" readonly="1"/>
                     <field name="sale_order" readonly="1"/>
+                    <field name="email_ids" widget="many2many_tags_email" context="{'force_email':True,'show_email':True}"/>
                     <field name="proofing_link" readonly="1" widget="url"/>
                     <field name="original_date" readonly="1"/>
                     <field name="art_file"/>
