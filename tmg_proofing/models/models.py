@@ -89,9 +89,9 @@ class tmg_proofing(models.Model):
         ftpSite = self._get_lookup_value("Site", "Proofing")
         ftpUser = self._get_lookup_value("Username", "Proofing")
         ftpPassword = self._get_lookup_value("Password", "Proofing")
-
-        session = ftplib.FTP(ftpSite, ftpUser, ftpPassword)
         xml = self.build_xml()
+        session = ftplib.FTP(ftpSite, ftpUser, ftpPassword)
+
         session.mkd("/Proofing/" + str(self.id))
         filePath = "/Proofing/" + str(self.id) + "/" + str(self.id) + ".xml"
         f = BytesIO(xml)
