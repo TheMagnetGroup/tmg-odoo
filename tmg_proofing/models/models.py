@@ -32,7 +32,8 @@ class tmg_proofing(models.Model):
 
     sale_line = fields.Many2one("sale.order.line", string = "Sale Line")
     sale_order = fields.Many2one('sale.order',related='sale_line.order_id')
-
+    sale_team = fields.Many2one('crm.team', related='sale_order.team_id')
+    email_ids = fields.Many2many('res.partner', string='Send To')
     art_file = fields.Many2one("ir.attachment", string="ArtFiles",
                                domain="[('res_id','in',[sale_order]),('type', '=', 'url')]")
     proofing_link = fields.Char(string = "Proof Link")
@@ -42,7 +43,7 @@ class tmg_proofing(models.Model):
     state = fields.Selection(
         [("pending", "Pending"), ("approved", "Approved"), ("rejected", "Rejected"), ("approved_with_changes", "Approved With Changes")],
         "Proof State",
-        default="pending",
+        default="pending"
     )
     processed = fields.Boolean("Processed")
     suggested_layout_accepted = fields.Boolean(string="Suggested Layout Approved")
@@ -61,7 +62,7 @@ class tmg_proofing(models.Model):
 
     def build_xml(self):
         proof_ele = ET.Element('Proof')
-
+        emails = [o.email for o in self.email_ids].join(',')
 
         artFile = ET.SubElement(proof_ele, "ProofFile").text = self.art_file.get_public_url()
         artFileName = ET.SubElement(proof_ele, "ProofFileName").text = self.art_file.store_fname
@@ -69,7 +70,7 @@ class tmg_proofing(models.Model):
         saleOrderID = ET.SubElement(proof_ele, "SaleOrderID").text = str(self.sale_order.id)
         # saleOrderID.text = self.sale_order.id
         saleOrderName = ET.SubElement(proof_ele, "SaleOrderName").text = self.sale_order.name
-
+        emails = ET.SubElement(proof_ele,"EmailTo").text = emails
         saleLineID = ET.SubElement(proof_ele, "SaleLineID").text = str(self.sale_line.id)
         suggestedID = ET.SubElement(proof_ele, "Suggested").text = str(self.suggested_layout)
         # saleLineID.text = self.sale_line.id
