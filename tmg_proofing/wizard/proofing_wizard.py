@@ -22,6 +22,7 @@ class SaleOrderLineSendProofWizard(models.TransientModel):
                                domain="[('res_id','in',[sale_order]),('type', '=', 'url')]")
     suggested_layout = fields.Boolean(string="Suggested Layout")
     email_ids = fields.Many2many('res.partner', string="Send To")
+    send_attachments = fields.Boolean(string="Send Attachments", default=False)
 
     # @api.constrains('ups_service_type')
     # def _validate_account(self):
@@ -53,6 +54,7 @@ class SaleOrderLineSendProofWizard(models.TransientModel):
                 'sale_line': self.sale_line_id.id,
                 'art_file': self.art_file.id,
                 'state': 'pending',
+                'send_attachments': self.send_attachments,
                 'email_ids': [(6,0,self.email_ids.ids)],
                 'suggested_layout': self.suggested_layout
 
