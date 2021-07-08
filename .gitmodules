@@ -17,3 +17,8 @@
 	path = sale-workflow
 	url = git@github.com:odoo-sh/sale-workflow.git
 	branch = 12.0
+
+[submodule "authorize-backend"]
+	path = authorize-backend
+	url = git@github.com:odoo-sh/authorize-backend.git
+	branch = 12.0
