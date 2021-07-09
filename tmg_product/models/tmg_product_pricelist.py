@@ -94,17 +94,45 @@ class PriceList(models.Model):
         if not date:
             date = self._context.get('date') or fields.Date.today()
         date = fields.Date.to_date(date)  # boundary conditions differ if we have a datetime
+
+        categ_ids = {}
+        categ = product.categ_id
+        while categ:
+            categ_ids[categ.id] = True
+            categ = categ.parent_id
+        categ_ids = list(categ_ids)
+
+        quantities = []
+
         self._cr.execute(
-            'SELECT item.min_quantity '
+            'SELECT item.id '
             'FROM product_pricelist_item AS item '
-            'WHERE (item.product_tmpl_id = %s)'
+            'LEFT JOIN product_category AS categ '
+            'ON item.categ_id = categ.id '
+            'WHERE (item.product_tmpl_id IS NULL OR item.product_tmpl_id = %s) '
+            'AND (item.categ_id IS NULL OR item.categ_id = any(%s)) '
+            'and (item.product_id is null) '
             'AND (item.pricelist_id = %s) '
             'AND (item.date_start IS NULL OR item.date_start<=%s) '
             'AND (item.date_end IS NULL OR item.date_end>=%s) '
-            'AND (%s = False OR item.published = True) '
-            'ORDER BY item.min_quantity',
-            (product.id, self.id, date, date, published_only))
-        return [x[0] for x in self._cr.fetchall()]
+            'ORDER BY item.applied_on, item.min_quantity, categ.complete_name desc, item.id desc',
+            (product.id, categ_ids, self.id, date, date))
+
+        item_ids = [x[0] for x in self._cr.fetchall()]
+        items = self.env['product.pricelist.item'].browse(item_ids)
+
+        for item in items:
+            # If the rule is based on another pricelist and we haven't found any quantities yet
+            if item.base == 'pricelist' and len(quantities) == 0:
+                ret_quantities = item.base_pricelist_id.get_product_quantities(product, date, published_only)
+                for qty in ret_quantities:
+                    if qty not in quantities:
+                        quantities.append(qty)
+            elif item.min_quantity and (published_only is False or item.published is True) and item.min_quantity not in quantities:
+                quantities.append(item.min_quantity)
+
+        return quantities
+        # return [x[0] for x in self._cr.fetchall()]
 
 
 class ProductTemplate(models.Model):
@@ -186,15 +214,24 @@ class ProductTemplate(models.Model):
     #       "published": [list_of_published_flags]
     #       "price_extras": [list_of_price_extra_charges]
     #   }
-    def _build_price_grid(self, catalog_pricelist=False, net_pricelist=False, published_only=True):
+    def _build_price_grid(self, catalog_pricelist=False, net_pricelist=False, published_only=True, partner=None):
+
+        # If the partner was passed then get the partner's pricelists
+        if partner:
+            partner_obj = self.env['res.partner'].browse(partner)
+            partner_pricelists = self._get_partner_pricelists(partner_obj)
+            if len(partner_pricelists):
+                catalog_pricelist = partner_pricelists[0]
+                net_pricelist = partner_pricelists[1]
+
+        # Get the default net pricelist if not passed
+        if not net_pricelist:
+            net_pricelist = self.env['product.pricelist'].search([('default_net_pricelist', '=', True),('company_id', '=', self.company_id.id)])
+
         # If the catalog_pricelist was not passed get the default catalog pricelist for this company
         if not catalog_pricelist:
             catalog_pricelist = self.env['product.pricelist'].search([('default_catalog_pricelist', '=', True),('company_id', '=', self.company_id.id)])
-        if not net_pricelist:
-            net_pricelist = self.env['product.pricelist'].search([('default_net_pricelist', '=', True),('company_id', '=', self.company_id.id)])
-        # Get the passed catalog/net pricelists or the default
-        # cat = self.env['product.pricelist'].search([('name', '=', catalog_pricelist)])
-        # net = self.env['product.pricelist'].search([('name', '=', net_pricelist)])
+
         price_grid_dict = {}
         cat_prices = []
         net_prices = []
@@ -215,7 +252,7 @@ class ProductTemplate(models.Model):
                     price_grid_dict['net_currency'] = net_pricelist.currency_id.name
                     price_grid_dict['quantities'] = quantities
                     for qty in quantities:
-                        cat_price = catalog_pricelist.get_product_price_rule(self, qty, None)
+                        cat_price = catalog_pricelist.get_product_price_rule(self, qty, partner)
                         cat_prices.append(cat_price[0])
                         # Get the catalog price rule to get the published flag
                         cpi = self.env['product.pricelist.item'].browse(cat_price[1])
@@ -245,6 +282,60 @@ class ProductTemplate(models.Model):
                     price_grid_dict['price_extras'] = price_extras
 
             return price_grid_dict
+
+    def _get_partner_pricelists(self, partner, date=False):
+
+        partner_pricelists = []
+
+        # Get the partner's pricelist
+        pricelist = partner.property_product_pricelist
+        # if no pricelist then get the default net pricelist
+        if not pricelist:
+            pricelist = self.env['product.pricelist'].search([('default_net_pricelist', '=', True),('company_id', '=', self.company_id.id)])
+
+        # If no date was passed get current date
+        if not date:
+            date = self._context.get('date') or fields.Date.today()
+        date = fields.Date.to_date(date)  # boundary conditions differ if we have a datetime
+
+        categ_ids = {}
+        categ = self.categ_id
+        while categ:
+            categ_ids[categ.id] = True
+            categ = categ.parent_id
+        categ_ids = list(categ_ids)
+
+        # Load all rules
+        self._cr.execute(
+            'SELECT item.id '
+            'FROM product_pricelist_item AS item '
+            'LEFT JOIN product_category AS categ '
+            'ON item.categ_id = categ.id '
+            'WHERE (item.product_tmpl_id IS NULL OR item.product_tmpl_id = %s) '
+            'AND (item.categ_id IS NULL OR item.categ_id = any(%s)) '
+            'AND (item.pricelist_id = %s) '
+            'AND (item.date_start IS NULL OR item.date_start<=%s) '
+            'AND (item.date_end IS NULL OR item.date_end>=%s)'
+            'ORDER BY item.applied_on, item.min_quantity desc, categ.complete_name desc, item.id desc',
+            (self.id, categ_ids, pricelist.id, date, date))
+        # NOTE: if you change `order by` on that query, make sure it matches
+        # _order from model to avoid inconstencies and undeterministic issues.
+
+        item_ids = [x[0] for x in self._cr.fetchall()]
+        items = self.env['product.pricelist.item'].browse(item_ids)
+
+        # In this case we're looking for the first pricing rule that applies to this product.
+        # Note this assumes there will always be 2 pricelists for a customer: a catalog pricelist
+        # and a net pricelist.
+        for rule in items:
+
+            # If the rule points to another pricelist
+            if rule.base == 'pricelist' and rule.base_pricelist_id:
+                # Set the return value for the net and catalog pricelists
+                partner_pricelists = [rule.base_pricelist_id, pricelist]
+                break
+
+        return partner_pricelists
 
 
 class SaleOrderLine(models.Model):
