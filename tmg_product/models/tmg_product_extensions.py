@@ -19,6 +19,7 @@ from io import BytesIO
 from lxml import etree as ET
 import ssl
 import ftplib
+from enum import Enum
 
 _logger = logging.getLogger(__name__)
 
@@ -383,6 +384,17 @@ class ProductAdditonalCharges(models.Model):
         ('squareinches', 'Square Inches')
     ], string='Charge Secondary UOM', required=True)
 
+
+class PriceType(Enum):
+    Customer = 1
+    List = 2
+    Net = 3
+    All = 4
+
+class ConfigurationType(Enum):
+    Decorated = 1
+    Blank = 2
+    All = 3
 
 class ProductTemplate(models.Model):
     _inherit = 'product.template'
@@ -841,14 +853,16 @@ class ProductTemplate(models.Model):
                     if not area.decoration_method_id.id in deco_ids:
                         messages.append("<li>Decoration method '{0}' used with decoration area '{1}' not found in decoration method list</li>".format(area.decoration_method_id.name,
                                         area.name))
-                    if not area.height:
-                        messages.append("<li>Decoration area '{0}' missing height</li>".format(area.name))
-                    if not area.width:
-                        messages.append("<li>Decoration area '{0}' missing width</li>".format(area.name))
-                    if area.shape == "circle" and (not area.diameter or area.diameter == 0):
-                        messages.append("<li>Decoration area '{0}' shape is circle but no diameter specified</li>".format(area.name))
-                    if not area.shape:
-                        messages.append("<li>Decoration area '{0}' missing shape</li>".format(area.name))
+                    # Skip these edits if the deco method is blank
+                    if area.decoration_method_id.name != "Blank":
+                        if not area.height:
+                            messages.append("<li>Decoration area '{0}' missing height</li>".format(area.name))
+                        if not area.width:
+                            messages.append("<li>Decoration area '{0}' missing width</li>".format(area.name))
+                        if area.shape == "circle" and (not area.diameter or area.diameter == 0):
+                            messages.append("<li>Decoration area '{0}' shape is circle but no diameter specified</li>".format(area.name))
+                        if not area.shape:
+                            messages.append("<li>Decoration area '{0}' missing shape</li>".format(area.name))
             if self.addl_charge_product_ids:
                 for ac in self.addl_charge_product_ids:
                     for deco_method in ac.decoration_method_ids:
@@ -908,12 +922,213 @@ class ProductTemplate(models.Model):
                 'user_data_error': False
             })
 
+    # This routine builds the decoration_locations node structure of the standard xml.
+    # The parameters are:
+    #   * parent element tree
+    #   * deco = "all", "decorated" or "blank"
+    #   * pricing = "all", "catalog", "net" or "customer"
+    #   * partner = the partner ID for customer pricing
+    def _build_deco_areas(self, parent_element, deco=ConfigurationType.All, pricing=PriceType.All, partner=None):
+
+        price_grids = {}
+
+        price_digits = self.env['decimal.precision'].precision_get('Product Price')
+        # Get the company's blank pricelist
+        blank_pricelist = self.env['product.pricelist'].search(
+            [('name', '=', 'Blank'), ('company_id', '=', self.company_id.id)])
+        save_location = None
+        locations_elem = ET.SubElement(parent_element, "decoration_locations")
+        methods_elem = None
+
+        # Filter the deco methods based on the passed parameters
+        deco_ids = None
+        if deco == ConfigurationType.Blank:
+            deco_ids = self.decoration_area_ids.filtered(lambda l: l.decoration_method_id.name == "Blank")
+        elif deco == ConfigurationType.Decorated:
+            deco_ids = self.decoration_area_ids.filtered(lambda l: l.decoration_method_id.name != "Blank")
+        else:
+            deco_ids = self.decoration_area_ids
+
+        for location in deco_ids:
+            if location.decoration_area_id.id != save_location:
+                location_elem = ET.SubElement(locations_elem, "decoration_location")
+                ET.SubElement(location_elem, "id").text = str(location.decoration_area_id.id)
+                ET.SubElement(location_elem, "name").text = location.name
+                methods_elem = ET.SubElement(location_elem, "decoration_methods")
+                save_location = location.decoration_area_id.id
+            method_elem = ET.SubElement(methods_elem, "decoration_method")
+            deco_method = self.env['product.template.decorationmethod'].search(
+                [
+                    ('product_tmpl_id', '=', self.id),
+                    ('decoration_method_id.id', '=', location.decoration_method_id.id)
+                ]
+            )
+            # ET.SubElement(method_elem, "id").text = str(location.decoration_method_id.id)
+            ET.SubElement(method_elem, "id").text = str(deco_method.decoration_method_id.id)
+            # ET.SubElement(method_elem, "name").text = location.decoration_method_id.name
+            ET.SubElement(method_elem, "name").text = deco_method.name
+            # ET.SubElement(method_elem, "sequence").text = str(location.decoration_method_id.decoration_method_id.sequence)
+            ET.SubElement(method_elem, "sequence").text = str(
+                deco_method.decoration_method_id.sequence)
+            ET.SubElement(method_elem, "height").text = str(location.height)
+            ET.SubElement(method_elem, "width").text = str(location.width)
+            if location.shape == "circle" and location.diameter and \
+                    location.diameter != 0:
+                ET.SubElement(method_elem, "diameter").text = str(location.diameter)
+            ET.SubElement(method_elem, "dimensions").text = location.dimensions or ""
+            ET.SubElement(method_elem, "shape").text = location.shape
+            # ET.SubElement(method_elem, "prod_time_lo").text = str(location.decoration_method_id.prod_time_lo)
+            ET.SubElement(method_elem, "prod_time_lo").text = str(deco_method.prod_time_lo)
+            # ET.SubElement(method_elem, "prod_time_hi").text = str(location.decoration_method_id.prod_time_hi)
+            ET.SubElement(method_elem, "prod_time_hi").text = str(deco_method.prod_time_hi)
+            # ET.SubElement(method_elem, "quick_ship").text = str(location.decoration_method_id.quick_ship)
+            ET.SubElement(method_elem, "quick_ship").text = str(deco_method.quick_ship)
+            # ET.SubElement(method_elem, "quick_ship_max").text = str(location.decoration_method_id.quick_ship_max)
+            ET.SubElement(method_elem, "quick_ship_max").text = str(
+                deco_method.quick_ship_max)
+            # ET.SubElement(method_elem, "quick_ship_prod_days").text = str(location.decoration_method_id.quick_ship_prod_days)
+            ET.SubElement(method_elem, "quick_ship_prod_days").text = str(
+                deco_method.quick_ship_prod_days)
+            # ET.SubElement(method_elem, "number_sides").text = str(location.decoration_method_id.number_sides)
+            ET.SubElement(method_elem, "number_sides").text = str(deco_method.number_sides)
+            # ET.SubElement(method_elem, "pms").text = str(location.decoration_method_id.pms)
+            ET.SubElement(method_elem, "pms").text = str(deco_method.pms)
+            # ET.SubElement(method_elem, "full_color").text = str(location.decoration_method_id.full_color)
+            ET.SubElement(method_elem, "full_color").text = str(deco_method.full_color)
+            # ET.SubElement(method_elem, "max_colors").text = str(location.decoration_method_id.max_colors)
+            ET.SubElement(method_elem, "max_colors").text = str(deco_method.max_colors)
+            ET.SubElement(method_elem, "default_location").text = str(location.default_decoration)
+
+            # Now write the prices.  First get the pricing grid
+            prices_elem = ET.SubElement(method_elem, "prices")
+            price_elem = ET.SubElement(prices_elem, "price")
+            # Set the variants that don't create attributes in the context
+            # self = self.with_context(no_create_variant_attributes=[location.decoration_method_id.decoration_method_id.id])
+            self = self.with_context(
+                no_create_variant_attributes=[deco_method.decoration_method_id.id])
+            # Build the price grid for standard catalog/net
+            price_grid_dict = None
+            if deco_method.name == "Blank":
+                price_grid_dict = self._build_price_grid(net_pricelist=blank_pricelist, partner=partner)
+            else:
+                price_grid_dict = self._build_price_grid(partner=partner)
+            self = self.with_context(no_create_variant_attributes=None)
+            # Write the catalog price structure
+            ET.SubElement(price_elem, "name").text = price_grid_dict['catalog_pricelist']
+            ET.SubElement(price_elem, "currency_id").text = price_grid_dict['catalog_currency']
+            ET.SubElement(price_elem, "ala_catalog").text = str(price_grid_dict['catalog_prices'][-1])
+            ET.SubElement(price_elem, "ala_net").text = str(price_grid_dict['net_prices'][-1])
+            ET.SubElement(price_elem, "ala_discount_code").text = price_grid_dict['discount_codes'][-1]
+            ET.SubElement(price_elem, "uom").text = self.uom_name
+            quantities_elem = ET.SubElement(price_elem, "quantities")
+            for idx, qty in enumerate(price_grid_dict['quantities'], start=0):
+                quantity_elem = ET.SubElement(quantities_elem, "quantity")
+                ET.SubElement(quantity_elem, "min_quantity").text = str(qty)
+                ET.SubElement(quantity_elem, "catalog_price").text = "{price:.{dp}f}".format(
+                    price=price_grid_dict['catalog_prices'][idx], dp=price_digits)
+                ET.SubElement(quantity_elem, "discount_code").text = str(price_grid_dict['discount_codes'][idx])
+                ET.SubElement(quantity_elem, "net_price").text = "{price:.{dp}f}".format(
+                    price=price_grid_dict['net_prices'][idx], dp=price_digits)
+                if pricing != PriceType.All:
+                    if pricing == PriceType.List:
+                        ET.SubElement(quantity_elem, "price").text = "{price:.{dp}f}".format(
+                            price=price_grid_dict['catalog_prices'][idx], dp=price_digits)
+                    elif pricing == PriceType.Net or pricing == PriceType.Customer:
+                        ET.SubElement(quantity_elem, "price").text = "{price:.{dp}f}".format(
+                            price=price_grid_dict['net_prices'][idx], dp=price_digits)
+                ET.SubElement(quantity_elem, "date_start").text = str(price_grid_dict['effective_dates'][idx])
+                ET.SubElement(quantity_elem, "date_end").text = str(price_grid_dict['expiration_dates'][idx])
+                ET.SubElement(quantity_elem, "price_extra").text = "{price:.{dp}f}".format(
+                    price=price_grid_dict['price_extras'][idx], dp=price_digits)
+
+            # Now write the additional charges that apply to this product/decoration method combination
+            addl_charges_elem = None
+            if self.addl_charge_product_ids:
+                addl_charges_elem = ET.SubElement(method_elem, "additional_charges")
+                for addl_charge_id in self.addl_charge_product_ids:
+                    # if not addl_charge_id.decoration_method_ids or \
+                    #         location.decoration_method_id.decoration_method_id.id in \
+                    #         addl_charge_id.decoration_method_ids.ids:
+                    if not addl_charge_id.decoration_method_ids or \
+                            location.decoration_method_id.id in \
+                            addl_charge_id.decoration_method_ids.ids:
+                        addl_charge_elem = ET.SubElement(addl_charges_elem, "additional_charge")
+                        ET.SubElement(addl_charge_elem, "id").text = str(addl_charge_id.id)
+                        ET.SubElement(addl_charge_elem, "uom").text = addl_charge_id.addl_charge_product_id.uom_name
+                        ET.SubElement(addl_charge_elem,
+                                      "item_number").text = addl_charge_id.addl_charge_product_id.default_code
+                        ET.SubElement(addl_charge_elem, "name").text = addl_charge_id.addl_charge_product_id.name
+                        ET.SubElement(addl_charge_elem, "charge_type").text = addl_charge_id.charge_type
+                        ET.SubElement(addl_charge_elem, "charge_yuom").text = addl_charge_id.charge_yuom
+                        # Build the price grid for standard catalog/net
+                        ac_price_grid_dict = None
+                        if addl_charge_id.addl_charge_product_id.id in price_grids.keys():
+                            ac_price_grid_dict = price_grids.get(addl_charge_id.addl_charge_product_id.id)
+                        else:
+                            ac_price_grid_dict = addl_charge_id.addl_charge_product_id._build_price_grid(partner=partner)
+                            price_grids[addl_charge_id.addl_charge_product_id.id] = ac_price_grid_dict
+                        if ac_price_grid_dict:
+                            ET.SubElement(addl_charge_elem, "currency_id").text = price_grid_dict['catalog_currency']
+                            ET.SubElement(addl_charge_elem, "min_quantity").text = str(
+                                ac_price_grid_dict['quantities'][0])
+                            ET.SubElement(addl_charge_elem, "catalog_price").text = "{price:.{dp}f}".format(
+                                price=ac_price_grid_dict['catalog_prices'][0], dp=price_digits)
+                            ET.SubElement(addl_charge_elem, "discount_code").text = str(
+                                ac_price_grid_dict['discount_codes'][0])
+                            ET.SubElement(addl_charge_elem, "net_price").text = "{price:.{dp}f}".format(
+                                price=ac_price_grid_dict['net_prices'][0], dp=price_digits)
+                            if pricing != PriceType.All:
+                                if pricing == PriceType.List:
+                                    ET.SubElement(addl_charge_elem, "price").text = "{price:.{dp}f}".format(
+                                        price=ac_price_grid_dict['catalog_prices'][0], dp=price_digits)
+                                elif pricing == PriceType.Net or pricing == PriceType.Customer:
+                                    ET.SubElement(addl_charge_elem, "price").text = "{price:.{dp}f}".format(
+                                        price=ac_price_grid_dict['net_prices'][0], dp=price_digits)
+                            ET.SubElement(addl_charge_elem, "date_start").text = str(
+                                ac_price_grid_dict['effective_dates'][0])
+                            ET.SubElement(addl_charge_elem, "date_end").text = str(
+                                ac_price_grid_dict['expiration_dates'][0])
+                        # If there is a repeat product specified then get the price grid for the repeat product
+                        if addl_charge_id.repeat_product_id:
+                            ac_price_grid_dict = None
+                            if addl_charge_id.repeat_product_id.id in price_grids.keys():
+                                ac_price_grid_dict = price_grids.get(addl_charge_id.repeat_product_id.id)
+                            else:
+                                ac_price_grid_dict = addl_charge_id.repeat_product_id._build_price_grid(
+                                    partner=partner)
+                                price_grids[addl_charge_id.repeat_product_id.id] = ac_price_grid_dict
+                            if ac_price_grid_dict:
+                                ET.SubElement(addl_charge_elem, "repeat_catalog_price").text = "{price:.{dp}f}".format(
+                                    price=ac_price_grid_dict['catalog_prices'][0], dp=price_digits)
+                                ET.SubElement(addl_charge_elem, "repeat_discount_code").text = str(
+                                    ac_price_grid_dict['discount_codes'][0])
+                                ET.SubElement(addl_charge_elem, "repeat_net_price").text = "{price:.{dp}f}".format(
+                                    price=ac_price_grid_dict['net_prices'][0], dp=price_digits)
+                                if pricing != PriceType.All:
+                                    if pricing == PriceType.List:
+                                        ET.SubElement(addl_charge_elem, "repeat_price").text = "{price:.{dp}f}".format(
+                                            price=ac_price_grid_dict['catalog_prices'][0], dp=price_digits)
+                                    elif pricing == PriceType.Net or pricing == PriceType.Customer:
+                                        ET.SubElement(addl_charge_elem, "repeat_price").text = "{price:.{dp}f}".format(
+                                            price=ac_price_grid_dict['net_prices'][0], dp=price_digits)
+                        else:
+                            ET.SubElement(addl_charge_elem, "repeat_catalog_price").text = ""
+                            ET.SubElement(addl_charge_elem, "repeat_discount_code").text = ""
+                            ET.SubElement(addl_charge_elem, "repeat_net_price").text = ""
+                            if pricing != PriceType.All:
+                                ET.SubElement(addl_charge_elem, "repeat_price").text = ""
+
+        return locations_elem
+
     def _build_std_xml(self):
 
         # First check if we have any data issues for building this XML. If so, return and don't build the data
         if not self._check_xml_data():
             return
         try:
+            # Get the company's blank pricelist
+            blank_pricelist = self.env['product.pricelist'].search(
+                [('name', '=', 'Blank'), ('company_id', '=', self.company_id.id)])
             # Get Odoo's decimal accuracy for pricing
             price_digits = self.env['decimal.precision'].precision_get('Product Price')
             # We'll keep track of the latest change date of any of the images used for this product
@@ -1018,26 +1233,6 @@ class ProductTemplate(models.Model):
                     #     last_image_change_date = results['change_date'].replace(tzinfo=None)
                     if results['change_date'] > last_image_change_date:
                         last_image_change_date = results['change_date']
-                # Upload the medium image
-                # if self.image_medium:
-                #     image_elem = ET.SubElement(images_elem, "image")
-                #     results = s3._upload_to_public_bucket(self.image_medium, self.product_style_number + '_medium.jpg', 'image/jpeg', prod_folder)
-                #     ET.SubElement(image_elem, "type").text = "image_medium"
-                #     ET.SubElement(image_elem, "url").text = results['url']
-                #     ET.SubElement(image_elem, "md5").text = results['md5']
-                #     ET.SubElement(image_elem, "change_date").text = datetime.strftime(results['change_date'], "%Y-%m-%d")
-                #     if results['change_date'].replace(tzinfo=None) > last_image_change_date:
-                #         last_image_change_date = results['change_date'].replace(tzinfo=None)
-                # Upload the small image
-                # if self.image_small:
-                #     image_elem = ET.SubElement(images_elem, "image")
-                #     results = s3._upload_to_public_bucket(self.image_small, self.product_style_number + '_small.jpg', 'image/jpeg', prod_folder)
-                #     ET.SubElement(image_elem, "type").text = "image_small"
-                #     ET.SubElement(image_elem, "url").text = results['url']
-                #     ET.SubElement(image_elem, "md5").text = results['md5']
-                #     ET.SubElement(image_elem, "change_date").text = datetime.strftime(results['change_date'], "%Y-%m-%d")
-                #     if results['change_date'].replace(tzinfo=None) > last_image_change_date:
-                #         last_image_change_date = results['change_date'].replace(tzinfo=None)
                 # If there are any additional product images upload those
                 if self.product_image_ids:
                     # extra_images_elem = ET.SubElement(images_elem, "additional_images")
@@ -1102,181 +1297,11 @@ class ProductTemplate(models.Model):
                         #     last_image_change_date = results['change_date'].replace(tzinfo=None)
                         if results['change_date'] > last_image_change_date:
                             last_image_change_date = results['change_date']
-                    # if variant.image_medium:
-                    #     image_elem = ET.SubElement(pv_images_elem, "image")
-                    #     results = s3._upload_to_public_bucket(variant.image_medium, variant.default_code + '_medium.jpg', 'image/jpeg', prod_folder)
-                    #     ET.SubElement(image_elem, "type").text = "image_medium"
-                    #     ET.SubElement(image_elem, "url").text = results['url']
-                    #     ET.SubElement(image_elem, "md5").text = results['md5']
-                    #     ET.SubElement(image_elem, "change_date").text = datetime.strftime(results['change_date'], "%Y-%m-%d")
-                    #     if results['change_date'].replace(tzinfo=None) > last_image_change_date:
-                    #         last_image_change_date = results['change_date'].replace(tzinfo=None)
-                    # if variant.image_small:
-                    #     image_elem = ET.SubElement(pv_images_elem, "image")
-                    #     results = s3._upload_to_public_bucket(variant.image_small, variant.default_code + '_small.jpg', 'image/jpeg', prod_folder)
-                    #     ET.SubElement(image_elem, "type").text = "image_small"
-                    #     ET.SubElement(image_elem, "url").text = results['url']
-                    #     ET.SubElement(image_elem, "md5").text = results['md5']
-                    #     ET.SubElement(image_elem, "change_date").text = datetime.strftime(results['change_date'], "%Y-%m-%d")
-                    #     if results['change_date'].replace(tzinfo=None) > last_image_change_date:
-                    #         last_image_change_date = results['change_date'].replace(tzinfo=None)
-            save_location = None
+
             # Write the decoration location
             if self.decoration_area_ids:
-                locations_elem = ET.SubElement(product, "decoration_locations")
-                methods_elem = None
-                for location in self.decoration_area_ids:
-                    if location.decoration_area_id.id != save_location:
-                        location_elem = ET.SubElement(locations_elem, "decoration_location")
-                        ET.SubElement(location_elem, "id").text = str(location.decoration_area_id.id)
-                        ET.SubElement(location_elem, "name").text = location.name
-                        methods_elem = ET.SubElement(location_elem, "decoration_methods")
-                        save_location = location.decoration_area_id.id
-                    method_elem = ET.SubElement(methods_elem, "decoration_method")
-                    deco_method = self.env['product.template.decorationmethod'].search(
-                        [
-                            ('product_tmpl_id', '=', self.id),
-                            ('decoration_method_id.id', '=', location.decoration_method_id.id)
-                        ]
-                    )
-                    # ET.SubElement(method_elem, "id").text = str(location.decoration_method_id.id)
-                    ET.SubElement(method_elem, "id").text = str(deco_method.decoration_method_id.id)
-                    # ET.SubElement(method_elem, "name").text = location.decoration_method_id.name
-                    ET.SubElement(method_elem, "name").text = deco_method.name
-                    # ET.SubElement(method_elem, "sequence").text = str(location.decoration_method_id.decoration_method_id.sequence)
-                    ET.SubElement(method_elem, "sequence").text = str(
-                        deco_method.decoration_method_id.sequence)
-                    ET.SubElement(method_elem, "height").text = str(location.height)
-                    ET.SubElement(method_elem, "width").text = str(location.width)
-                    if location.shape == "circle" and location.diameter and \
-                            location.diameter != 0:
-                        ET.SubElement(method_elem, "diameter").text = str(location.diameter)
-                    ET.SubElement(method_elem, "dimensions").text = location.dimensions
-                    ET.SubElement(method_elem, "shape").text = location.shape
-                    # ET.SubElement(method_elem, "prod_time_lo").text = str(location.decoration_method_id.prod_time_lo)
-                    ET.SubElement(method_elem, "prod_time_lo").text = str(deco_method.prod_time_lo)
-                    # ET.SubElement(method_elem, "prod_time_hi").text = str(location.decoration_method_id.prod_time_hi)
-                    ET.SubElement(method_elem, "prod_time_hi").text = str(deco_method.prod_time_hi)
-                    # ET.SubElement(method_elem, "quick_ship").text = str(location.decoration_method_id.quick_ship)
-                    ET.SubElement(method_elem, "quick_ship").text = str(deco_method.quick_ship)
-                    # ET.SubElement(method_elem, "quick_ship_max").text = str(location.decoration_method_id.quick_ship_max)
-                    ET.SubElement(method_elem, "quick_ship_max").text = str(
-                        deco_method.quick_ship_max)
-                    # ET.SubElement(method_elem, "quick_ship_prod_days").text = str(location.decoration_method_id.quick_ship_prod_days)
-                    ET.SubElement(method_elem, "quick_ship_prod_days").text = str(
-                        deco_method.quick_ship_prod_days)
-                    # ET.SubElement(method_elem, "number_sides").text = str(location.decoration_method_id.number_sides)
-                    ET.SubElement(method_elem, "number_sides").text = str(deco_method.number_sides)
-                    # ET.SubElement(method_elem, "pms").text = str(location.decoration_method_id.pms)
-                    ET.SubElement(method_elem, "pms").text = str(deco_method.pms)
-                    # ET.SubElement(method_elem, "full_color").text = str(location.decoration_method_id.full_color)
-                    ET.SubElement(method_elem, "full_color").text = str(deco_method.full_color)
-                    # ET.SubElement(method_elem, "max_colors").text = str(location.decoration_method_id.max_colors)
-                    ET.SubElement(method_elem, "max_colors").text = str(deco_method.max_colors)
-                    ET.SubElement(method_elem, "default_location").text = str(location.default_decoration)
-
-                    # Now write the prices.  First get the pricing grid
-                    prices_elem = ET.SubElement(method_elem, "prices")
-                    price_elem = ET.SubElement(prices_elem, "price")
-                    # Set the variants that don't create attributes in the context
-                    # self = self.with_context(no_create_variant_attributes=[location.decoration_method_id.decoration_method_id.id])
-                    self = self.with_context(
-                        no_create_variant_attributes=[deco_method.decoration_method_id.id])
-                    # Build the price grid for standard catalog/net
-                    price_grid_dict = self._build_price_grid()
-                    self = self.with_context(no_create_variant_attributes=None)
-                    # Write the catalog price structure
-                    ET.SubElement(price_elem, "name").text = price_grid_dict['catalog_pricelist']
-                    ET.SubElement(price_elem, "currency_id").text = price_grid_dict['catalog_currency']
-                    ET.SubElement(price_elem, "ala_catalog").text = str(price_grid_dict['catalog_prices'][-1])
-                    ET.SubElement(price_elem, "ala_net").text = str(price_grid_dict['net_prices'][-1])
-                    ET.SubElement(price_elem, "ala_discount_code").text = price_grid_dict['discount_codes'][-1]
-                    ET.SubElement(price_elem, "uom").text = self.uom_name
-                    quantities_elem = ET.SubElement(price_elem, "quantities")
-                    for idx, qty in enumerate(price_grid_dict['quantities'], start=0):
-                        quantity_elem = ET.SubElement(quantities_elem, "quantity")
-                        ET.SubElement(quantity_elem, "min_quantity").text = str(qty)
-                        ET.SubElement(quantity_elem, "catalog_price").text = "{price:.{dp}f}".format(price=price_grid_dict['catalog_prices'][idx], dp=price_digits)
-                        ET.SubElement(quantity_elem, "discount_code").text = str(price_grid_dict['discount_codes'][idx])
-                        ET.SubElement(quantity_elem, "net_price").text = "{price:.{dp}f}".format(price=price_grid_dict['net_prices'][idx], dp=price_digits)
-                        ET.SubElement(quantity_elem, "date_start").text = str(price_grid_dict['effective_dates'][idx])
-                        ET.SubElement(quantity_elem, "date_end").text = str(price_grid_dict['expiration_dates'][idx])
-                        ET.SubElement(quantity_elem, "price_extra").text = "{price:.{dp}f}".format(price=price_grid_dict['price_extras'][idx], dp=price_digits)
-
-                    # Now write the additional charges that apply to this product/decoration method combination
-                    addl_charges_elem = None
-                    if self.addl_charge_product_ids:
-                        addl_charges_elem = ET.SubElement(method_elem, "additional_charges")
-                        for addl_charge_id in self.addl_charge_product_ids:
-                            # if not addl_charge_id.decoration_method_ids or \
-                            #         location.decoration_method_id.decoration_method_id.id in \
-                            #         addl_charge_id.decoration_method_ids.ids:
-                            if not addl_charge_id.decoration_method_ids or \
-                                    location.decoration_method_id.id in \
-                                    addl_charge_id.decoration_method_ids.ids:
-                                addl_charge_elem = ET.SubElement(addl_charges_elem, "additional_charge")
-                                ET.SubElement(addl_charge_elem, "id").text = str(addl_charge_id.id)
-                                ET.SubElement(addl_charge_elem, "uom").text = addl_charge_id.addl_charge_product_id.uom_name
-                                ET.SubElement(addl_charge_elem, "item_number").text = addl_charge_id.addl_charge_product_id.default_code
-                                ET.SubElement(addl_charge_elem, "name").text = addl_charge_id.addl_charge_product_id.name
-                                ET.SubElement(addl_charge_elem, "charge_type").text = addl_charge_id.charge_type
-                                ET.SubElement(addl_charge_elem, "charge_yuom").text = addl_charge_id.charge_yuom
-                                # Build the price grid for standard catalog/net
-                                ac_price_grid_dict = addl_charge_id.addl_charge_product_id._build_price_grid()
-                                if ac_price_grid_dict:
-                                    ET.SubElement(addl_charge_elem, "currency_id").text = price_grid_dict['catalog_currency']
-                                    ET.SubElement(addl_charge_elem, "min_quantity").text = str(ac_price_grid_dict['quantities'][0])
-                                    ET.SubElement(addl_charge_elem, "catalog_price").text = "{price:.{dp}f}".format(price=ac_price_grid_dict['catalog_prices'][0], dp=price_digits)
-                                    ET.SubElement(addl_charge_elem, "discount_code").text = str(ac_price_grid_dict['discount_codes'][0])
-                                    ET.SubElement(addl_charge_elem, "net_price").text = "{price:.{dp}f}".format(price=ac_price_grid_dict['net_prices'][0], dp=price_digits)
-                                    ET.SubElement(addl_charge_elem, "date_start").text = str(ac_price_grid_dict['effective_dates'][0])
-                                    ET.SubElement(addl_charge_elem, "date_end").text = str(ac_price_grid_dict['expiration_dates'][0])
-                                # If there is a repeat product specified then get the price grid for the repeat product
-                                if addl_charge_id.repeat_product_id:
-                                    ac_price_grid_dict = addl_charge_id.repeat_product_id._build_price_grid()
-                                    if ac_price_grid_dict:
-                                        ET.SubElement(addl_charge_elem, "repeat_catalog_price").text = "{price:.{dp}f}".format(price=ac_price_grid_dict['catalog_prices'][0], dp=price_digits)
-                                        ET.SubElement(addl_charge_elem, "repeat_discount_code").text = str(ac_price_grid_dict['discount_codes'][0])
-                                        ET.SubElement(addl_charge_elem, "repeat_net_price").text = "{price:.{dp}f}".format(price=ac_price_grid_dict['net_prices'][0], dp=price_digits)
-                                else:
-                                    ET.SubElement(addl_charge_elem, "repeat_catalog_price").text = ""
-                                    ET.SubElement(addl_charge_elem, "repeat_discount_code").text = ""
-                                    ET.SubElement(addl_charge_elem, "repeat_net_price").text = ""
-
-
-            # If "Blank" is included in the decoration method table then we need to write out blank pricing for this item
-            for method in self.decoration_method_ids:
-                if method.name == "Blank":
-                    blank_elem = ET.SubElement(product, "blank_pricing")
-                    ET.SubElement(blank_elem, "id").text = str(method.decoration_method_id.attribute_id.id)
-                    ET.SubElement(blank_elem, "name").text = method.name
-                    ET.SubElement(blank_elem, "sequence").text = str(method.decoration_method_id.sequence)
-                    ET.SubElement(blank_elem, "prod_time_lo").text = str(method.prod_time_lo)
-                    ET.SubElement(blank_elem, "prod_time_hi").text = str(method.prod_time_hi)
-                    ET.SubElement(blank_elem, "quick_ship").text = str(method.quick_ship)
-                    ET.SubElement(blank_elem, "quick_ship_max").text = str(method.quick_ship_max)
-                    ET.SubElement(blank_elem, "quick_ship_prod_days").text = str(method.quick_ship_prod_days)
-                    ET.SubElement(blank_elem, "number_sides").text = str(method.number_sides)
-                    ET.SubElement(blank_elem, "pms").text = str(method.pms)
-                    ET.SubElement(blank_elem, "full_color").text = str(method.full_color)
-                    ET.SubElement(blank_elem, "max_colors").text = str(method.max_colors)
-                    # Build the price grid for blank pricing
-                    blank_pricelist = self.env['product.pricelist'].search([('name', '=', 'Blank'), ('company_id', '=', self.company_id.id)])
-                    price_grid_dict = self._build_price_grid(net_pricelist=blank_pricelist)
-                    if price_grid_dict:
-                        ET.SubElement(blank_elem, "currency_id").text = price_grid_dict['catalog_currency']
-                        quantities_elem = ET.SubElement(blank_elem, "quantities")
-                        for idx, qty in enumerate(price_grid_dict['quantities'], start=0):
-                            quantity_elem = ET.SubElement(quantities_elem, "quantity")
-                            ET.SubElement(quantity_elem, "min_quantity").text = str(qty)
-                            ET.SubElement(quantity_elem, "catalog_price").text = "{price:.{dp}f}".format(price=price_grid_dict['catalog_prices'][idx], dp=price_digits)
-                            ET.SubElement(quantity_elem, "discount_code").text = str(
-                                price_grid_dict['discount_codes'][idx])
-                            ET.SubElement(quantity_elem, "net_price").text = "{price:.{dp}f}".format(price=price_grid_dict['net_prices'][idx], dp=price_digits)
-                            ET.SubElement(quantity_elem, "date_start").text = str(
-                                price_grid_dict['effective_dates'][idx])
-                            ET.SubElement(quantity_elem, "date_end").text = str(
-                                price_grid_dict['expiration_dates'][idx])
+                # Call the routine to build the decoration area nodes which include pricing
+                locations_elem = self._build_deco_areas(product)
 
             # Now write out all the attributes that do not create variants
             if self.attribute_line_ids:
@@ -1374,6 +1399,116 @@ class ProductTemplate(models.Model):
                 'user_data_error': False
             })
             print(str(e))
+
+    def _build_ppc_response(self, price_type, config_type, partner=None):
+        # The first step is to retrieve the standard XML for this product template
+        attachment = self._get_stored_file("product_data.xml")
+        if not attachment:
+            raise Exception("Standard product data not found for product")
+
+        # Now get the pricing and config XSLT.  This will be an entry in the export account table
+        # with the name 'PSPricingAndConfiguration'
+        xslt_attach = self.env['tmg_external_api.tmg_export_account'].search([('name', '=', 'PSPricingAndConfiguration')])
+        if not xslt_attach or not xslt_attach.xslt_file:
+            raise Exception("Pricing and Configuration XSLT not found")
+
+        # Now we'll handle the request based on price type. If the price is list or net
+        # then we'll remove/rename the price nodes accordingly.
+        std_xml = base64.b64decode(attachment.datas)
+        xml_doc = ET.ElementTree()
+        try:
+            xml_doc.parse(BytesIO(std_xml))
+        except Exception as e:
+            raise(e)
+
+        elements_to_rename = {}
+        if price_type == PriceType.Net:
+            elements_to_rename["//net_price"] = "price"
+            elements_to_rename["//repeat_net_price"] = "repeat_price"
+        elif price_type == PriceType.List:
+            elements_to_rename["//catalog_price"] = "price"
+            elements_to_rename["//repeat_catalog_price"] = "repeat_price"
+
+        # If the price type is customer then we will remove the decoration locations element and rewrite it
+        # getting customer based pricing and specific decoration types
+        if price_type == PriceType.Customer:
+            deco_locations = xml_doc.findall("//decoration_locations")
+            if deco_locations:
+                for loc in deco_locations:
+                    loc.getparent().remove(loc)
+            # Now add the decoration locations passing the customer number
+            self._build_deco_areas(xml_doc.getroot(), config_type, price_type, partner)
+
+        # Find elements to rename if set
+        if elements_to_rename:
+            for rename_element in elements_to_rename:
+                # Find elements to rename
+                elems = xml_doc.findall(rename_element)
+                for element in elems:
+                    element.tag = elements_to_rename[rename_element]
+
+        # If the config type is not all and the pricing type is not customer then we need to remove the
+        # deco methods that do not apply to the request. Note that the _build_deco_areas routine handles
+        # including/excluding decoration methods so we don't need to do this again for customer pricing
+        if config_type != ConfigurationType.All and price_type != PriceType.Customer:
+            deco_methods = xml_doc.findall("//decoration_method")
+            for method in deco_methods:
+                method_name = method.find("name").text
+                if config_type == ConfigurationType.Blank and method_name != "Blank" \
+                        or config_type == ConfigurationType.Decorated and method_name == "Blank":
+                    method.getparent().remove(method)
+
+        # Decode the XSLT file
+        xslt = base64.b64decode(xslt_attach.xslt_file.datas)
+
+        # Generate the new file content
+        xml_doc_string = ET.tostring(xml_doc, encoding='utf-8', xml_declaration=True, pretty_print=True)
+        std_xml_dom = ET.parse(BytesIO(xml_doc_string))
+        xslt_dom = ET.parse(BytesIO(xslt))
+        transform = ET.XSLT(xslt_dom)
+        xslt_result = transform(std_xml_dom)
+
+        return [xslt_result, xml_doc_string]
+
+    def _test_pricing_and_config(self, price_type, config_type, partner):
+        price_type_enum = PriceType(price_type)
+        config_type_enum = ConfigurationType(config_type)
+        result = self._build_ppc_response(price_type_enum, config_type_enum, partner)
+        # Base 64 encode the translated data
+        store_xslt_result = base64.b64encode(result[0])
+
+        # Delete the existing file name if found
+        file_name = "PromoStandards_PPC_test.xml"
+        self._delete_stored_file(file_name)
+
+        # Create the translated document attachment
+        self.env['ir.attachment'].create({
+            'name': file_name,
+            'datas_fname': file_name,
+            'type': 'binary',
+            'datas': store_xslt_result,
+            'res_model': 'product.template',
+            'res_id': self.id,
+            'mimetype': 'text/plain'
+        })
+
+        # Base 64 encode the base data
+        store_xml_result = base64.b64encode(result[1])
+
+        # Delete the existing file name if found
+        file_name = "PromoStandards_PPC_xml.xml"
+        self._delete_stored_file(file_name)
+
+        # Create the translated document attachment
+        self.env['ir.attachment'].create({
+            'name': file_name,
+            'datas_fname': file_name,
+            'type': 'binary',
+            'datas': store_xml_result,
+            'res_model': 'product.template',
+            'res_id': self.id,
+            'mimetype': 'text/plain'
+        })
 
     def _get_stored_file(self, file_name):
 
