@@ -12,6 +12,7 @@
 		multi="False"
 		context="{}"/>
 
+
    <record id="picking_type_view_inherit" model="ir.ui.view">
       <field name="name">picking.type.channel.inherit</field>
       <field name="model">stock.picking.type</field>
@@ -23,6 +24,18 @@
       </field>
    </record>
     
+
+    <act_window id="action_open_delivery_process_shipment_wizard"
+		name="Shipments Wizard"
+		src_model="stock.picking"
+		res_model="delivery.process.shipments.wizard"
+		target="new"
+		view_mode="form"
+		view_id="wizard_delivery_process_shipments"
+		multi="True"
+		context="{}"/>
+
+
     <record id="view_picking_form_delivery_inherit_tmg" model="ir.ui.view">
       <field name="name">picking_form_delivery_inherit_tmg</field>
       <field name="model">stock.picking</field>
