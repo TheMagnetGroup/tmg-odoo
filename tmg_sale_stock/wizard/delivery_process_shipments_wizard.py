@@ -1,5 +1,6 @@
-from odoo import api, fields, models
+from odoo import api, fields, models, _
 from odoo.exceptions import UserError
+
 
 class DeliveryPackageShipmentsWizard(models.TransientModel):
     _name = 'delivery.package.shipments.wizard'
@@ -58,6 +59,7 @@ class DeliveryProcessShipments(models.TransientModel):
         deliveries = []
         deliveries.extend(pick.carrier_id.delivery_type for pick in pickings)
         deliveries = list(set(deliveries))
+
         if len(deliveries) > 1:
             warning = 1
         for pick in pickings:
@@ -100,6 +102,7 @@ class DeliveryProcessShipments(models.TransientModel):
                 for i in range(package.num_packages):
                     r_packages |= self.env[dest_model].create(values)
 
+
         return r_packages
 
     def process_done(self, pick_ids):
@@ -126,3 +129,6 @@ class DeliveryProcessShipments(models.TransientModel):
         if pick_to_backorder:
             return pick_to_backorder.action_generate_backorder_wizard()
         return False
+
+        return r_packages
+

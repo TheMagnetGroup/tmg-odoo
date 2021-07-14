@@ -12,6 +12,7 @@
 		multi="False"
 		context="{}"/>
 
+
    <record id="picking_type_view_inherit" model="ir.ui.view">
       <field name="name">picking.type.channel.inherit</field>
       <field name="model">stock.picking.type</field>
@@ -22,14 +23,20 @@
          </xpath>
       </field>
    </record>
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> Rebase
 
     <act_window id="action_open_delivery_process_shipment_wizard"
 		name="Shipments Wizard"
 		src_model="stock.picking"
 		res_model="delivery.process.shipments.wizard"
 		target="new"
+
 		key2="client_action_multi"
+
 		view_mode="form"
 		view_id="wizard_delivery_process_shipments"
 		multi="True"
