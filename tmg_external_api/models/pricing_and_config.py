@@ -370,7 +370,7 @@ class pricing_and_config(models.Model):
         if product_decoration_color_ids:
             product_decoration_color_list = \
                 self.env['product.attribute.value']\
-                    .search_read([('id', 'in', product_decoration_color_ids['value_ids'])], ['id', 'name'])
+                    .search_read([('id', 'in', product_decoration_color_ids[0]['value_ids'])], ['id', 'name'])
         # # obtain the list of color exclusions that apply to the current product and decoration
         # product_decoration_color_exclusions = self._get_sql_color_exclusions(product, decoration)
         #
