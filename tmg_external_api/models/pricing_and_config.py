@@ -53,9 +53,6 @@ class pricing_and_config(models.Model):
             else:
                 product_colors_search = [('product_tmpl_id', '=', pt_id_rqs[0]),
                                          ('decoration_area_id', '=', location_rqs)]
-                if decoration_rqs:
-                    product_colors_search.append(('decoration_method_id', '=', decoration_rqs))
-
                 # load decoration_colors object(dictionary) if not already populated with an error message
                 decoration_colors = self._get_product_decoration_colors(product_colors_search,
                                                                         style_rqs,
@@ -189,60 +186,66 @@ class pricing_and_config(models.Model):
                                    )
             # product_location_decorations_list = []
             for pld in product_locations_data:
-                decoration_and_colors = dict(decorationId=0,
-                                             decorationName='',
-                                             pms=False,
-                                             fullcolor=False,
-                                             colors=[]
-                                             )
-                # a/o ORIGINAL RELEASE (July 2021) the limit TO 1 PRODUCT/1 LOCATION MAKES THIS ROUTINE REDUNDANT
-                # # collect/accumulate location decoration/color data till a location-level break occurs
-                # if ((product_key != 0 and product_key != pld['product_tmpl_id'][0])
-                #     or (location_values['locationId'] != 0
-                #         and location_values['locationId'] != pld['decoration_area_id'][0])
-                # ):
-                #     location_values, product_location_decorations_list = \
-                #         self._apply_location_values(location_values, product_location_decorations_list)
+                if decometh == 0 or pld['decoration_method_id'][0] == decometh:
+                    decoration_and_colors = dict(decorationId=0,
+                                                 decorationName='',
+                                                 pms=False,
+                                                 fullcolor=False,
+                                                 colors=[]
+                                                 )
+                    # a/o ORIGINAL RELEASE (July 2021) the limit TO 1 PRODUCT/1 LOCATION MAKES THIS ROUTINE REDUNDANT
+                    # # collect/accumulate location decoration/color data till a location-level break occurs
+                    # if ((product_key != 0 and product_key != pld['product_tmpl_id'][0])
+                    #     or (location_values['locationId'] != 0
+                    #         and location_values['locationId'] != pld['decoration_area_id'][0])
+                    # ):
+                    #     location_values, product_location_decorations_list = \
+                    #         self._apply_location_values(location_values, product_location_decorations_list)
 
-                product_key = pld['product_tmpl_id'][0]
-                # supply product_style_number as "productId" and load the collected location data
-                if style:
-                    location_values['productId'] = style
-                else:
-                    location_values['productId'] = \
-                        self.env['product.template'].search_read([('id', '=', product_key)],
-                                                                 ['product_style_number'])[0]['product_style_number']
-                location_values['locationId'] = pld['decoration_area_id'][0]
+                    product_key = pld['product_tmpl_id'][0]
+                    # supply product_style_number as "productId" and load the collected location data
+                    if style:
+                        location_values['productId'] = style
+                    else:
+                        # otherwise obtain the style number from the product template ID
+                        location_values['productId'] = \
+                            self.env['product.template'].search_read([('id', '=', product_key)],
+                                                                     ['product_style_number'])[0]['product_style_number']
+                    location_values['locationId'] = pld['decoration_area_id'][0]
 
-                decoration_and_colors = self._get_decoration_color_data(pld['product_tmpl_id'][0],
-                                                                        pld['decoration_method_id'][0])
-                if decoration_and_colors \
-                        and decoration_and_colors['colors'] \
-                        and len(decoration_and_colors['colors']) > 0:
-
-                    # availability for full color and pms match for a location will be considered "true" if any
-                    # one single decoration for that location has "true".  Once set to true for a location
-                    # do not allow any subsequent decoration to set it back to false at that same location level.
-                    if not location_values['fullColor']:
-                        location_values['fullColor'] = True if decoration_and_colors['fullcolor'] else False
-                    if not location_values['pmsMatch']:
-                        location_values['pmsMatch'] = True if decoration_and_colors['pms'] else False
+                    decoration_and_colors = self._get_decoration_color_data(pld['product_tmpl_id'][0],
+                                                                            pld['decoration_method_id'][0])
 
                     if (len(location_values['DecorationMethodArray']) < 1
-                            or (decoration_and_colors['decorationId'] not in
-                                list({k['decorationId']: k for k in location_values['DecorationMethodArray']}.keys()))
+                            or
+                            (decoration_and_colors['decorationId'] not in
+                             list({k['decorationId']: k for k in location_values['DecorationMethodArray']}.keys()))
                     ):
                         location_values['DecorationMethodArray'].append(
                             dict(decorationId=decoration_and_colors['decorationId'],
                                  decorationName=decoration_and_colors['decorationName'])
                         )
 
-                    for c in decoration_and_colors['colors']:
-                        if (len(location_values['ColorArray']) < 1
-                            or (c['colorId'] not in
-                                list({k['colorId']: k for k in location_values['ColorArray']}.keys()))
-                        ):
-                            location_values['ColorArray'].append(c)
+                    if ((decoration_and_colors['fullcolor'])
+                            or (decoration_and_colors
+                                and decoration_and_colors['colors']
+                                and len(decoration_and_colors['colors']) > 0)
+                    ):
+
+                        # availability for full color and pms match for a location will be considered "true" if any
+                        # one single decoration for that location has "true".  Once set to true for a location
+                        # do not allow any subsequent decoration to set it back to false at that same location level.
+                        if not location_values['fullColor']:
+                            location_values['fullColor'] = True if decoration_and_colors['fullcolor'] else False
+                        if not location_values['pmsMatch']:
+                            location_values['pmsMatch'] = True if decoration_and_colors['pms'] else False
+
+                        for c in decoration_and_colors['colors']:
+                            if (len(location_values['ColorArray']) < 1
+                                or (c['colorId'] not in
+                                    list({k['colorId']: k for k in location_values['ColorArray']}.keys()))
+                            ):
+                                location_values['ColorArray'].append(c)
 
             # a/o ORIGINAL RELEASE (July 2021) RESULT SET IS LIMITED TO 1 PRODUCT/1 LOCATION; THIS ROUTINE IS REDUNDANT
             # # after reading the final product/location data, append remaining location decoration data to the array
@@ -253,18 +256,26 @@ class pricing_and_config(models.Model):
             # if product_location_decorations_list:
             #     data = dict(DecorationColors=product_location_decorations_list,
             #                 ErrorMessage=dict())
-            if location_values:
+            if len(location_values['DecorationMethodArray']) < 1:
+                # return error if no decoration methods, or else the single requested decoration method is not found
+                if decometh:
+                    errormsg = f'Decoration Method ID {str(decometh)}'
+                else:
+                    errormsg = 'Decoration Colors data'
+            elif len(location_values['ColorArray']) > 0 or location_values['fullColor']:
+                # return data if colors are found, or if no colors but a full-color process IS found
                 data = dict(DecorationColors=location_values,
                             ErrorMessage=dict())
                 errormsg = ''
             else:
+                # return error if no color data or full-color process are found
                 errormsg = 'Decoration Colors data'
 
-        # otherwise if no product/location data was found, begin assessing the error conditions
         else:
-            errormsg = 'Decoration Colors data'
+            # otherwise return error if the specified location is not found
+            errormsg = f'Location ID {str(decoloco)}'
 
-        # if error message was begun, complete the appropriate indications
+        # if error message text was begun, complete the appropriate indications
         if errormsg:
             if decometh or decoloco or style:
                 errorcode = 400    # use error 400 to represent "not found" for specified requests
@@ -342,55 +353,69 @@ class pricing_and_config(models.Model):
 
     def _get_applicable_colors(self, attribute_category_name, product, decoration):
         applicable_colors = []
+        color = dict(colorId=0,
+                     colorName="")
 
-        # obtain the attribute ID that corresponds to the "category"/attribute name for decoration imprint colors
-        decoration_colors_category_id = \
+        # obtain the attribute ID that corresponds to the category/attribute name for decoration imprint colors
+        imprint_colors_attribute_id = \
             self.env['product.attribute'].search([('category', '=', attribute_category_name)]).ids[0]
-        # obtain all the available decoration colors associated with that "category"/attribute ID
-        decoration_colors_category_color_list = \
-            self.env['product.attribute.value']\
-                .search_read([('attribute_id', '=', decoration_colors_category_id)], ['id', 'name'])
-        # obtain the list of color exclusions that apply to the current product and decoration
-        product_decoration_color_exclusions = self._get_sql_color_exclusions(product, decoration)
 
-        # filter the colors by exclusion to leave only the ones that apply to the current decoration method
-        for dcx in decoration_colors_category_color_list:
-            if dcx['id'] not in list({k[0]: k for k in product_decoration_color_exclusions}.keys()):
-                color = dict(colorId=dcx['id'],
-                             colorName=dcx['name'])
-                applicable_colors.append(color)
+        # obtain the decoration color ids associated with the product template attribute line
+        product_decoration_color_ids = self.env['product.template.attribute.line'] \
+            .search_read([('product_tmpl_id', '=', product),
+                          ('attribute_id', '=', imprint_colors_attribute_id)],
+                         ['value_ids'])
+        # obtain decoration color data for the ids and appropriately rename/reformat for Promostandards color array
+        product_decoration_color_list = []
+        if product_decoration_color_ids:
+            product_decoration_color_list = \
+                self.env['product.attribute.value']\
+                    .search_read([('id', 'in', product_decoration_color_ids['value_ids'])], ['id', 'name'])
+        # # obtain the list of color exclusions that apply to the current product and decoration
+        # product_decoration_color_exclusions = self._get_sql_color_exclusions(product, decoration)
+        #
+        # # filter the colors by exclusion to leave only the ones that apply to the current decoration method
+        # for dcx in decoration_colors_category_color_list:
+        #     if dcx['id'] not in list({k[0]: k for k in product_decoration_color_exclusions}.keys()):
+        #         color = dict(colorId=dcx['id'],
+        #                      colorName=dcx['name'])
+        #         applicable_colors.append(color)
+        for pdc in product_decoration_color_list:
+            color = dict(colorId=pdc['id'],
+                         colorName=pdc['name'])
+            applicable_colors.append(color)
 
         return applicable_colors
 
-    def _get_sql_color_exclusions(self, product, decoration):
-        """
-        # because of the somewhat complex task of joining to product.template.attribute twice, once for 1) obtaining
-        # the exclusion list ID that applies to the specific decoration method, and then again for 2) obtaining the
-        # actual color IDs associated with that list that are to be excluded from that decoration method, I utilized
-        # direct SQL access via postgreSQL.
-        :param product:
-        :param decoration:
-        :return: [] list of decoration colors to be excluded from the current decoration for this product
-        """
-        sql = f"""select tv.product_attribute_value_id
-                    from product_template_attribute_value tv
-                         inner
-                    join product_attr_exclusion_value_ids_rel xv
-                      on tv.id = xv.product_template_attribute_value_id
-                         inner
-                    join product_template_attribute_exclusion ax
-                      on tv.product_tmpl_id = ax.product_tmpl_id
-                     and xv.product_template_attribute_exclusion_id = ax.id
-                         inner
-                    join product_template_attribute_value xt
-                      on ax.product_template_attribute_value_id = xt.id
-                     and ax.product_tmpl_id = xt.product_tmpl_id
-                   where tv.product_tmpl_id = {product}
-                     and xt.product_attribute_value_id = {decoration}"""
-        self.env.cr.execute(sql)
-        color_exclusions = self.env.cr.fetchall()
-
-        return color_exclusions
+    # def _get_sql_color_exclusions(self, product, decoration):
+    #     """
+    #     # because of the somewhat complex task of joining to product.template.attribute twice, once for 1) obtaining
+    #     # the exclusion list ID that applies to the specific decoration method, and then again for 2) obtaining the
+    #     # actual color IDs associated with that list that are to be excluded from that decoration method, I utilized
+    #     # direct SQL access via postgreSQL.
+    #     :param product:
+    #     :param decoration:
+    #     :return: [] list of decoration colors to be excluded from the current decoration for this product
+    #     """
+    #     sql = f"""select tv.product_attribute_value_id
+    #                 from product_template_attribute_value tv
+    #                      inner
+    #                 join product_attr_exclusion_value_ids_rel xv
+    #                   on tv.id = xv.product_template_attribute_value_id
+    #                      inner
+    #                 join product_template_attribute_exclusion ax
+    #                   on tv.product_tmpl_id = ax.product_tmpl_id
+    #                  and xv.product_template_attribute_exclusion_id = ax.id
+    #                      inner
+    #                 join product_template_attribute_value xt
+    #                   on ax.product_template_attribute_value_id = xt.id
+    #                  and ax.product_tmpl_id = xt.product_tmpl_id
+    #                where tv.product_tmpl_id = {product}
+    #                  and xt.product_attribute_value_id = {decoration}"""
+    #     self.env.cr.execute(sql)
+    #     color_exclusions = self.env.cr.fetchall()
+    #
+    #     return color_exclusions
 
     def _get_sql_warehouses_and_products(self, style, sellables):
         sql = f"""select sw.stock_warehouse_id, pt.product_style_number
