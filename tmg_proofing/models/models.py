@@ -76,6 +76,8 @@ class tmg_proofing(models.Model):
         description = ET.SubElement(proof_ele, "Description").text = self.sale_line.name
         productionOrder = ET.SubElement(proof_ele, "WorkOrder").text = self.sale_line.production_order.name
         suggestedID = ET.SubElement(proof_ele, "Suggested").text = str(self.suggested_layout)
+        PONumber = ET.SubElement(proof_ele, "PONumber").text = self.sale_order.client_order_ref
+        Quantity = ET.SubElement(proof_ele, "Quantity").text = str(self.sale_line.product_uom_qty)
         # saleLineID.text = self.sale_line.id
         return ET.tostring(proof_ele, pretty_print= True)
 
