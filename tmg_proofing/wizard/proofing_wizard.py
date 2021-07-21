@@ -54,7 +54,7 @@ class SaleOrderLineSendProofWizard(models.TransientModel):
                 'sale_line': self.sale_line_id.id,
                 'art_file': self.art_file.id,
                 'state': 'pending',
-                'send_attachments': self.send_attachments,
+                'send_attachment': self.send_attachments,
                 'email_ids': [(6,0,self.email_ids.ids)],
                 'suggested_layout': self.suggested_layout
 
