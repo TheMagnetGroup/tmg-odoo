@@ -16,6 +16,7 @@ class SaleOrderLineSendProofWizard(models.TransientModel):
         return self.env['sale.order.line'].browse(self.env.context.get('active_ids'))[0]
     sale_line_id = fields.Many2one('sale.order.line', string='Active SOLs', ondelete='cascade', required=True, default=_default_sol)
     sale_order = fields.Many2one('sale.order', related='sale_line_id.order_id')
+
     # attachment_ids = fields.One2many('ir.attachment', compute='_compute_attachment_ids',
     #                                   string="Main Attachments")
     art_file = fields.Many2one("ir.attachment", string="ArtFiles",
