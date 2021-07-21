@@ -74,7 +74,7 @@ class tmg_proofing(models.Model):
         emails = ET.SubElement(proof_ele,"EmailTo").text = emails
         saleLineID = ET.SubElement(proof_ele, "SaleLineID").text = str(self.sale_line.id)
         description = ET.SubElement(proof_ele, "Description").text = self.sale_line.name
-        productionOrder = ET.SubElement(proof_ele, "Work Order").text = self.sale_line.production_order.name
+        productionOrder = ET.SubElement(proof_ele, "WorkOrder").text = self.sale_line.production_order.name
         suggestedID = ET.SubElement(proof_ele, "Suggested").text = str(self.suggested_layout)
         # saleLineID.text = self.sale_line.id
         return ET.tostring(proof_ele, pretty_print= True)
