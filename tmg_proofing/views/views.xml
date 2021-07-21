@@ -114,7 +114,7 @@
                     <field name="proof_response_date" readonly="1"/>
                     <field name="suggested_layout" readonly="1"/>
                     <field name="suggested_layout_accepted" readonly="1"/>
-                    <field name="send_attachments" readonly="1"/>
+                    <field name="send_attachment" readonly="1"/>
 				</group>
                 </sheet>
 			</form>
