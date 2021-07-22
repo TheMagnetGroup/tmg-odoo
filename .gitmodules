@@ -22,3 +22,8 @@
 	path = authorize-backend
 	url = git@github.com:odoo-sh/authorize-backend.git
 	branch = 12.0
+
+[submodule "purchase_vendorbill_advance"]
+	path = purchase_vendorbill_advance
+	url = git@github.com:odoo-sh/purchase_vendorbill_advance.git
+	branch = 12.0
