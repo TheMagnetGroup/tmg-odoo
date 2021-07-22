@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
 
 from odoo import models, api
-import base64
+from lxml import etree as ET
+from tmg_product.models.tmg_product_extensions import PriceType
+from tmg_product.models.tmg_product_extensions import ConfigurationType
+
+# import base64
 
 
 class pricing_and_config(models.Model):
@@ -120,18 +124,27 @@ class pricing_and_config(models.Model):
         return available_charges
 
     @api.model
-    def ConfigurationAndPricing(self, style_rqs):
+    def ConfigurationAndPricing(self, partner_rqs, style_rqs, pricing_rqs, config_rqs):
         export_config = dict()
 
-        if style_rqs:
+        if not partner_rqs:
+            export_config = dict(ErrorMessage=dict(code=120,
+                                                   description="Partner ID is required"))
+        elif not style_rqs:
+            export_config = dict(ErrorMessage=dict(code=120,
+                                                   description="Product Style Number is required"))
+        elif not pricing_rqs:
+            export_config = dict(ErrorMessage=dict(code=120,
+                                                   description="Pricing request type is required"))
+        elif not config_rqs:
+            export_config = dict(ErrorMessage=dict(code=120,
+                                                   description="Configuration request type is required"))
+        else:
             # make sure the product exists and is sellable
             sellable_product_ids = self.env['product.template'].get_product_saleable().ids
             product_search = [('product_style_number', '=', style_rqs),
                               ('id', 'in', sellable_product_ids)]
-            export_config = self._get_config_xml(product_search, style_rqs)
-        else:
-            export_config = dict(ErrorMessage=dict(code=120,
-                                                   description="Product Style Number is required"))
+            export_config = self._get_config_xml(partner_rqs, product_search, style_rqs, pricing_rqs, config_rqs)
 
         return export_config
 
@@ -491,54 +504,82 @@ class pricing_and_config(models.Model):
 
         return data
 
-    def _get_config_xml(self, item_search, style):
+    def _get_config_xml(self, partner, item_search, style, pricing, config):
         product_config_data = dict()
         stored_xml_64 = None
         export_account_name = 'PSPricingAndConfiguration'
 
-        # assemble the export file name, compiled from segments of the PricingAndConfig export account attributes
-        stored_pricing_and_config_file = self.env['tmg_external_api.tmg_export_account'] \
-            .search_read([('name', '=', export_account_name)], ['category', 'name', 'file_extension'])
-        if stored_pricing_and_config_file:
-            export_file_name = "product_data_{}_{}.{}".format(stored_pricing_and_config_file[0]['category'],
-                                                              stored_pricing_and_config_file[0]['name'],
-                                                              stored_pricing_and_config_file[0]['file_extension'])
+        # obtain the product-specific instance of the product.template model via item search by style number
+        product_obj_list = self.env['product.template']
+        item_list = product_obj_list.search(item_search)
 
-            # obtain the product-specific instance of the product.template model via item search by style number
-            product_obj_list = self.env['product.template']
-            item_list = product_obj_list.search(item_search)
+        if item_list:
+            # pricing = int(pricing)
+            # config = int(config)
+            # pricing_enum = PriceType(pricing)
+            # cfg_enum = ConfigurationType(config)
+            item = item_list[0]
+            item_ppc_response = item._build_ppc_response(pricing, config, partner)
 
-            if item_list:
-                item = item_list[0]
-                # Get the attachment ID(s) based on the ID of the product style
-                attachment_ids = self.env['ir.attachment'].search([('res_id', '=', item['id']),
-                                                                   ('name', '=', export_file_name),
-                                                                   ('res_model', '=', 'product.template')]).ids
-                # Ignore files that are from mail_thread of the product
-                message_attachment_ids = item_list.mapped('message_ids.attachment_ids').ids
-                attachment_ids = list(set(attachment_ids) - set(message_attachment_ids))
-                if len(attachment_ids) > 0:
-                    stored_xml_64 = self.env['ir.attachment'].browse(attachment_ids[0])
-
-                if stored_xml_64:
-                    # Odoo stores large data (e.g. images) in base64 so decode to bytes, then decode bytes to a string
-                    product_config_xml_str = base64.b64decode(stored_xml_64.datas).decode("utf-8")
-                    product_config_data = dict(xmlString=product_config_xml_str.replace("\n", ""),
-                                               ErrorMessage=dict())
-                else:
-                    product_config_data = dict(
-                        ErrorMessage=dict(code=999,
-                                          description="Pricing and Configuration XML data was expected but NOT found")
-                    )
+            if item_ppc_response:
+                product_config_data = dict(
+                    xmlString=str(ET.tostring(item_ppc_response[0]), 'utf-8').replace("\n", ""),
+                    xmlIntermediate=str(item_ppc_response[1], 'utf-8').replace("\n", ""),
+                    ErrorMessage=dict())
             else:
                 product_config_data = dict(
-                    ErrorMessage=dict(code=400,
-                                      description=f'Product ID "{style}" not found')
-                )
+                    ErrorMessage=dict(code=999,
+                                      description="Pricing and Configuration XML data was expected but NOT found"))
         else:
             product_config_data = dict(
-                ErrorMessage=dict(code=999,
-                                  description=f'Product Export Account "{export_account_name}" record is missing')
+                ErrorMessage=dict(code=400,
+                                  description=f'Product ID "{style}" not found')
             )
-
         return product_config_data
+
+        # # assemble the export file name, compiled from segments of the PricingAndConfig export account attributes
+        # stored_pricing_and_config_file = self.env['tmg_external_api.tmg_export_account'] \
+        #     .search_read([('name', '=', export_account_name)], ['category', 'name', 'file_extension'])
+        # if stored_pricing_and_config_file:
+        #     export_file_name = "product_data_{}_{}.{}".format(stored_pricing_and_config_file[0]['category'],
+        #                                                       stored_pricing_and_config_file[0]['name'],
+        #                                                       stored_pricing_and_config_file[0]['file_extension'])
+        #
+        #     # obtain the product-specific instance of the product.template model via item search by style number
+        #     product_obj_list = self.env['product.template']
+        #     item_list = product_obj_list.search(item_search)
+        #
+        #     if item_list:
+        #         item = item_list[0]
+        #         # Get the attachment ID(s) based on the ID of the product style
+        #         attachment_ids = self.env['ir.attachment'].search([('res_id', '=', item['id']),
+        #                                                            ('name', '=', export_file_name),
+        #                                                            ('res_model', '=', 'product.template')]).ids
+        #         # Ignore files that are from mail_thread of the product
+        #         message_attachment_ids = item_list.mapped('message_ids.attachment_ids').ids
+        #         attachment_ids = list(set(attachment_ids) - set(message_attachment_ids))
+        #         if len(attachment_ids) > 0:
+        #             stored_xml_64 = self.env['ir.attachment'].browse(attachment_ids[0])
+        #
+        #         if stored_xml_64:
+        #             # Odoo stores large data (e.g. images) in base64 so decode to bytes, then decode bytes to a string
+        #             product_config_xml_str = base64.b64decode(stored_xml_64.datas).decode("utf-8")
+        #             product_config_data = dict(xmlString=product_config_xml_str.replace("\n", ""),
+        #                                        ErrorMessage=dict())
+        #         else:
+        #             product_config_data = dict(
+        #                 ErrorMessage=dict(code=999,
+        #                                   description="Pricing and Configuration XML data was expected but NOT found")
+        #             )
+        #     else:
+        #         product_config_data = dict(
+        #             ErrorMessage=dict(code=400,
+        #                               description=f'Product ID "{style}" not found')
+        #         )
+        # else:
+        #     product_config_data = dict(
+        #         ErrorMessage=dict(code=999,
+        #                           description=f'Product Export Account "{export_account_name}" record is missing')
+        #     )
+        #
+        # return product_config_data

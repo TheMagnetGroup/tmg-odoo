@@ -928,7 +928,7 @@ class ProductTemplate(models.Model):
     #   * deco = "all", "decorated" or "blank"
     #   * pricing = "all", "catalog", "net" or "customer"
     #   * partner = the partner ID for customer pricing
-    def _build_deco_areas(self, parent_element, deco=ConfigurationType.All, pricing=PriceType.All, partner=None):
+    def _build_deco_areas(self, parent_element, deco="All", pricing="All", partner=None):
 
         price_grids = {}
 
@@ -942,9 +942,9 @@ class ProductTemplate(models.Model):
 
         # Filter the deco methods based on the passed parameters
         deco_ids = None
-        if deco == ConfigurationType.Blank:
+        if deco == "Blank":
             deco_ids = self.decoration_area_ids.filtered(lambda l: l.decoration_method_id.name == "Blank")
-        elif deco == ConfigurationType.Decorated:
+        elif deco == "Decorated":
             deco_ids = self.decoration_area_ids.filtered(lambda l: l.decoration_method_id.name != "Blank")
         else:
             deco_ids = self.decoration_area_ids
@@ -1029,11 +1029,11 @@ class ProductTemplate(models.Model):
                 ET.SubElement(quantity_elem, "discount_code").text = str(price_grid_dict['discount_codes'][idx])
                 ET.SubElement(quantity_elem, "net_price").text = "{price:.{dp}f}".format(
                     price=price_grid_dict['net_prices'][idx], dp=price_digits)
-                if pricing != PriceType.All:
-                    if pricing == PriceType.List:
+                if pricing != "All":
+                    if pricing == "List":
                         ET.SubElement(quantity_elem, "price").text = "{price:.{dp}f}".format(
                             price=price_grid_dict['catalog_prices'][idx], dp=price_digits)
-                    elif pricing == PriceType.Net or pricing == PriceType.Customer:
+                    elif pricing == "Net" or pricing == "Customer":
                         ET.SubElement(quantity_elem, "price").text = "{price:.{dp}f}".format(
                             price=price_grid_dict['net_prices'][idx], dp=price_digits)
                 ET.SubElement(quantity_elem, "date_start").text = str(price_grid_dict['effective_dates'][idx])
@@ -1077,11 +1077,11 @@ class ProductTemplate(models.Model):
                                 ac_price_grid_dict['discount_codes'][0])
                             ET.SubElement(addl_charge_elem, "net_price").text = "{price:.{dp}f}".format(
                                 price=ac_price_grid_dict['net_prices'][0], dp=price_digits)
-                            if pricing != PriceType.All:
-                                if pricing == PriceType.List:
+                            if pricing != "All":
+                                if pricing == "List":
                                     ET.SubElement(addl_charge_elem, "price").text = "{price:.{dp}f}".format(
                                         price=ac_price_grid_dict['catalog_prices'][0], dp=price_digits)
-                                elif pricing == PriceType.Net or pricing == PriceType.Customer:
+                                elif pricing == "Net" or pricing == "Customer":
                                     ET.SubElement(addl_charge_elem, "price").text = "{price:.{dp}f}".format(
                                         price=ac_price_grid_dict['net_prices'][0], dp=price_digits)
                             ET.SubElement(addl_charge_elem, "date_start").text = str(
@@ -1104,18 +1104,18 @@ class ProductTemplate(models.Model):
                                     ac_price_grid_dict['discount_codes'][0])
                                 ET.SubElement(addl_charge_elem, "repeat_net_price").text = "{price:.{dp}f}".format(
                                     price=ac_price_grid_dict['net_prices'][0], dp=price_digits)
-                                if pricing != PriceType.All:
-                                    if pricing == PriceType.List:
+                                if pricing != "All":
+                                    if pricing == "List":
                                         ET.SubElement(addl_charge_elem, "repeat_price").text = "{price:.{dp}f}".format(
                                             price=ac_price_grid_dict['catalog_prices'][0], dp=price_digits)
-                                    elif pricing == PriceType.Net or pricing == PriceType.Customer:
+                                    elif pricing == "Net" or pricing == "Customer":
                                         ET.SubElement(addl_charge_elem, "repeat_price").text = "{price:.{dp}f}".format(
                                             price=ac_price_grid_dict['net_prices'][0], dp=price_digits)
                         else:
                             ET.SubElement(addl_charge_elem, "repeat_catalog_price").text = ""
                             ET.SubElement(addl_charge_elem, "repeat_discount_code").text = ""
                             ET.SubElement(addl_charge_elem, "repeat_net_price").text = ""
-                            if pricing != PriceType.All:
+                            if pricing != "All":
                                 ET.SubElement(addl_charge_elem, "repeat_price").text = ""
 
         return locations_elem
@@ -1422,16 +1422,16 @@ class ProductTemplate(models.Model):
             raise(e)
 
         elements_to_rename = {}
-        if price_type == PriceType.Net:
+        if price_type == "Net":
             elements_to_rename["//net_price"] = "price"
             elements_to_rename["//repeat_net_price"] = "repeat_price"
-        elif price_type == PriceType.List:
+        elif price_type == "List":
             elements_to_rename["//catalog_price"] = "price"
             elements_to_rename["//repeat_catalog_price"] = "repeat_price"
 
         # If the price type is customer then we will remove the decoration locations element and rewrite it
         # getting customer based pricing and specific decoration types
-        if price_type == PriceType.Customer:
+        if price_type == "Customer":
             deco_locations = xml_doc.findall("//decoration_locations")
             if deco_locations:
                 for loc in deco_locations:
@@ -1450,12 +1450,12 @@ class ProductTemplate(models.Model):
         # If the config type is not all and the pricing type is not customer then we need to remove the
         # deco methods that do not apply to the request. Note that the _build_deco_areas routine handles
         # including/excluding decoration methods so we don't need to do this again for customer pricing
-        if config_type != ConfigurationType.All and price_type != PriceType.Customer:
+        if config_type != "All" and price_type != "Customer":
             deco_methods = xml_doc.findall("//decoration_method")
             for method in deco_methods:
                 method_name = method.find("name").text
-                if config_type == ConfigurationType.Blank and method_name != "Blank" \
-                        or config_type == ConfigurationType.Decorated and method_name == "Blank":
+                if config_type == "Blank" and method_name != "Blank" \
+                        or config_type == "Decorated" and method_name == "Blank":
                     method.getparent().remove(method)
 
         # Decode the XSLT file

@@ -298,7 +298,7 @@ class promostandards(models.Model):
         return charges_dict
 
     @api.model
-    def ConfigurationAndPricing(self, partner_str, style_rqs, request):
+    def ConfigurationAndPricing(self, partner_str, style_rqs, pricing_rqs, config_rqs, request):
         if not partner_str or not partner_str.strip():
             data = [dict(ErrorMessage=dict(code=100,
                                            description="Invalid partner ID value: '" + partner_str + "'"))]
@@ -308,7 +308,7 @@ class promostandards(models.Model):
                                            description="Call Cap not found for partner ID " + partner_str))]
             return data
         config_obj = self.env['tmg_external_api.pricing_and_config']
-        data = config_obj.ConfigurationAndPricing(style_rqs)
+        data = config_obj.ConfigurationAndPricing(partner_str, style_rqs, pricing_rqs, config_rqs)
         self.log_transaction(partner_str, request, "ConfigurationAndPricing")
         return data
 
