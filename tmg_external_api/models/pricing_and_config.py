@@ -2,9 +2,8 @@
 
 from odoo import models, api
 from lxml import etree as ET
-from tmg_product.models.tmg_product_extensions import PriceType
-from tmg_product.models.tmg_product_extensions import ConfigurationType
-
+# from tmg_product.models.tmg_product_extensions import PriceType
+# from tmg_product.models.tmg_product_extensions import ConfigurationType
 # import base64
 
 
