@@ -27,3 +27,8 @@
 	path = purchase_vendorbill_advance
 	url = git@github.com:odoo-sh/purchase_vendorbill_advance.git
 	branch = 12.0
+
+[submodule "tmg_tiny_apps"]
+	path = tmg_tiny_apps
+	url = git@github.com:odoo-sh/tmg_tiny_apps.git
+	branch = 12.0
