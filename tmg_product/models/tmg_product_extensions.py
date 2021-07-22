@@ -1284,6 +1284,9 @@ class ProductTemplate(models.Model):
                             ET.SubElement(attr_elem, "attribute_name").text = attribute_value.attribute_id.name
                             ET.SubElement(attr_elem, "attribute_value").text = attribute_value.name
                             ET.SubElement(attr_elem, "attribute_sequence").text = str(attribute_value.sequence)
+                            if attribute_value.attribute_id.category == 'prodcolor':
+                                pms_color = attribute_value.pms_color and attribute_value.pms_color.name
+                                ET.SubElement(attr_elem, "pms_color").text = pms_color if pms_color else ''
                     # Upload the variant's images to public storage
                     pv_images_elem = ET.SubElement(pv_elem, "images")
                     if variant.image_variant:

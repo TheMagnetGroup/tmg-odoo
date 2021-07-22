@@ -11,3 +11,5 @@ access_product_template_decorationarea,product.template.decorationarea,model_pro
 access_product_template_decorationarea_user,product.template.decorationarea,model_product_template_decorationarea,base.group_user,1,0,0,0
 access_product_addl_charges,product.addl.charges,model_product_addl_charges,base.group_system,1,1,1,1
 access_product_addl_charges_user,product.addl.charges,model_product_addl_charges,base.group_user,1,0,0,0
+access_product_pms_color_user,product.pms.color,model_product_pms_color,base.group_user,1,1,1,0
+access_product_pms_color_admin,product.pms.color,model_product_pms_color,base.group_system,1,1,1,1
