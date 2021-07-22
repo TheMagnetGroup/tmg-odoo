@@ -35,7 +35,7 @@ class tmg_proofing(models.Model):
     sale_team = fields.Many2one('crm.team', related='sale_order.team_id')
     email_ids = fields.Many2many('res.partner', string='Send To')
     art_file = fields.Many2one("ir.attachment", string="ArtFiles",
-                               domain="[('res_id','=','sale_order'),('type', '=', 'url')]")
+                               domain="[('res_id','=','sale_order'),('type', '=', 'url'),('res.model', '=', 'sale.order')]")
     proofing_link = fields.Char(string = "Proof Link")
     original_date = fields.Datetime(string= "Original Date", default=datetime.today())
     send_attachment = fields.Boolean(string="Send Attachments", default=False)
