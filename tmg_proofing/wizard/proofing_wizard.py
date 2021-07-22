@@ -20,7 +20,7 @@ class SaleOrderLineSendProofWizard(models.TransientModel):
     # attachment_ids = fields.One2many('ir.attachment', compute='_compute_attachment_ids',
     #                                   string="Main Attachments")
     art_file = fields.Many2one("ir.attachment", string="ArtFiles",
-                               domain="[('res_id','=',[sale_order]),('type', '=', 'url'),('res.model', '=', 'sale.order')]")
+                               domain="[('res_id','=',[sale_order]),('type', '=', 'url'),('res_model', '=', 'sale.order')]")
     suggested_layout = fields.Boolean(string="Suggested Layout")
     email_ids = fields.Many2many('res.partner', string="Send To")
     send_attachments = fields.Boolean(string="Send Attachments")
