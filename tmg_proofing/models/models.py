@@ -35,7 +35,7 @@ class tmg_proofing(models.Model):
     sale_team = fields.Many2one('crm.team', related='sale_order.team_id')
     email_ids = fields.Many2many('res.partner', string='Send To')
     art_file = fields.Many2one("ir.attachment", string="ArtFiles",
-                               domain="[('res_id','in',[sale_order]),('type', '=', 'url')]")
+                               domain="[('res_id','=',[sale_order]),('type', '=', 'url')]")
     proofing_link = fields.Char(string = "Proof Link")
     original_date = fields.Datetime(string= "Original Date", default=datetime.today())
     send_attachment = fields.Boolean(string="Send Attachments", default=False)
@@ -78,6 +78,13 @@ class tmg_proofing(models.Model):
         suggestedID = ET.SubElement(proof_ele, "Suggested").text = str(self.suggested_layout)
         PONumber = ET.SubElement(proof_ele, "PONumber").text = self.sale_order.client_order_ref
         Quantity = ET.SubElement(proof_ele, "Quantity").text = str(self.sale_line.product_uom_qty)
+        sendAtt = ''
+        if self.send_attachment:
+            sendAtt = "Y"
+        else:
+            sendAtt = "N"
+
+        send_attachments =  ET.SubElement(proof_ele, "SendAttachments").text = sendAtt
         # saleLineID.text = self.sale_line.id
         return ET.tostring(proof_ele, pretty_print= True)
 
