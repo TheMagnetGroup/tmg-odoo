@@ -19,7 +19,7 @@ from io import BytesIO
 from lxml import etree as ET
 import ssl
 import ftplib
-from enum import Enum
+# from enum import Enum
 
 _logger = logging.getLogger(__name__)
 
@@ -385,16 +385,16 @@ class ProductAdditonalCharges(models.Model):
     ], string='Charge Secondary UOM', required=True)
 
 
-class PriceType(Enum):
-    Customer = 1
-    List = 2
-    Net = 3
-    All = 4
-
-class ConfigurationType(Enum):
-    Decorated = 1
-    Blank = 2
-    All = 3
+# class PriceType(Enum):
+#     Customer = 1
+#     List = 2
+#     Net = 3
+#     All = 4
+#
+# class ConfigurationType(Enum):
+#     Decorated = 1
+#     Blank = 2
+#     All = 3
 
 class ProductTemplate(models.Model):
     _inherit = 'product.template'
@@ -925,8 +925,8 @@ class ProductTemplate(models.Model):
     # This routine builds the decoration_locations node structure of the standard xml.
     # The parameters are:
     #   * parent element tree
-    #   * deco = "all", "decorated" or "blank"
-    #   * pricing = "all", "catalog", "net" or "customer"
+    #   * deco = "All", "Decorated" or "Blank"
+    #   * pricing = "All", "List", "Cet" or "Customer"
     #   * partner = the partner ID for customer pricing
     def _build_deco_areas(self, parent_element, deco="All", pricing="All", partner=None):
 
@@ -1458,6 +1458,10 @@ class ProductTemplate(models.Model):
                         or config_type == "Decorated" and method_name == "Blank":
                     method.getparent().remove(method)
 
+        # Add the passed price type
+        ET.SubElement(xml_doc.getroot(), "priceType").text = price_type
+        ET.SubElement(xml_doc.getroot(), "configurationType").text = config_type
+
         # Decode the XSLT file
         xslt = base64.b64decode(xslt_attach.xslt_file.datas)
 
@@ -1471,9 +1475,9 @@ class ProductTemplate(models.Model):
         return [xslt_result, xml_doc_string]
 
     def _test_pricing_and_config(self, price_type, config_type, partner):
-        price_type_enum = PriceType(price_type)
-        config_type_enum = ConfigurationType(config_type)
-        result = self._build_ppc_response(price_type_enum, config_type_enum, partner)
+        # price_type_enum = PriceType(price_type)
+        # config_type_enum = ConfigurationType(config_type)
+        result = self._build_ppc_response(price_type, config_type, partner)
         # Base 64 encode the translated data
         store_xslt_result = base64.b64encode(result[0])
 

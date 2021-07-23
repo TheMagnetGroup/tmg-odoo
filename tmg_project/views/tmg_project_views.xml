@@ -60,5 +60,17 @@
             </field>
         </record>
 
+        <record id="tmg_project_view_form" model="ir.ui.view">
+            <field name="name">tmg.project.view.form</field>
+            <field name="model">project.project</field>
+            <field name="inherit_id" ref="project.edit_project"/>
+            <field name="arch" type="xml">
+                <xpath expr="//group[@name='misc']" position="after">
+                    <group name="Defaults">
+                        <field name="dft_task_description"/>
+                    </group>
+                </xpath>
+            </field>
+        </record>
   </data>
 </odoo>
