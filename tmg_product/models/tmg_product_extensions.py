@@ -1260,6 +1260,8 @@ class ProductTemplate(models.Model):
                     for attribute_value in variant.attribute_value_ids:
                         if attribute_value.attribute_id.category in ('prodcolor', 'thickness'):
                             ET.SubElement(pv_elem, "product_variant_swatch").text = (attribute_value.html_color or '')
+                            pms_color = attribute_value.pms_color and attribute_value.pms_color.name
+                            ET.SubElement(pv_elem, "product_variant_pms_color").text = pms_color if pms_color else ''
                             ET.SubElement(pv_elem, "product_variant_color").text = attribute_value.name
                             break
                     # Write the packaging information for this product variant. We will only write out the first packaging
@@ -1287,6 +1289,7 @@ class ProductTemplate(models.Model):
                             if attribute_value.attribute_id.category == 'prodcolor':
                                 pms_color = attribute_value.pms_color and attribute_value.pms_color.name
                                 ET.SubElement(attr_elem, "pms_color").text = pms_color if pms_color else ''
+                                ET.SubElement(attr_elem, "html_color").text = (attribute_value.html_color or '')
                     # Upload the variant's images to public storage
                     pv_images_elem = ET.SubElement(pv_elem, "images")
                     if variant.image_variant:
