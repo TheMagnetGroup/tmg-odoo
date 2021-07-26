@@ -50,8 +50,8 @@ class tmg_proofing(models.Model):
     suggested_layout_accepted = fields.Boolean(string="Suggested Layout Approved")
     proof_response_date = fields.Datetime(string="Response Date")
     work_order = fields.Many2one('mrp.production', string = "Work Order",
-                                 domain="[('sale_line_id','=',[sale_line]),('state', 'not in', ['done', 'cancel']),"
-                                        "('res_model', '=', 'sale.order')]")
+                                 domain="[('sale_line_id','=',[sale_line]),('state', 'not in', ['done', 'cancel'])]")
+                                        # "('res_model', '=', 'sale.order')]")
 
     def update_proof(self, proof_id, state, notes, suggested = False):
         proof = self.env['sale.tmg_proofing'].browse(proof_id)
