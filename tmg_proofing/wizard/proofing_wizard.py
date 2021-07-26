@@ -24,7 +24,8 @@ class SaleOrderLineSendProofWizard(models.TransientModel):
     suggested_layout = fields.Boolean(string="Suggested Layout")
     email_ids = fields.Many2many('res.partner', string="Send To")
     send_attachments = fields.Boolean(string="Send Attachments")
-
+    work_order = fields.Many2one('mrp.production', string="Work Order",
+                                 domain="[('sale_line_id','=',[sale_line]),('state', 'not in', ['done', 'cancel'])]")
     # @api.constrains('ups_service_type')
     # def _validate_account(self):
     #     if self.ups_service_type:
@@ -57,7 +58,8 @@ class SaleOrderLineSendProofWizard(models.TransientModel):
                 'state': 'pending',
                 'send_attachment': self.send_attachments,
                 'email_ids': [(6,0,self.email_ids.ids)],
-                'suggested_layout': self.suggested_layout
+                'suggested_layout': self.suggested_layout,
+                'work_order': self.work_order.id
 
 
             })
