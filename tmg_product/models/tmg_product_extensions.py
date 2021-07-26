@@ -408,6 +408,7 @@ class ProductTemplate(models.Model):
     data_errors = fields.Html(string='Required Data Errors')
     user_data_error = fields.Boolean(string='Data Error Resolved by User')
     image_last_change_date = fields.Datetime(string="Image Last Change Date")
+    data_last_checked_date = fields.Datetime(string="Data Last Checked Date")
 
     @api.constrains('decoration_method_ids')
     def _check_deco_methods(self):
@@ -418,9 +419,16 @@ class ProductTemplate(models.Model):
         return True
 
     def get_product_saleable(self):
-        return self.search(
-            [('active', '=', True), ('sale_ok', '=', True), ('website_published', '=', True), ('type', '=', 'product')]
-        )
+        if self.env.context.get('build_xml', False):
+            current_date = datetime.now()
+            date_limit = current_date - timedelta(hours=24)
+            res = self.search([('active', '=', True), ('sale_ok', '=', True), ('website_published', '=', True),
+                               ('type', '=', 'product'), '|', ('data_last_checked_date', '<=', date_limit),
+                               ('data_last_checked_date', '=', False)], limit=25)
+        else:
+            res = self.search([('active', '=', True), ('sale_ok', '=', True), ('website_published', '=', True),
+                               ('type', '=', 'product')])
+        return res
 
     @api.model
     def _build_all_xml(self):
@@ -437,7 +445,7 @@ class ProductTemplate(models.Model):
             return
 
         # Get a list of all active products that can be sold
-        products = self.get_product_saleable()
+        products = self.with_context(build_xml=True).get_product_saleable()
 
         # Since a single change the in the system could cause every product's standard XML to be rebuilt, we will
         # break up the products into chunks of 100 to avoid the task being timed out.
@@ -449,6 +457,7 @@ class ProductTemplate(models.Model):
         #     cr.commit()
         for product in products:
             product._build_std_xml()
+            product.write({'data_last_checked_date': datetime.now()})
             cr.commit()
             _logger.info("Built XML for product '{0}'".format(product.name))
         _logger.info("Product XML build process complete")
