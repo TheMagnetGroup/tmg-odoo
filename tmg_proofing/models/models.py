@@ -49,7 +49,9 @@ class tmg_proofing(models.Model):
     processed = fields.Boolean("Processed")
     suggested_layout_accepted = fields.Boolean(string="Suggested Layout Approved")
     proof_response_date = fields.Datetime(string="Response Date")
-
+    work_order = fields.Many2one('mrp.production', string = "Work Order",
+                                 domain="[('sale_line_id','=',[sale_line]),('state', 'not in', ['done', 'cancel']),"
+                                        "('res_model', '=', 'sale.order')]")
 
     def update_proof(self, proof_id, state, notes, suggested = False):
         proof = self.env['sale.tmg_proofing'].browse(proof_id)
@@ -74,7 +76,7 @@ class tmg_proofing(models.Model):
         emails = ET.SubElement(proof_ele,"EmailTo").text = emails.replace(',',';')
         saleLineID = ET.SubElement(proof_ele, "SaleLineID").text = str(self.sale_line.id)
         description = ET.SubElement(proof_ele, "Description").text = self.sale_line.name
-        productionOrder = ET.SubElement(proof_ele, "WorkOrder").text = self.sale_line.production_order.name
+        productionOrder = ET.SubElement(proof_ele, "WorkOrder").text = str(self.work_order)
         suggestedID = ET.SubElement(proof_ele, "Suggested").text = str(self.suggested_layout)
         PONumber = ET.SubElement(proof_ele, "PONumber").text = self.sale_order.client_order_ref
         Quantity = ET.SubElement(proof_ele, "Quantity").text = str(self.sale_line.product_uom_qty)

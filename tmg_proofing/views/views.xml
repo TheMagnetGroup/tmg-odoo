@@ -68,7 +68,8 @@
 
 
 
-
+                <label for="invoice_lines" position="replace"/>
+                      <field name="invoice_lines" position="replace"/>
                 <xpath expr="//page[@name='order_lines']//field[@name='order_line']/form[1]//page[@name='delivery_ids']" position="after">
                 <page name="proofing_lines" string="Proofing">
                     <div>
@@ -83,7 +84,9 @@
 						</field>
                     </div>
                 </page>
-
+                <page name="invoice_lines" string="Invoice Lines">
+                      <field name="invoice_lines"/>
+                </page>
                 </xpath>
 
             </field>
