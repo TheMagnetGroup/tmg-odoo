@@ -5,8 +5,8 @@
         <field name="model_id" ref="model_product_template"/>
         <field name="state">code</field>
         <field name="code">model._build_all_xml()</field>
-        <field name="interval_number">24</field>
-        <field name="interval_type">hours</field>
+        <field name="interval_number">60</field>
+        <field name="interval_type">minutes</field>
         <field name="numbercall">-1</field>
         <field name="doall" eval="False"/>
     </record>
