@@ -58,10 +58,15 @@ class ProviderUPS(models.Model):
                 'phone': picking.partner_id.mobile or picking.partner_id.phone or picking.sale_id.partner_id.mobile or picking.sale_id.partner_id.phone,
 
             }
-            if picking.sale_id and picking.sale_id.carrier_id != picking.carrier_id:
-                ups_service_type = picking.ups_service_type or picking.carrier_id.ups_default_service_type or self.ups_default_service_type
+            if picking.ups_bill_my_account:
+                ups_service_type = picking.ups_service_type
             else:
-                ups_service_type = picking.ups_service_type or self.ups_default_service_type
+                ups_service_type = picking.carrier_id.ups_default_service_type
+
+            # if picking.sale_id and picking.sale_id.carrier_id != picking.carrier_id:
+            #     ups_service_type = picking.ups_service_type
+            # else:
+            #     ups_service_type = picking.ups_service_type
             ups_carrier_account = picking.ups_carrier_account
 
             if picking.carrier_id.ups_cod:
