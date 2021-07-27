@@ -78,7 +78,7 @@ class tmg_proofing(models.Model):
         description = ET.SubElement(proof_ele, "Description").text = self.sale_line.name
         productionOrder = ET.SubElement(proof_ele, "WorkOrder").text = str(self.work_order)
         suggestedID = ET.SubElement(proof_ele, "Suggested").text = str(self.suggested_layout)
-        PONumber = ET.SubElement(proof_ele, "PONumber").text = self.sale_order.client_order_ref
+        PONumber = ET.SubElement(proof_ele, "PONumber").text = self.sale_order.client_order_ref or ''
         Quantity = ET.SubElement(proof_ele, "Quantity").text = str(self.sale_line.product_uom_qty)
         sendAtt = ''
         if self.send_attachment:
