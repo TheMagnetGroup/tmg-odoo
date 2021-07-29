@@ -508,6 +508,9 @@ class pricing_and_config(models.Model):
         stored_xml_64 = None
         export_account_name = 'PSPricingAndConfiguration'
 
+        # The call to _build_ppc_response requires partner to be integer (which is what it is in Odoo)
+        partner = int(partner)
+
         # obtain the product-specific instance of the product.template model via item search by style number
         product_obj_list = self.env['product.template']
         item_list = product_obj_list.search(item_search)
