@@ -9,7 +9,7 @@ SUDS_VERSION = suds.__version__
 
 class UPS_Request(UPSRequest):
 
-    def set_package_detail(self, client, packages, packaging_type, namespace, ship_from, ship_to, cod_info, ref_1, ref_2):
+    def set_package_detail(self, client, packages, packaging_type, namespace, ship_from, ship_to, cod_info, ref_1='', ref_2=''):
         Packages = []
         for i, p in enumerate(packages):
             package = client.factory.create('{}:PackageType'.format(namespace))
