@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<odoo>
+    <data>
+
+        <record id="tmg_product_packing_form2_view" model="ir.ui.view">
+            <field name="name">tmg.product.packaging.form2.view</field>
+            <field name="model">product.packaging</field>
+            <field name="inherit_id" ref="product.product_packaging_form_view2"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='barcode']" position="before">
+                    <label for="max_box_allowed"/>
+                    <div>
+                        <field name="max_box_allowed"/>
+                    </div>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="tmg_product_packaging_tree_view" model="ir.ui.view">
+            <field name="name">tmg.product.packaging.tree.view</field>
+            <field name="model">product.packaging</field>
+            <field name="inherit_id" ref="product.product_packaging_tree_view"/>
+            <field name="arch" type="xml">
+                <field name="name" position="after">
+                    <field name="max_box_allowed"/>
+                </field>
+            </field>
+        </record>
+
+    </data>
+</odoo>
