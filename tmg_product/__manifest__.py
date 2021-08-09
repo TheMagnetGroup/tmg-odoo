@@ -31,7 +31,7 @@
         'security/ir.model.access.csv',
         'wizard/price_grid_inquiry_wizard.xml',
         'views/tmg_product_views.xml',
-        'views/tmg_product_category_views',
+        'views/tmg_product_category_views.xml',
         'data/cron.xml',
     ],
     # only loaded in demonstration mode
