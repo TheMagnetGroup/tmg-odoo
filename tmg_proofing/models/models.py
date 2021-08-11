@@ -38,6 +38,7 @@ class tmg_proofing(models.Model):
                                domain="[('res_id','=',[sale_order]),('type', '=', 'url'),('res_model', '=', 'sale.order')]")
     proofing_link = fields.Char(string = "Proof Link")
     original_date = fields.Datetime(string= "Original Date", default=datetime.today())
+    datas_fname = fields.Char(related = art_file.datas_fname)
     send_attachment = fields.Boolean(string="Send Attachments", default=False)
     suggested_layout = fields.Boolean(string="Sent Suggested Layout")
     notes = fields.Html('Order Notes')

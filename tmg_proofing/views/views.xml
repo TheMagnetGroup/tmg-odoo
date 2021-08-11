@@ -111,7 +111,7 @@
                     <field name="email_ids" widget="many2many_tags_email" context="{'force_email':True,'show_email':True}"/>
                     <field name="proofing_link" readonly="1" widget="url"/>
                     <field name="original_date" readonly="1"/>
-                    <field name="art_file"/>
+                    <field name="art_file" widget="binary" readonly="True" filename="datas_fname" attrs="{'invisible':[('type','=','binary')]}"/>
                     <field name="notes" widget="html" readonly="1"/>
                     <field name="processed" readonly="1"/>
                     <field name="proof_response_date" readonly="1"/>
