@@ -34,13 +34,14 @@ class tmg_proofing(models.Model):
     sale_order = fields.Many2one('sale.order',related='sale_line.order_id')
     sale_team = fields.Many2one('crm.team', related='sale_order.team_id')
     email_ids = fields.Many2many('res.partner', string='Send To')
+    # art_file = fields.Many2one("ir.attachment", string="ArtFiles",
+                               # domain="[('res_id','=',[sale_order]),('type', '=', 'url'),('res_model', '=', 'sale.order')]")
     art_file = fields.Many2one("ir.attachment", string="ArtFiles",
-                               domain="[('res_id','=',[sale_order]),('type', '=', 'url'),('res_model', '=', 'sale.order')]")
+                               domain="[('type', '=', 'url'),('res_model', '=', 'sale.order')]")
     proofing_link = fields.Char(string = "Proof Link")
     original_date = fields.Datetime(string= "Original Date", default=datetime.today())
-    # datas = fields.Binary(related = art_file.datas)
-    # url = fields.Char(related = art_file.url)
-    # type = fields.Selection(related = art_file.type)
+    original_file_name = fields.Char(string="File Name")
+    original_file_url = fields.Char(string="Original File")
     send_attachment = fields.Boolean(string="Send Attachments", default=False)
     suggested_layout = fields.Boolean(string="Sent Suggested Layout")
     notes = fields.Html('Order Notes')
@@ -55,6 +56,15 @@ class tmg_proofing(models.Model):
     work_order = fields.Many2one('mrp.production', string = "Work Order",
                                  domain="[('sale_line_id','=',[sale_line]),('state', 'not in', ['done', 'cancel'])]")
                                         # "('res_model', '=', 'sale.order')]")
+
+    @api.model
+    def create(self, vals):
+        proof = super(tmg_proofing, self).create(vals)
+        if proof.art_file:
+
+            proof.original_file_url = proof.art_file.url
+            proof.original_file_name = proof.art_file.name
+
 
     def update_proof(self, proof_id, state, notes, suggested = False):
         proof = self.env['sale.tmg_proofing'].browse(proof_id)

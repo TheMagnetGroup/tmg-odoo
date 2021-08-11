@@ -118,15 +118,9 @@
                     <field name="suggested_layout" readonly="1"/>
                     <field name="suggested_layout_accepted" readonly="1"/>
                     <field name="send_attachment" readonly="1"/>
-                    <field name="art_file" attrs="{}">
-                            <tree class="o_documents_list_view" create="false" editable="top">
-                                <field name="type" invisible="1"/>
-                                <field name="thumbnail" options="{'size':[90,90]}" widget="image"/>
-                                <field name="datas" readonly="True" widget="binary" filename="datas_fname" attrs="{'invisible':[('type','=','url')]}"/>
-                                <field name="datas_fname" readonly="True" invisible="1" attrs="{'invisible':[('type','=','url')]}" class="oe_inline oe_right"/>
-                                <field name="url" widget="binary" readonly="True" filename="datas_fname" attrs="{'invisible':[('type','=','binary')]}"/>
-                            </tree>
-                        </field>
+                    <field name="art_file"/>
+                    <field name="original_file_url"  widget="binary" readonly="True" filename="original_file_name" attrs="{'invisible':[('original_file_url','=', False)]}"/>
+
 				</group>
                 </sheet>
 			</form>
