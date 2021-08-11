@@ -21,8 +21,8 @@
 
     # always loaded
     'data': [
-        'wizard/proofing_wizard.xml',
         'security/ir.model.access.csv',
+        'wizard/proofing_wizard.xml',
         'views/views.xml',
         # 'views/templates.xml',
     ],

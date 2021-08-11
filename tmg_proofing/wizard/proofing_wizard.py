@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import base64
-from odoo import models, fields, api, exceptions
+from odoo import models, fields, api, exceptions, _
 from odoo.exceptions import AccessError, UserError, RedirectWarning, \
     ValidationError, Warning
 from odoo.exceptions import ValidationError
