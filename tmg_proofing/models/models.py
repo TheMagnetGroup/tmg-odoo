@@ -41,7 +41,7 @@ class tmg_proofing(models.Model):
     proofing_link = fields.Char(string = "Proof Link")
     original_date = fields.Datetime(string= "Original Date", default=datetime.today())
     original_file_name = fields.Char(string="File Name")
-    original_file_url = fields.Char(string="Original File")
+    original_file_url = fields.Binary(string="Original File")
     send_attachment = fields.Boolean(string="Send Attachments", default=False)
     suggested_layout = fields.Boolean(string="Sent Suggested Layout")
     notes = fields.Html('Order Notes')
@@ -62,8 +62,9 @@ class tmg_proofing(models.Model):
         proof = super(tmg_proofing, self).create(vals)
         if proof.art_file:
 
-            proof.original_file_url = proof.art_file.url
-            proof.original_file_name = proof.art_file.name
+            proof.original_file_url = proof.art_file.datas
+            proof.original_file_name = proof.art_file.datas_fname
+        return proof
 
 
     def update_proof(self, proof_id, state, notes, suggested = False):
