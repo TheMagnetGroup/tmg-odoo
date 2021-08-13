@@ -35,6 +35,31 @@ def _convert_curr_iso_fdx(code):
 class Delivery_Fedex(models.Model):
     _inherit = 'delivery.carrier'
 
+    use_shopping_rate = fields.Boolean("Use On Shopping Rate", copy=False, default=False)
+
+    def rate_shipment(self, order):
+        ''' Compute the price of the order shipment
+
+        :param order: record of sale.order
+        :return dict: {'success': boolean,
+                       'price': a float,
+                       'error_message': a string containing an error message,
+                       'warning_message': a string containing a warning message}
+                       # TODO maybe the currency code?
+        '''
+        self.ensure_one()
+        if hasattr(self, '%s_rate_shipment' % self.delivery_type):
+            res = getattr(self, '%s_rate_shipment' % self.delivery_type)(order)
+            res['without_margin'] = res['price']
+            res['transit'] = res.get('transit', False)
+            # apply margin on computed price
+            res['price'] = float(res['price']) * (1.0 + (float(self.margin) / 100.0))
+            # free when order is large enough
+            if res['success'] and self.free_over and order._compute_amount_total_without_delivery() >= self.amount:
+                res['warning_message'] = _('Info:\nThe shipping is free because the order amount exceeds %.2f.\n(The actual shipping cost is: %.2f)') % (self.amount, res['price'])
+                res['price'] = 0.0
+            return res
+
     def get_fedex_service_types(self):
         return [('INTERNATIONAL_ECONOMY', 'INTERNATIONAL_ECONOMY'),
                                            ('INTERNATIONAL_PRIORITY', 'INTERNATIONAL_PRIORITY'),
@@ -91,7 +116,7 @@ class Delivery_Fedex(models.Model):
         total_weight = 0
         total_pack = 0
         master_pack_default = False
-        for line in order.order_line:
+        for line in order.order_line.filtered(lambda l:l.product_id.type != 'service'):
             product_package_ids = line.product_id.packaging_ids
             est_weight_value = line.product_id.weight * line.product_uom_qty
             weight_value = self._fedex_convert_weight(est_weight_value, self.fedex_weight_unit)
@@ -222,6 +247,8 @@ class Delivery_Fedex(models.Model):
         return {'success': True,
                 'price': price,
                 'error_message': False,
+                'transit': request.get('transit_time', ''),
+                'list_price': request.get('list_price', ''),
                 'warning_message': _('Warning:\n%s') % warnings if warnings else False}
 
     def fedex_send_shipping(self, pickings):

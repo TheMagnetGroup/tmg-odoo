@@ -64,6 +64,57 @@ class Fedex_Request(FedexRequest):
         self.RequestedShipment.Recipient.Contact = Contact
         self.RequestedShipment.Recipient.Address = Address
 
+    def set_currency(self, currency):
+        self.RequestedShipment.PreferredCurrency = currency
+        # ask Fedex to include our preferred currency in the response
+        self.RequestedShipment.RateRequestTypes = ['PREFERRED', 'LIST']
+
+    def rate(self):
+        formatted_response = {'price': {}}
+        del self.ClientDetail.Region
+        if self.hasCommodities:
+            self.RequestedShipment.CustomsClearanceDetail.Commodities = self.listCommodities
+
+        try:
+            self.response = self.client.service.getRates(WebAuthenticationDetail=self.WebAuthenticationDetail,
+                                                         ClientDetail=self.ClientDetail,
+                                                         TransactionDetail=self.TransactionDetail,
+                                                         Version=self.VersionId,
+                                                         ReturnTransitAndCommit=True,
+                                                         RequestedShipment=self.RequestedShipment)
+
+
+            if (self.response.HighestSeverity != 'ERROR' and self.response.HighestSeverity != 'FAILURE'):
+                if not getattr(self.response, "RateReplyDetails", False):
+                    raise Exception("No rating found")
+                transit_time = self.response.RateReplyDetails[0].TransitTime
+                formatted_response['transit_time'] = transit_time and transit_time.replace('_',' ')
+                for rating in self.response.RateReplyDetails[0].RatedShipmentDetails:
+                    if rating.ShipmentRateDetail.RateType == 'PAYOR_ACCOUNT_PACKAGE':
+                        formatted_response['price'][rating.ShipmentRateDetail.TotalNetFedExCharge.Currency] = rating.ShipmentRateDetail.TotalNetFedExCharge.Amount
+                    elif rating.ShipmentRateDetail.RateType == 'PAYOR_LIST_PACKAGE':
+                        formatted_response['list_price'] = rating.ShipmentRateDetail.TotalNetFedExCharge.Amount
+
+                if len(self.response.RateReplyDetails[0].RatedShipmentDetails) == 1:
+                    if 'CurrencyExchangeRate' in self.response.RateReplyDetails[0].RatedShipmentDetails[0].ShipmentRateDetail:
+                        formatted_response['price'][self.response.RateReplyDetails[0].RatedShipmentDetails[0].ShipmentRateDetail.CurrencyExchangeRate.FromCurrency] = self.response.RateReplyDetails[0].RatedShipmentDetails[0].ShipmentRateDetail.TotalNetFedExCharge.Amount / self.response.RateReplyDetails[0].RatedShipmentDetails[0].ShipmentRateDetail.CurrencyExchangeRate.Rate
+            else:
+                errors_message = '\n'.join([("%s: %s" % (n.Code, n.Message)) for n in self.response.Notifications if (n.Severity == 'ERROR' or n.Severity == 'FAILURE')])
+                formatted_response['errors_message'] = errors_message
+
+            if any([n.Severity == 'WARNING' for n in self.response.Notifications]):
+                warnings_message = '\n'.join([("%s: %s" % (n.Code, n.Message)) for n in self.response.Notifications if n.Severity == 'WARNING'])
+                formatted_response['warnings_message'] = warnings_message
+
+        except suds.WebFault as fault:
+            formatted_response['errors_message'] = fault
+        except IOError:
+            formatted_response['errors_message'] = "Fedex Server Not Found"
+        except Exception as e:
+            formatted_response['errors_message'] = e.args[0]
+
+        return formatted_response
+
 
     def set_shipper(self, company_partner, warehouse_partner, actual_partner):
         Contact = self.client.factory.create('Contact')
