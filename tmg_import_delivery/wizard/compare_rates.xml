@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record model="ir.ui.view" id="compare_rate_view">
+            <field name="name">Compare Rates</field>
+            <field name="model">compare.rates</field>
+            <field name="type">form</field>
+            <field name="arch" type="xml">
+                <form string="Import Additonal Deliveries" create="true">
+                    <sheet>
+                        <notebook>
+                            <page string="Compare Rates">
+                                <field name="rate_ids">
+                                    <tree create="0" edit="0" delete="0">
+                                        <field name="carrier_id" readonly="1"/>
+                                        <field name="transit"/>
+                                        <field name="list_price" readonly="1"/>
+                                        <field name="without_margin_price" readonly="1"/>
+
+                                        <field name="price" readonly="1"/>
+                                        <button name="set_delivery_price" string="Add" icon="fa-plus" type="object"/>
+                                    </tree>
+                                    <form>
+                                        <field name="carrier_id" readonly="1"/>
+                                        <field name="without_margin_price"/>
+                                        <field name="price" readonly="1"/>
+                                    </form>
+                                </field>
+                            </page>
+                        </notebook>
+                    </sheet>
+                    <footer>
+                        <button string="Cancel" special="cancel" class="oe_link"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <record id="action_compare_rates" model="ir.actions.act_window">
+            <field name="name">Compare Rates</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">compare.rates</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+        </record>
+
+    </data>
+</odoo>

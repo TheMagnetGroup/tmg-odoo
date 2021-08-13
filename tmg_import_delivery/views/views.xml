@@ -28,6 +28,11 @@
             <field name="model">sale.order</field>
             <field name="inherit_id" ref="sale.view_order_form"/>
             <field name="arch" type="xml">
+                <xpath expr="//button[@name='get_delivery_price']" position="after">
+                    <button name="compare_rates" type="object" class="oe_inline oe_link"
+                            attrs="{'invisible':['|',('carrier_id','=',False),('state','not in',('draft','sent'))]}"><i class="fa fa-arrow-right"/> Compare rate</button>
+
+                </xpath>
 
                 <xpath expr="//form[1]/sheet[1]/notebook[1]/page[@name='order_lines']/field[@name='order_line']/form[1]//field[@name='delivery_ids']" position="before">
                     <button name="%(action_open_sale_line_delivery_entry_wizard)d" type="action" string="Add Address" class="btn-sm btn-primary" />

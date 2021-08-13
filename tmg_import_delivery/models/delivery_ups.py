@@ -103,10 +103,16 @@ class ProviderUPS(models.Model):
 
         if order.currency_id.name == result['currency_code']:
             price = float(result['price'])
+            list_price = float(result['list_price']) if result.get('list_price') else 0.0
         else:
             quote_currency = ResCurrency.search([('name', '=', result['currency_code'])], limit=1)
             price = quote_currency._convert(
                 float(result['price']), order.currency_id, order.company_id, order.date_order or fields.Date.today())
+            if result.get('list_price'):
+                list_price = quote_currency._convert(float(result['list_price']), order.currency_id, order.company_id,
+                                                     order.date_order or fields.Date.today())
+            else:
+                list_price = 0.0
 
         if self.ups_bill_my_account and order.ups_carrier_account:
             # Don't show delivery amount, if ups bill my account option is true
@@ -114,6 +120,8 @@ class ProviderUPS(models.Model):
 
         return {'success': True,
                 'price': price,
+                'list_price': list_price,
+                'transit': result['transit'],
                 'error_message': False,
                 'warning_message': False}
 
@@ -146,15 +154,10 @@ class ProviderUPS(models.Model):
                 'phone': picking.partner_id.mobile or picking.partner_id.phone or picking.sale_id.partner_id.mobile or picking.sale_id.partner_id.phone,
 
             }
-            if picking.ups_bill_my_account:
-                ups_service_type = picking.ups_service_type
+            if picking.sale_id and picking.sale_id.carrier_id != picking.carrier_id:
+                ups_service_type = picking.ups_service_type or picking.carrier_id.ups_default_service_type or self.ups_default_service_type
             else:
-                ups_service_type = picking.carrier_id.ups_default_service_type
-
-            # if picking.sale_id and picking.sale_id.carrier_id != picking.carrier_id:
-            #     ups_service_type = picking.ups_service_type
-            # else:
-            #     ups_service_type = picking.ups_service_type
+                ups_service_type = picking.ups_service_type or self.ups_default_service_type
             ups_carrier_account = picking.ups_carrier_account
 
             if picking.carrier_id.ups_cod:
