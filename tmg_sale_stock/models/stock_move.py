@@ -19,7 +19,7 @@ class StockMove(models.Model):
     def _notify_backorder_picking(self):
         for record in self:
             picking = record.picking_id
-            self.action_send_notification(picking.backorder_id, picking)
+            record.action_send_notification(picking.backorder_id, picking)
             # if picking.backorder_id.sale_id:
             #     # picking.backorder_id.sale_id.printed_date = ''
 
@@ -27,7 +27,7 @@ class StockMove(models.Model):
         res = super(StockMove, self)._action_assign()
         for move in self.filtered(lambda x: x.backorder_id and x.state == 'assigned'):
             if move.picking_id:
-                self._notify_backorder_picking()
+                move._notify_backorder_picking()
         return res
 
     @api.multi
