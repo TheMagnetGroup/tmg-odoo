@@ -62,7 +62,7 @@ class tmg_proofing(models.Model):
         proof = super(tmg_proofing, self).create(vals)
         if proof.art_file:
 
-            proof.original_file_url = proof.art_file.datas
+            proof.original_file_url = proof.art_file.url
             proof.original_file_name = proof.art_file.datas_fname
         return proof
 

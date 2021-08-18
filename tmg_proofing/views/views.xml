@@ -118,7 +118,9 @@
                     <field name="suggested_layout" readonly="1"/>
                     <field name="suggested_layout_accepted" readonly="1"/>
                     <field name="send_attachment" readonly="1"/>
-                    <field name="art_file"/>
+                    <field name="art_file" widget="binary"/>
+                    <field name = "original_file_name"/>
+                    <field name = "original_file_url" widget = "url"/>
                     <field name="original_file_url" widget="binary" readonly="True" filename="original_file_name" attrs="{'invisible':[('original_file_url','=', False)]}"/>
 
 				</group>
