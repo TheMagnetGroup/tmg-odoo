@@ -29,15 +29,16 @@ class tmg_proofing(models.Model):
     id = fields.Integer(string="ID")
 
     name = fields.Char(string="Name", default='Proof')
-
+    product = fields.Many2one("product.product", related="sale_line.product_id", string = "Product")
+    brand = fields.Many2one("product.category", related="product.brand")
     sale_line = fields.Many2one("sale.order.line", string = "Sale Line")
     sale_order = fields.Many2one('sale.order',related='sale_line.order_id')
     sale_team = fields.Many2one('crm.team', related='sale_order.team_id')
     email_ids = fields.Many2many('res.partner', string='Send To')
-    # art_file = fields.Many2one("ir.attachment", string="ArtFiles",
-                               # domain="[('res_id','=',[sale_order]),('type', '=', 'url'),('res_model', '=', 'sale.order')]")
     art_file = fields.Many2one("ir.attachment", string="ArtFiles",
-                               domain="[('type', '=', 'url'),('res_model', '=', 'sale.order')]")
+                               domain="[('res_id','=',[sale_order]),('type', '=', 'url'),('res_model', '=', 'sale.order')]")
+    # art_file = fields.Many2one("ir.attachment", string="ArtFiles",
+    #                            domain="[('type', '=', 'url'),('res_model', '=', 'sale.order')]")
     proofing_link = fields.Char(string = "Proof Link")
     original_date = fields.Datetime(string= "Original Date", default=datetime.today())
     original_file_name = fields.Char(string="File Name")
