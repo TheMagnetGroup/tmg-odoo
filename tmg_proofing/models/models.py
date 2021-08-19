@@ -131,5 +131,21 @@ class SaleOrderLine(models.Model):
     _inherit = "sale.order.line"
     proofing_lines = fields.One2many("sale.tmg_proofing","sale_line", string="Sale Line")
 
+class ManufacturingOrder(models.Model):
+    _inherit = "mrp.production"
+
+    def name_get(self):
+        context = self.env.context or {}
+        res = []
+
+        for r in self:
+
+            if r.name:
+                if context.get('Show_Item', False):
+                    res.append((r.id, r.name + '-' + r.product_id.name))
+                else:
+                    res.append((r.id, r.name))
+        return res
+
 
 
