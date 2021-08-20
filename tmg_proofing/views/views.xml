@@ -10,6 +10,7 @@
                 <field name="product"/>
                 <field name="brand"/>
                 <field name="sale_team"/>
+                <field name="cs_rep"/>
                 <field name="original_date"/>
                 <field name="work_order" context="{'Show_Item': True}"/>
 				<field name="state"/>
@@ -118,6 +119,7 @@
                     <field name="sale_line" readonly="1"/>
                     <field name="sale_order" readonly="1"/>
                     <field name="sale_team" readonly="1"/>
+                    <field name="cs_rep" readonly="1"/>
                     <field name="brand" readonly="1"/>
                     <field name="email_ids" widget="many2many_tags_email" context="{'force_email':True,'show_email':True}"/>
                     <field name="proofing_link" readonly="1" widget="url"/>

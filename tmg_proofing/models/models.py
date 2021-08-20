@@ -48,6 +48,7 @@ class tmg_proofing(models.Model):
     send_attachment = fields.Boolean(string="Send Attachments", default=False)
     suggested_layout = fields.Boolean(string="Sent Suggested Layout")
     notes = fields.Html('Order Notes')
+    cs_rep = fields.Many2one("res.users", related="sale_order.user_id")
     state = fields.Selection(
         [("pending", "Pending"), ("approved", "Approved"), ("rejected", "Rejected"), ("approved_with_changes", "Approved With Changes")],
         "Proof State",
