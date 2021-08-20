@@ -43,7 +43,7 @@
                     <filter string="Response Date" name='groupby_resp_date' context="{'group_by':'proof_response_date'}"/>
                     <filter string="Last Updated Date" name='groupby_updt_date' context="{'group_by':'write_date'}"/>
                     <filter string="State" name="groupby_state" context="{'group_by': 'state'}"/>
-                    <filter string="Brand" name="groupby_brand" context="{'group_by: 'brand'}"/>
+                    <filter string="Brand" name="groupby_brand" context="{'group_by': 'brand'}"/>
                 </group>
                 </search>
             </field>

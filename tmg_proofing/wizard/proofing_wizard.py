@@ -32,9 +32,9 @@ class SaleOrderLineSendProofWizard(models.TransientModel):
     #         if not self.ups_carrier_id and self.ups_bill_my_account:
     #             raise ValidationError("You cannot select a third party shipper without supplying an account number")
 
-    @api.constrains('datas_fname')
+    @api.constrains('art_file')
     def _check_file(self):
-        if str(self.datas_fname.split(".")[1]) != 'pdf':
+        if str(self.art_file.datas_fname.split(".")[1]) != 'pdf':
             raise ValidationError("Cannot upload file different from .pdf file")
 
     def check_active_proof(self):

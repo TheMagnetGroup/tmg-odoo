@@ -2,6 +2,8 @@
 
 from odoo import models, fields, api
 from datetime import datetime
+from odoo.exceptions import AccessError, UserError, RedirectWarning, \
+    ValidationError, Warning
 from io import BytesIO
 # import xml.etree.ElementTree as ET
 from lxml import etree as ET
@@ -57,6 +59,11 @@ class tmg_proofing(models.Model):
     work_order = fields.Many2one('mrp.production', string = "Work Order",
                                  domain="[('sale_line_id','=',[sale_line]),('state', 'not in', ['done', 'cancel'])]")
                                         # "('res_model', '=', 'sale.order')]")
+
+    @api.constrains('art_file')
+    def _check_file(self):
+        if str(self.art_file.datas_fname.split(".")[1]) != 'pdf':
+            raise ValidationError("Cannot upload file different from .pdf file")
 
     # @api.model
     # def create(self, vals):
