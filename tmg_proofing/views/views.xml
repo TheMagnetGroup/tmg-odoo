@@ -8,6 +8,7 @@
 				<field name="id"/>
                 <field name="sale_order"/>
                 <field name="original_date"/>
+                <field name="work_order" context="{'Show_Item': True}"/>
 				<field name="state"/>
                 <field name="processed"/>
                 <field name="proof_response_date"/>
@@ -34,7 +35,7 @@
 
                     <field name="id"/>
                     <field name="sale_order"/>
-
+                    <field name="work_order"/>
                     <filter string="Unprocessed Proofs" name="todo_jobs" domain="[('state', '!=', 'pending'),('processed', '=', False)]"/>
                     <filter string="Processed Proofs" name="done_jobs" domain="[('state', '!=', 'pending'),('processed', '=', True)]"/>
                 <group expand="1" string="Group By">
@@ -42,6 +43,7 @@
                     <filter string="Response Date" name='groupby_resp_date' context="{'group_by':'proof_response_date'}"/>
                     <filter string="Last Updated Date" name='groupby_updt_date' context="{'group_by':'write_date'}"/>
                     <filter string="State" name="groupby_state" context="{'group_by': 'state'}"/>
+                    <filter string="Brand" name="groupby_brand" context="{'group_by: 'brand'}"/>
                 </group>
                 </search>
             </field>
@@ -79,6 +81,7 @@
 							<tree string="Proofs" default_order="original_date">
 								<field name="original_date"/>
 								<field name="state"/>
+                                <field name="work_order" context="{'Show_Item': True}"/>
                                 <field name="proof_response_date"/>
 							</tree>
 						</field>
@@ -108,20 +111,22 @@
 <!--                    <field name="id" readonly='1'/>-->
                     <field name="sale_line" readonly="1"/>
                     <field name="sale_order" readonly="1"/>
+                    <field name="sale_team" readonly="1"/>
                     <field name="email_ids" widget="many2many_tags_email" context="{'force_email':True,'show_email':True}"/>
                     <field name="proofing_link" readonly="1" widget="url"/>
                     <field name="original_date" readonly="1"/>
-
+                    <field name="work_order" context="{'Show_Item': True}"/>
                     <field name="notes" widget="html" readonly="1"/>
                     <field name="processed" readonly="1"/>
                     <field name="proof_response_date" readonly="1"/>
                     <field name="suggested_layout" readonly="1"/>
                     <field name="suggested_layout_accepted" readonly="1"/>
                     <field name="send_attachment" readonly="1"/>
-                    <field name="art_file" widget="binary"/>
-                    <field name = "original_file_name"/>
-                    <field name = "original_file_url" widget = "url"/>
-                    <field name="original_file_url" widget="binary" readonly="True" filename="original_file_name" attrs="{'invisible':[('original_file_url','=', False)]}"/>
+                    <field name="art_file"/>
+
+<!--                    <field name = "original_file_name"/>-->
+<!--                    <field name = "original_file_url" widget = "url"/>-->
+<!--                    <field name="original_file_url" widget="binary" readonly="True" filename="original_file_name" attrs="{'invisible':[('original_file_url','=', False)]}"/>-->
 
 				</group>
                 </sheet>
