@@ -63,7 +63,7 @@ class tmg_proofing(models.Model):
     @api.constrains('art_file')
     def _check_file(self):
         if str(self.art_file.datas_fname.split(".")[1]) != 'pdf':
-            raise ValidationError("Cannot upload file different from .pdf file")
+            raise ValidationError("Art File must be .pdf file")
 
     # @api.model
     # def create(self, vals):

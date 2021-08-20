@@ -7,6 +7,9 @@
 			<tree string="Proofs">
 				<field name="id"/>
                 <field name="sale_order"/>
+                <field name="product"/>
+                <field name="brand"/>
+                <field name="sale_team"/>
                 <field name="original_date"/>
                 <field name="work_order" context="{'Show_Item': True}"/>
 				<field name="state"/>
