@@ -33,6 +33,8 @@ class tmg_team_users(models.Model):
 class ResPartnerTmgSalesteam(models.Model):
     _inherit = 'res.partner'
 
+    team_id = fields.Many2one(track_visibility='onchange')
+
     @api.multi
     def action_update_sales_team(self):
         if not self.env.user.has_group('sales_team.group_sale_manager'):
