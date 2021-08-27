@@ -45,10 +45,13 @@
                     <field name="product"/>
                     <filter string="Unprocessed Proofs" name="todo_jobs" domain="[('state', '!=', 'pending'),('processed', '=', False)]"/>
                     <filter string="Processed Proofs" name="done_jobs" domain="[('state', '!=', 'pending'),('processed', '=', True)]"/>
+                    <filter string = "My Proofs" name = "my_requests"
+domain = "[('cs_rep.id', '=', uid)]" />
                 <group expand="1" string="Group By">
                     <filter string="Original Date" name='groupby_orig_date' context="{'group_by':'original_date'}"/>
                     <filter string="Response Date" name='groupby_resp_date' context="{'group_by':'proof_response_date'}"/>
                     <filter string="Last Updated Date" name='groupby_updt_date' context="{'group_by':'write_date'}"/>
+
                     <filter string="State" name="groupby_state" context="{'group_by': 'state'}"/>
 <!--                    <filter string="Brand" name="groupby_brand" context="{'group_by': 'brand'}"/>-->
                 </group>
@@ -111,6 +114,7 @@
 				<header>
 <!--					<button name="send_proof" type="object" string="Send Proof" attrs="{'invisible': [('state', '!=', 'pending')]}"/>-->
                     <button name="mark_processed" type="object" string="Mark Processed" attrs="{'invisible':['|', ('state', '=', 'pending'), ('processed', '=', True)]}"/>
+                    <button name="mark_unprocessed" type="object" string="Mark Unprocessed" attrs="{'invisible':['|', ('state', '=', 'pending'), ('processed', '=', False)]}"/>
 					<field name="state" widget="statusbar"/>
 				</header>
                 <sheet>

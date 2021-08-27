@@ -116,6 +116,9 @@ class tmg_proofing(models.Model):
     def mark_processed(self):
         self.processed = True
 
+    def mark_processed(self):
+        self.processed = False
+
     def _get_lookup_value(self, name, category):
         cont = self.env['tmg_external_api.tmg_reference']
         val = cont.search([('category', '=', category), ('name', '=', name)])
