@@ -7,6 +7,7 @@ import re
 
 class CompareRates(models.TransientModel):
     _name = 'compare.rates'
+    _description = 'Compare rates of different delivery carrier enabled'
 
     rate_ids = fields.One2many('compare.all.rates', 'rate_id', string="Compare Rates")
     package_ids = fields.One2many('compare.package.data', 'rate_id', string="Package Details")
@@ -14,6 +15,7 @@ class CompareRates(models.TransientModel):
 
 class CompareAllRates(models.TransientModel):
     _name = 'compare.all.rates'
+    _description = 'Rate details in compare rates pop up'
 
     rate_id = fields.Many2one('compare.rates', string="Rate")
     carrier_id = fields.Many2one('delivery.carrier', string="Carrier")
