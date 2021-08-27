@@ -25,7 +25,8 @@ class SaleOrder(models.Model):
             carrier_ids = self.env['delivery.carrier'].search([('use_shopping_rate', '=', True)])
             if not carrier_ids:
                 raise UserError("No delivery method available for use on shopping rates.")
-            if not all([product_id.packaging_ids.ids for product_id in order.order_line.mapped('product_id')]):
+            if not all([product_id.packaging_ids for product_id in order.order_line.filtered(
+                    lambda line: line.product_id.type == 'product').mapped('product_id')]):
                 raise UserError("Product Packaging must be set before comparing rates")
             rates = []
             packages = []

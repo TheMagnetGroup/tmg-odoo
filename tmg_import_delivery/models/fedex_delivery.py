@@ -117,7 +117,7 @@ class Delivery_Fedex(models.Model):
         total_pack = 0
         master_pack_default = False
         package_list = []
-        for line in order.order_line.filtered(lambda l:l.product_id.type != 'service'):
+        for line in order.order_line.filtered(lambda l: l.product_id.type == 'product'):
             product_package_ids = line.product_id.packaging_ids
             est_weight_value = line.product_id.weight * line.product_uom_qty
             weight_value = self._fedex_convert_weight(est_weight_value, self.fedex_weight_unit)
