@@ -116,7 +116,7 @@ class tmg_proofing(models.Model):
     def mark_processed(self):
         self.processed = True
 
-    def mark_processed(self):
+    def mark_unprocessed(self):
         self.processed = False
 
     def _get_lookup_value(self, name, category):
