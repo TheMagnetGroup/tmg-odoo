@@ -4,8 +4,11 @@ import suds
 from suds.client import Client
 from suds.plugin import MessagePlugin
 from suds.sax.element import Element
+import requests
+from datetime import datetime
 
 SUDS_VERSION = suds.__version__
+
 
 class UPS_Request(UPSRequest):
 
@@ -253,7 +256,6 @@ class UPS_Request(UPSRequest):
         try:
             # Get rate using for provided detail
             response = client.service.ProcessRate(Request=request, CustomerClassification=classification, Shipment=shipment)
-            print(response)
 
             # Check if ProcessRate is not success then return reason for that
             if response.Response.ResponseStatus.Code != "1":
@@ -262,10 +264,6 @@ class UPS_Request(UPSRequest):
             rate = response.RatedShipment[0]
             charge = rate.TotalCharges
             total_charge = rate.TotalCharges
-            if 'TimeInTransit' in rate:
-                transit = "%s DAYS" % rate.TimeInTransit.ServiceSummary[0].EstimatedArrival.BusinessDaysInTransit
-            else:
-                transit = "NO DATA"
 
             # Some users are qualified to receive negotiated rates
             if 'NegotiatedRateCharges' in rate and rate.NegotiatedRateCharges.TotalCharge.MonetaryValue:
@@ -275,7 +273,6 @@ class UPS_Request(UPSRequest):
                 'currency_code': charge.CurrencyCode,
                 'price': charge.MonetaryValue,
                 'list_price': total_charge.MonetaryValue,
-                'transit': transit,
             }
 
         except suds.WebFault as e:
@@ -283,7 +280,74 @@ class UPS_Request(UPSRequest):
             prefix = ''
             if SUDS_VERSION >= "0.6":
                 prefix = '/Envelope/Body/Fault'
-            return self.get_error_message(e.document.childAtPath(prefix + '/detail/Errors/ErrorDetail/PrimaryErrorCode/Code').getText(),
-                                          e.document.childAtPath(prefix + '/detail/Errors/ErrorDetail/PrimaryErrorCode/Description').getText())
+            return self.get_error_message(
+                e.document.childAtPath(prefix + '/detail/Errors/ErrorDetail/PrimaryErrorCode/Code').getText(),
+                e.document.childAtPath(prefix + '/detail/Errors/ErrorDetail/PrimaryErrorCode/Description').getText())
         except IOError as e:
             return self.get_error_message('0', 'UPS Server Not Found:\n%s' % e)
+
+    def _add_transit(self, ship_from, ship_to, weight):
+
+        root = """<env:Envelope xmlns:wsse="http://schemas.xmlsoap.org/ws/2002/04/secext"
+        xmlns:env="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        xmlns:upssa="http://www.ups.com/XMLSchema/XOLTWS/upssa/v1.0"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:wsf="http://www.ups.com/schema/wsf">"""
+
+        header = """<env:Header>
+            <wsse:Security>
+                <wsse:UsernameToken>
+            <wsse:Username>%s</wsse:Username>
+            <wsse:Password>%s</wsse:Password>
+        </wsse:UsernameToken>
+        <upssa:UPSServiceAccessToken>
+        <upssa:AccessLicenseNumber>%s</upssa:AccessLicenseNumber>
+        </upssa:UPSServiceAccessToken>
+        </wsse:Security>
+        </env:Header>""" % (self.username, self.password, self.access_number)
+
+        body = """<env:Body>
+        <TimeInTransitRequest xmlns="http://www.ups.com/XMLSchema/XOLTWS/tnt/v1.0"
+        xmlns:common="http://www.ups.com/XMLSchema/XOLTWS/Common/v1.0"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.ups.com/XMLSchema/XOLTWS/tnt/v1.0">"""
+
+        req = """<common:Request>
+        <common:RequestOption>TNT</common:RequestOption>
+        <common:TransactionReference>
+        <common:CustomerContext/>
+        <common:TransactionIdentifier/>
+        </common:TransactionReference>
+        </common:Request>"""
+
+        ship_from = """<ShipFrom>
+        <Address>
+        <StateProvinceCode>%s</StateProvinceCode>
+        <CountryCode>%s</CountryCode>
+        <PostalCode>%s</PostalCode>
+        </Address>
+        </ShipFrom>""" % (ship_from.state_id.code, ship_from.country_id.code, ship_from.zip)
+
+        ship_to = """<ShipTo>
+        <Address>
+        <StateProvinceCode>%s</StateProvinceCode>
+        <CountryCode>%s</CountryCode>
+        <PostalCode>%s</PostalCode>
+        </Address>
+        </ShipTo>""" % (ship_to.state_id.code, ship_to.country_id.code, ship_to.zip)
+
+        pick_up = """<Pickup>
+                    <Date>%s</Date>
+                    </Pickup>""" % (datetime.now().strftime('%Y%m%d'))
+
+        weight = """<ShipmentWeight>
+        <UnitOfMeasurement>
+        <Code>LBS</Code>
+        </UnitOfMeasurement>
+        <Weight>%s</Weight>
+        </ShipmentWeight>""" % (weight)
+
+        final = root + header + body + req + ship_from + ship_to + pick_up + weight + "</TimeInTransitRequest>" + "</env:Body>" + "</env:Envelope>"
+
+        response = requests.post("https://wwwcie.ups.com/webservices/TimeInTransit", data=final)
+
+        return response

@@ -25,24 +25,40 @@ class SaleOrder(models.Model):
             carrier_ids = self.env['delivery.carrier'].search([('use_shopping_rate', '=', True)])
             if not carrier_ids:
                 raise UserError("No delivery method available for use on shopping rates.")
+            if not any(order.order_line.mapped('product_id').packaging_ids):
+                raise UserError("Product Packaging must be set before comparing rates")
             rates = []
+            packages = []
+            product_list = []
             for carrier in carrier_ids:
-                res = carrier.rate_shipment(order)
-                print('res', res)
+                res = carrier.with_context(compare_rate=True).rate_shipment(order)
+                transit_ups_dict = res.get('transit_days_dict', {})
                 if res['success']:
                     price = res['price']
+                    if transit_ups_dict:
+                        transit_ups = transit_ups_dict.get(carrier.name, False)
+                        transit_ups += " DAYS" if transit_ups else transit_ups
                     order.delivery_rating_success = True
                     rates.append((0, 0, {'carrier_id': carrier.id,
-                                         'transit': res.get('transit', False),
+                                         'transit': res.get('transit', False) or transit_ups,
                                          'price': price,
                                          'without_margin_price': res['without_margin'],
                                          'list_price': res.get('list_price', '')}))
+                    if res.get('package_list') and res.get('package_list')[0].get('product_id', False) not in product_list:
+                        for package in res.get('package_list'):
+                            packages.append((0, 0, {
+                                # 'carrier_name': carrier.name,
+                                'product_id': package.get('product_id', False),
+                                'package_dimension': package.get('package_dimension', ''),
+                                'calculated_weight': package.get('weight', 0),
+                                'pieces_per_box': package.get('number_of_pieces', 0)}))
+                        product_list.append(res.get('package_list')[0].get('product_id', False))
                 else:
                     continue
             if not rates:
-                raise UserError("Currently this service not available!")
+                raise UserError("Currently this service not available")
             rate_id = self.env['compare.rates'].create({
-                'rate_ids': rates
+                'rate_ids': rates, 'package_ids': packages
             })
             form_view = self.env.ref('tmg_import_delivery.compare_rate_view').id
             return {
