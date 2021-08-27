@@ -116,6 +116,7 @@ class Delivery_Fedex(models.Model):
         total_weight = 0
         total_pack = 0
         master_pack_default = False
+        package_list = []
         for line in order.order_line.filtered(lambda l:l.product_id.type != 'service'):
             product_package_ids = line.product_id.packaging_ids
             est_weight_value = line.product_id.weight * line.product_uom_qty
@@ -125,6 +126,7 @@ class Delivery_Fedex(models.Model):
                 weight_value = max(weight_value, 0.01)
             if product_package_ids:
                 container_qty = product_package_ids[0].qty or 1
+                package_id = product_package_ids[0]
             elif max_weight and weight_value > max_weight:
                 total_package = int(weight_value / max_weight)
                 last_package_weight = weight_value % max_weight
@@ -186,6 +188,11 @@ class Delivery_Fedex(models.Model):
                     sequence_number=sequence,
                     mode='rating',
                 )
+                package_list.append({'product_id': line.product_id.id,
+                                     'package_dimension': '%sx%sx%s' %
+                                                          (package_id.length, package_id.width, package_id.height),
+                                     'weight': weight,
+                                     'number_of_pieces': container_qty})
             if partial_weight:
                 total_weight += partial_weight
                 number_of_pack += 1
@@ -198,6 +205,11 @@ class Delivery_Fedex(models.Model):
                     sequence_number=int(number_of_pack) + 1,
                     mode='rating',
                 )
+                package_list.append({'product_id': line.product_id.id,
+                                     'package_dimension': '%sx%sx%s' %
+                                                          (package_id.length, package_id.width, package_id.height),
+                                     'weight': partial_weight,
+                                     'number_of_pieces': partial_qty})
             total_weight = self._fedex_convert_weight(total_weight, self.fedex_weight_unit)
             total_pack += number_of_pack
         if not master_pack_default:
@@ -249,7 +261,8 @@ class Delivery_Fedex(models.Model):
                 'error_message': False,
                 'transit': request.get('transit_time', ''),
                 'list_price': request.get('list_price', ''),
-                'warning_message': _('Warning:\n%s') % warnings if warnings else False}
+                'warning_message': _('Warning:\n%s') % warnings if warnings else False,
+                'package_list': package_list}
 
     def fedex_send_shipping(self, pickings):
         res = []

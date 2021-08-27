@@ -5,8 +5,7 @@ from .ups_request import UPS_Request
 from odoo.addons.delivery_ups.models.ups_request import Package
 from odoo.exceptions import UserError
 from odoo.tools import pdf
-
-
+import xml.etree.ElementTree as ET
 
 
 class ProviderUPS(models.Model):
@@ -37,13 +36,16 @@ class ProviderUPS(models.Model):
         packages = []
         total_qty = 0
         total_weight = 0
-        for line in order.order_line.filtered(lambda line: not line.is_delivery):
+        package_id = False
+        package_list = []
+        for line in order.order_line.filtered(lambda line: line.product_id.type != 'service'):
             product_package_ids = line.product_id.packaging_ids
             total_qty += line.product_uom_qty
             total_weight += line.product_id.weight * line.product_qty
 
             if product_package_ids:
                 container_qty = product_package_ids[0].qty or 1
+                package_id = product_package_ids[0]
             elif max_weight and total_weight > max_weight:
                 total_package = int(total_weight / max_weight)
                 last_package_weight = total_weight % max_weight
@@ -66,9 +68,19 @@ class ProviderUPS(models.Model):
             partial_weight = line.product_id.weight * partial_qty
             for sequence in range(1, int(number_of_pack) + 1):
                 packages.append(Package(self, weight,quant_pack=product_package_ids[0]))
+                package_list.append({'product_id': line.product_id.id,
+                                     'package_dimension': '%sx%sx%s' %
+                                                          (package_id.length, package_id.width, package_id.height),
+                                     'weight': weight,
+                                     'number_of_pieces': container_qty})
             if partial_weight:
                 number_of_pack += 1
                 packages.append(Package(self, partial_weight, quant_pack= product_package_ids[0]))
+                package_list.append({'product_id': line.product_id.id,
+                                     'package_dimension': '%sx%sx%s' %
+                                                          (package_id.length, package_id.width, package_id.height),
+                                     'weight': partial_weight,
+                                     'number_of_pieces': partial_qty})
 
         shipment_info = {
             'total_qty': total_qty  # required when service type = 'UPS Worldwide Express Freight'
@@ -90,11 +102,12 @@ class ProviderUPS(models.Model):
                     'error_message': check_value,
                     'warning_message': False}
         ups_service_type = order.ups_service_type or self.ups_default_service_type
+        if self.env.context.get('compare_rate', False):
+            ups_service_type = self.ups_default_service_type
         result = srm.get_shipping_price(
             shipment_info=shipment_info, packages=packages, shipper=order.company_id.partner_id, ship_from=order.warehouse_id.partner_id,
             ship_to=order.partner_shipping_id, packaging_type=self.ups_default_packaging_id.shipper_package_code, service_type=ups_service_type,
             saturday_delivery=self.ups_saturday_delivery, cod_info=cod_info)
-
         if result.get('error_message'):
             return {'success': False,
                     'price': 0.0,
@@ -117,13 +130,30 @@ class ProviderUPS(models.Model):
         if self.ups_bill_my_account and order.ups_carrier_account:
             # Don't show delivery amount, if ups bill my account option is true
             price = 0.0
-
+        transit_req = srm._add_transit(order.warehouse_id.partner_id, order.partner_shipping_id, total_weight)
+        transit_response = transit_req.content.decode()
+        transit_xml = ET.fromstring(transit_response)
+        transit_dict = {}
+        desc = ''
+        days = ''
+        for moc in transit_xml:
+            flag = False
+            for node in moc.iter():
+                if node.tag.partition('}')[2] == 'ServiceSummary':
+                    flag = True
+                if flag:
+                    if node.tag.partition('}')[2] == 'Description':
+                        desc = node.text
+                    if node.tag.partition('}')[2] == 'BusinessDaysInTransit':
+                        days = node.text
+                transit_dict[desc] = days
         return {'success': True,
                 'price': price,
                 'list_price': list_price,
-                'transit': result['transit'],
+                'transit_days_dict': transit_dict,
                 'error_message': False,
-                'warning_message': False}
+                'warning_message': False,
+                'package_list': package_list}
 
     def ups_send_shipping(self, pickings):
         res = []
