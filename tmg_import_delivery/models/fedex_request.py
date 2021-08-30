@@ -1,4 +1,5 @@
 from odoo.addons.delivery_fedex.models.fedex_request import FedexRequest
+import suds
 
 STATECODE_REQUIRED_COUNTRIES = ['US', 'CA', 'PR ', 'IN']
 
@@ -87,8 +88,9 @@ class Fedex_Request(FedexRequest):
             if (self.response.HighestSeverity != 'ERROR' and self.response.HighestSeverity != 'FAILURE'):
                 if not getattr(self.response, "RateReplyDetails", False):
                     raise Exception("No rating found")
-                transit_time = self.response.RateReplyDetails[0].TransitTime
-                formatted_response['transit_time'] = transit_time and transit_time.replace('_',' ')
+                if 'TransitTime' in self.response.RateReplyDetails[0]:
+                    transit_time = self.response.RateReplyDetails[0].TransitTime
+                    formatted_response['transit_time'] = transit_time and transit_time.replace('_', ' ')
                 for rating in self.response.RateReplyDetails[0].RatedShipmentDetails:
                     if rating.ShipmentRateDetail.RateType == 'PAYOR_ACCOUNT_PACKAGE':
                         formatted_response['price'][rating.ShipmentRateDetail.TotalNetFedExCharge.Currency] = rating.ShipmentRateDetail.TotalNetFedExCharge.Amount
