@@ -339,14 +339,15 @@ class UPS_Request(UPSRequest):
                     <Date>%s</Date>
                     </Pickup>""" % (datetime.now().strftime('%Y%m%d'))
 
-        weight = """<ShipmentWeight>
-        <UnitOfMeasurement>
-        <Code>LBS</Code>
-        </UnitOfMeasurement>
-        <Weight>%s</Weight>
-        </ShipmentWeight>""" % (weight)
-
-        final = root + header + body + req + ship_from + ship_to + pick_up + weight + "</TimeInTransitRequest>" + "</env:Body>" + "</env:Envelope>"
+        # weight = """<ShipmentWeight>
+        # <UnitOfMeasurement>
+        # <Code>LBS</Code>
+        # </UnitOfMeasurement>
+        # <Weight>%d</Weight>
+        # </ShipmentWeight>""" % (int(weight))
+        # print(type(weight))
+        # final = root + header + body + req + ship_from + ship_to + pick_up + weight + "</TimeInTransitRequest>" + "</env:Body>" + "</env:Envelope>"
+        final = root + header + body + req + ship_from + ship_to + pick_up + "</TimeInTransitRequest>" + "</env:Body>" + "</env:Envelope>"
 
         response = requests.post("https://wwwcie.ups.com/webservices/TimeInTransit", data=final)
 
