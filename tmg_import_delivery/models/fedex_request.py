@@ -71,7 +71,7 @@ class Fedex_Request(FedexRequest):
         self.RequestedShipment.RateRequestTypes = ['PREFERRED', 'LIST']
 
     def rate(self):
-        formatted_response = {'price': {}}
+        formatted_response = {'price': {}, 'billing_weight': 0}
         del self.ClientDetail.Region
         if self.hasCommodities:
             self.RequestedShipment.CustomsClearanceDetail.Commodities = self.listCommodities
@@ -96,6 +96,7 @@ class Fedex_Request(FedexRequest):
                         formatted_response['price'][rating.ShipmentRateDetail.TotalNetFedExCharge.Currency] = rating.ShipmentRateDetail.TotalNetFedExCharge.Amount
                     elif rating.ShipmentRateDetail.RateType == 'PAYOR_LIST_PACKAGE':
                         formatted_response['list_price'] = rating.ShipmentRateDetail.TotalNetFedExCharge.Amount
+                        formatted_response['billing_weight'] = rating.ShipmentRateDetail.TotalBillingWeight.Value
 
                 if len(self.response.RateReplyDetails[0].RatedShipmentDetails) == 1:
                     if 'CurrencyExchangeRate' in self.response.RateReplyDetails[0].RatedShipmentDetails[0].ShipmentRateDetail:

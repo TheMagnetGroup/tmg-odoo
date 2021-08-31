@@ -262,6 +262,7 @@ class Delivery_Fedex(models.Model):
                 'transit': request.get('transit_time', ''),
                 'list_price': request.get('list_price', ''),
                 'warning_message': _('Warning:\n%s') % warnings if warnings else False,
+                'billing_weight': request.get('billing_weight', 0),
                 'package_list': package_list}
 
     def fedex_send_shipping(self, pickings):

@@ -264,15 +264,19 @@ class UPS_Request(UPSRequest):
             rate = response.RatedShipment[0]
             charge = rate.TotalCharges
             total_charge = rate.TotalCharges
+            billing_weight = 0
 
             # Some users are qualified to receive negotiated rates
             if 'NegotiatedRateCharges' in rate and rate.NegotiatedRateCharges.TotalCharge.MonetaryValue:
                 charge = rate.NegotiatedRateCharges.TotalCharge
+            if 'BillingWeight' in rate:
+                billing_weight = rate.BillingWeight.Weight
 
             return {
                 'currency_code': charge.CurrencyCode,
                 'price': charge.MonetaryValue,
                 'list_price': total_charge.MonetaryValue,
+                'billing_weight': billing_weight,
             }
 
         except suds.WebFault as e:

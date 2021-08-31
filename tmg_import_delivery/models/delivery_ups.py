@@ -153,6 +153,7 @@ class ProviderUPS(models.Model):
                 'transit_days_dict': transit_dict,
                 'error_message': False,
                 'warning_message': False,
+                'billing_weight': float(result.get('billing_weight', 0)),
                 'package_list': package_list}
 
     def ups_send_shipping(self, pickings):

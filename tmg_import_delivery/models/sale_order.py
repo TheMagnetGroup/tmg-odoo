@@ -44,6 +44,7 @@ class SaleOrder(models.Model):
                                          'transit': res.get('transit', False) or transit_ups,
                                          'price': price,
                                          'without_margin_price': res['without_margin'],
+                                         'billing_weight': res['billing_weight'],
                                          'list_price': res.get('list_price', '')}))
                     if res.get('package_list') and res.get('package_list')[0].get('product_id', False) not in product_list:
                         for package in res.get('package_list'):
