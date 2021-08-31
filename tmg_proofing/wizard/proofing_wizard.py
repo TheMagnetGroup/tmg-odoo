@@ -13,7 +13,18 @@ class SaleOrderLineSendProofWizard(models.TransientModel):
     # explicitly pass in context
 
     def _default_sol(self):
-        return self.env['sale.order.line'].browse(self.env.context.get('active_ids'))[0]
+        sol = self.env['sale.order.line'].browse(self.env.context.get('active_ids'))[0]
+
+        return sol
+
+    def _default_customer(self):
+        SO= self.env['sale.order.line'].browse(self.env.context.get('active_ids'))[0]
+        cust = SO.order_id.partner_id
+        if cust.email:
+            custSet = self.env['res.partner'].browse(cust.id)
+            return custSet
+        else:
+            return []
     sale_line_id = fields.Many2one('sale.order.line', string='Active SOLs', ondelete='cascade', required=True, default=_default_sol)
     sale_order = fields.Many2one('sale.order', related='sale_line_id.order_id')
 
@@ -22,7 +33,7 @@ class SaleOrderLineSendProofWizard(models.TransientModel):
     art_file = fields.Many2one("ir.attachment", string="ArtFiles",
                                domain="[('res_id','=',[sale_order]),('type', '=', 'url'),('res_model', '=', 'sale.order')]")
     suggested_layout = fields.Boolean(string="Suggested Layout")
-    email_ids = fields.Many2many('res.partner', string="Send To")
+    email_ids = fields.Many2many('res.partner', string="Send To",default=_default_customer)
     send_attachments = fields.Boolean(string="Send Attachments")
     work_order = fields.Many2one('mrp.production', string="Work Order",
                                  domain="[('sale_line_id','=',[sale_line_id]),('state', 'not in', ['done', 'cancel'])]")
