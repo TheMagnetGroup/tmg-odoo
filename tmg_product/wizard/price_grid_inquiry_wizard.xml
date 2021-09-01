@@ -21,19 +21,15 @@
                         <field name="attribute_ids" nolabel="1">
                         <tree editable="bottom">
                             <field name="attribute_id" widget="selection"/>
-                            <field name="value_id" domain="[('attribute_id','=',attribute_id)]"/>
-<!--                            <field name="extra_price" readonly="1" sum="Extra Price"/>-->
-
+                            <field name="value_id" domain="[('attribute_id','=',attribute_id)]" widget="selection"/>
                         </tree>
                         <form>
                             <field name="attribute_id"/>
                             <field name="value_id"/>
-                            <field name="extra_price" readonly="1" sum="Extra Price"/>
                         </form>
                     </field>
 
                     </div>
-<!--                    </group>-->
                     <field name="pricelist_grid_ids" mode="tree" nolabel="1" readonly="1">
                         <tree string="Price Grid Inqiury">
                             <field name="product_id" invisible="1"/>
@@ -42,6 +38,7 @@
                             <field name="quantity"/>
                             <field name="catalog_price"/>
                             <field name="net_price"/>
+                            <field name="extra_price"/>
                             <field name="discount_code"/>
                             <field name="start_date"/>
                             <field name="end_date"/>
