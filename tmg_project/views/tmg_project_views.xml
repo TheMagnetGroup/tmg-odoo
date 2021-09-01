@@ -9,6 +9,9 @@
                 <xpath expr="//field[@name='name']" position="replace">
                     <field name="name"/> (#<field name="id"/>)
                 </xpath>
+                <xpath expr="//kanban" position="attributes">
+                    <attribute name="default_order">date_deadline,create_date</attribute>
+                </xpath>
             </field>
         </record>
 
