@@ -92,7 +92,7 @@ class Fedex_Request(FedexRequest):
                     transit_time = self.response.RateReplyDetails[0].TransitTime
                     formatted_response['transit_time'] = transit_time and transit_time.replace('_', ' ')
                 for rating in self.response.RateReplyDetails[0].RatedShipmentDetails:
-                    if rating.ShipmentRateDetail.RateType == 'PAYOR_ACCOUNT_PACKAGE':
+                    if rating.ShipmentRateDetail.RateType in ['PAYOR_ACCOUNT_PACKAGE', 'PAYOR_ACCOUNT_SHIPMENT']:
                         formatted_response['price'][rating.ShipmentRateDetail.TotalNetFedExCharge.Currency] = rating.ShipmentRateDetail.TotalNetFedExCharge.Amount
                     elif rating.ShipmentRateDetail.RateType == 'PAYOR_LIST_PACKAGE':
                         formatted_response['list_price'] = rating.ShipmentRateDetail.TotalNetFedExCharge.Amount
