@@ -353,9 +353,22 @@ class ProductDecorationArea(models.Model):
 
     @api.constrains('default_decoration')
     def _check_def_decoration(self):
-        if self.env['product.template.decorationarea'].search_count([('product_tmpl_id', '=', self.product_tmpl_id.id), ('default_decoration', '=', True)]) > 1:
-            raise ValidationError('Only one decoration method/area can be marked as the default!')
+        for area in self:
+            if self.env['product.template.decorationarea'].search_count([
+                ('product_tmpl_id', '=', area.product_tmpl_id.id), ('default_decoration', '=', True)]) > 1:
+                raise ValidationError('Only one decoration method/area can be marked as the default!')
         return True
+
+    @api.constrains('decoration_area_id', 'decoration_method_id', 'height', 'width', 'shape', 'diameter')
+    def _check_area_duplicates(self):
+        for area in self:
+            if self.env['product.template.decorationarea'].search_count([
+                ('product_tmpl_id', '=', area.product_tmpl_id.id), ('decoration_area_id', '=', area.decoration_area_id.id),
+                ('decoration_method_id', '=', area.decoration_method_id.id), ('height', '=', area.height),
+                ('width', '=', area.width), ('shape', '=', area.shape), ('diameter', '=', area.diameter)]) > 1:
+                raise ValidationError('Duplicates are not allowed in Decoration Area\'s!')
+        return True
+
 
 class ProductAdditonalCharges(models.Model):
     _name = 'product.addl.charges'
