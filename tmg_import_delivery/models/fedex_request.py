@@ -93,14 +93,20 @@ class Fedex_Request(FedexRequest):
                     formatted_response['transit_time'] = transit_time and transit_time.replace('_', ' ')
                 for rating in self.response.RateReplyDetails[0].RatedShipmentDetails:
                     if rating.ShipmentRateDetail.RateType in ['PAYOR_ACCOUNT_PACKAGE', 'PAYOR_ACCOUNT_SHIPMENT']:
-                        formatted_response['price'][rating.ShipmentRateDetail.TotalNetFedExCharge.Currency] = rating.ShipmentRateDetail.TotalNetFedExCharge.Amount
+                        formatted_response['price'][rating.ShipmentRateDetail.TotalNetFedExCharge.Currency] = \
+                            rating.ShipmentRateDetail.TotalNetFedExCharge.Amount + rating.ShipmentRateDetail.TotalSurcharges.Amount
                     elif rating.ShipmentRateDetail.RateType == 'PAYOR_LIST_PACKAGE':
-                        formatted_response['list_price'] = rating.ShipmentRateDetail.TotalNetFedExCharge.Amount
+                        formatted_response['list_price'] = rating.ShipmentRateDetail.TotalNetFedExCharge.Amount + \
+                                                           rating.ShipmentRateDetail.TotalSurcharges.Amount
                         formatted_response['billing_weight'] = rating.ShipmentRateDetail.TotalBillingWeight.Value
 
                 if len(self.response.RateReplyDetails[0].RatedShipmentDetails) == 1:
                     if 'CurrencyExchangeRate' in self.response.RateReplyDetails[0].RatedShipmentDetails[0].ShipmentRateDetail:
-                        formatted_response['price'][self.response.RateReplyDetails[0].RatedShipmentDetails[0].ShipmentRateDetail.CurrencyExchangeRate.FromCurrency] = self.response.RateReplyDetails[0].RatedShipmentDetails[0].ShipmentRateDetail.TotalNetFedExCharge.Amount / self.response.RateReplyDetails[0].RatedShipmentDetails[0].ShipmentRateDetail.CurrencyExchangeRate.Rate
+                        formatted_response['price']
+                        [self.response.RateReplyDetails[0].RatedShipmentDetails[0].ShipmentRateDetail.CurrencyExchangeRate.FromCurrency] = \
+                            (self.response.RateReplyDetails[0].RatedShipmentDetails[0].ShipmentRateDetail.TotalNetFedExCharge.Amount +
+                             self.response.RateReplyDetails[0].RateShipmentDetails[0].ShipmentRateDetail.TotalSurcharges.Amount) / \
+                            self.response.RateReplyDetails[0].RatedShipmentDetails[0].ShipmentRateDetail.CurrencyExchangeRate.Rate
             else:
                 errors_message = '\n'.join([("%s: %s" % (n.Code, n.Message)) for n in self.response.Notifications if (n.Severity == 'ERROR' or n.Severity == 'FAILURE')])
                 formatted_response['errors_message'] = errors_message
