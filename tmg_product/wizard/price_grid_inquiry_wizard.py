@@ -31,8 +31,7 @@ class tmg_product_pricelist_wizard(models.TransientModel):
         return p
 
     product_id = fields.Many2one('product.template', string='Product', ondelete='cascade', required=True, default=_default_product)
-    extra_price = fields.Float("Extra Price")
-    configure_variants = fields.Boolean("Configure Variants", default=False)
+    extra_price = fields.Float(string="Extra Price")
     attribute_ids = fields.One2many('configure.product.attribute', 'parent_id', string="Attributes")
 
     # explicitly pass in context
