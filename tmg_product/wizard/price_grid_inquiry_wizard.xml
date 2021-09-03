@@ -14,10 +14,8 @@
                             <field name="product_id" readonly="1"/>
                         </group>
                     </group>
-                    <label for="configure_variants" string="Configure Variants"/>
-                    <field name="configure_variants" string="Configure Variants"/>
                     <label for="attribute_ids" invisible="1"/>
-                    <div attrs="{'invisible':[('configure_variants','=',False)]}">
+                    <div>
                         <field name="attribute_ids" nolabel="1">
                         <tree editable="bottom">
                             <field name="attribute_id" widget="selection"/>
