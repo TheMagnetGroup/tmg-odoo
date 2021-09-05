@@ -19,7 +19,7 @@ from io import BytesIO
 from lxml import etree as ET
 import ssl
 import ftplib
-from enum import Enum
+# from enum import Enum
 
 _logger = logging.getLogger(__name__)
 
@@ -385,16 +385,16 @@ class ProductAdditonalCharges(models.Model):
     ], string='Charge Secondary UOM', required=True)
 
 
-class PriceType(Enum):
-    Customer = 1
-    List = 2
-    Net = 3
-    All = 4
-
-class ConfigurationType(Enum):
-    Decorated = 1
-    Blank = 2
-    All = 3
+# class PriceType(Enum):
+#     Customer = 1
+#     List = 2
+#     Net = 3
+#     All = 4
+#
+# class ConfigurationType(Enum):
+#     Decorated = 1
+#     Blank = 2
+#     All = 3
 
 class ProductTemplate(models.Model):
     _inherit = 'product.template'
@@ -409,6 +409,7 @@ class ProductTemplate(models.Model):
     user_data_error = fields.Boolean(string='Data Error Resolved by User')
     image_last_change_date = fields.Datetime(string="Image Last Change Date")
     brand = fields.Many2one('product.category', related='categ_id.brand')
+    data_last_checked_date = fields.Datetime(string="Data Last Checked Date")
 
     @api.constrains('decoration_method_ids')
     def _check_deco_methods(self):
@@ -419,9 +420,16 @@ class ProductTemplate(models.Model):
         return True
 
     def get_product_saleable(self):
-        return self.search(
-            [('active', '=', True), ('sale_ok', '=', True), ('website_published', '=', True), ('type', '=', 'product')]
-        )
+        if self.env.context.get('build_xml', False):
+            current_date = datetime.now()
+            date_limit = current_date - timedelta(hours=24)
+            res = self.search([('active', '=', True), ('sale_ok', '=', True), ('website_published', '=', True),
+                               ('type', '=', 'product'), '|', ('data_last_checked_date', '<=', date_limit),
+                               ('data_last_checked_date', '=', False)], limit=25)
+        else:
+            res = self.search([('active', '=', True), ('sale_ok', '=', True), ('website_published', '=', True),
+                               ('type', '=', 'product')])
+        return res
 
     @api.model
     def _build_all_xml(self):
@@ -438,7 +446,7 @@ class ProductTemplate(models.Model):
             return
 
         # Get a list of all active products that can be sold
-        products = self.get_product_saleable()
+        products = self.with_context(build_xml=True).get_product_saleable()
 
         # Since a single change the in the system could cause every product's standard XML to be rebuilt, we will
         # break up the products into chunks of 100 to avoid the task being timed out.
@@ -450,6 +458,7 @@ class ProductTemplate(models.Model):
         #     cr.commit()
         for product in products:
             product._build_std_xml()
+            product.write({'data_last_checked_date': datetime.now()})
             cr.commit()
             _logger.info("Built XML for product '{0}'".format(product.name))
         _logger.info("Product XML build process complete")
@@ -926,10 +935,10 @@ class ProductTemplate(models.Model):
     # This routine builds the decoration_locations node structure of the standard xml.
     # The parameters are:
     #   * parent element tree
-    #   * deco = "all", "decorated" or "blank"
-    #   * pricing = "all", "catalog", "net" or "customer"
+    #   * deco = "All", "Decorated" or "Blank"
+    #   * pricing = "All", "List", "Cet" or "Customer"
     #   * partner = the partner ID for customer pricing
-    def _build_deco_areas(self, parent_element, deco=ConfigurationType.All, pricing=PriceType.All, partner=None):
+    def _build_deco_areas(self, parent_element, deco="All", pricing="All", partner=None):
 
         price_grids = {}
 
@@ -943,9 +952,9 @@ class ProductTemplate(models.Model):
 
         # Filter the deco methods based on the passed parameters
         deco_ids = None
-        if deco == ConfigurationType.Blank:
+        if deco == "Blank":
             deco_ids = self.decoration_area_ids.filtered(lambda l: l.decoration_method_id.name == "Blank")
-        elif deco == ConfigurationType.Decorated:
+        elif deco == "Decorated":
             deco_ids = self.decoration_area_ids.filtered(lambda l: l.decoration_method_id.name != "Blank")
         else:
             deco_ids = self.decoration_area_ids
@@ -1030,11 +1039,11 @@ class ProductTemplate(models.Model):
                 ET.SubElement(quantity_elem, "discount_code").text = str(price_grid_dict['discount_codes'][idx])
                 ET.SubElement(quantity_elem, "net_price").text = "{price:.{dp}f}".format(
                     price=price_grid_dict['net_prices'][idx], dp=price_digits)
-                if pricing != PriceType.All:
-                    if pricing == PriceType.List:
+                if pricing != "All":
+                    if pricing == "List":
                         ET.SubElement(quantity_elem, "price").text = "{price:.{dp}f}".format(
                             price=price_grid_dict['catalog_prices'][idx], dp=price_digits)
-                    elif pricing == PriceType.Net or pricing == PriceType.Customer:
+                    elif pricing == "Net" or pricing == "Customer":
                         ET.SubElement(quantity_elem, "price").text = "{price:.{dp}f}".format(
                             price=price_grid_dict['net_prices'][idx], dp=price_digits)
                 ET.SubElement(quantity_elem, "date_start").text = str(price_grid_dict['effective_dates'][idx])
@@ -1078,11 +1087,11 @@ class ProductTemplate(models.Model):
                                 ac_price_grid_dict['discount_codes'][0])
                             ET.SubElement(addl_charge_elem, "net_price").text = "{price:.{dp}f}".format(
                                 price=ac_price_grid_dict['net_prices'][0], dp=price_digits)
-                            if pricing != PriceType.All:
-                                if pricing == PriceType.List:
+                            if pricing != "All":
+                                if pricing == "List":
                                     ET.SubElement(addl_charge_elem, "price").text = "{price:.{dp}f}".format(
                                         price=ac_price_grid_dict['catalog_prices'][0], dp=price_digits)
-                                elif pricing == PriceType.Net or pricing == PriceType.Customer:
+                                elif pricing == "Net" or pricing == "Customer":
                                     ET.SubElement(addl_charge_elem, "price").text = "{price:.{dp}f}".format(
                                         price=ac_price_grid_dict['net_prices'][0], dp=price_digits)
                             ET.SubElement(addl_charge_elem, "date_start").text = str(
@@ -1105,18 +1114,18 @@ class ProductTemplate(models.Model):
                                     ac_price_grid_dict['discount_codes'][0])
                                 ET.SubElement(addl_charge_elem, "repeat_net_price").text = "{price:.{dp}f}".format(
                                     price=ac_price_grid_dict['net_prices'][0], dp=price_digits)
-                                if pricing != PriceType.All:
-                                    if pricing == PriceType.List:
+                                if pricing != "All":
+                                    if pricing == "List":
                                         ET.SubElement(addl_charge_elem, "repeat_price").text = "{price:.{dp}f}".format(
                                             price=ac_price_grid_dict['catalog_prices'][0], dp=price_digits)
-                                    elif pricing == PriceType.Net or pricing == PriceType.Customer:
+                                    elif pricing == "Net" or pricing == "Customer":
                                         ET.SubElement(addl_charge_elem, "repeat_price").text = "{price:.{dp}f}".format(
                                             price=ac_price_grid_dict['net_prices'][0], dp=price_digits)
                         else:
                             ET.SubElement(addl_charge_elem, "repeat_catalog_price").text = ""
                             ET.SubElement(addl_charge_elem, "repeat_discount_code").text = ""
                             ET.SubElement(addl_charge_elem, "repeat_net_price").text = ""
-                            if pricing != PriceType.All:
+                            if pricing != "All":
                                 ET.SubElement(addl_charge_elem, "repeat_price").text = ""
 
         return locations_elem
@@ -1261,6 +1270,8 @@ class ProductTemplate(models.Model):
                     for attribute_value in variant.attribute_value_ids:
                         if attribute_value.attribute_id.category in ('prodcolor', 'thickness'):
                             ET.SubElement(pv_elem, "product_variant_swatch").text = (attribute_value.html_color or '')
+                            pms_color = attribute_value.pms_color and attribute_value.pms_color.name
+                            ET.SubElement(pv_elem, "product_variant_pms_color").text = pms_color if pms_color else ''
                             ET.SubElement(pv_elem, "product_variant_color").text = attribute_value.name
                             break
                     # Write the packaging information for this product variant. We will only write out the first packaging
@@ -1285,6 +1296,10 @@ class ProductTemplate(models.Model):
                             ET.SubElement(attr_elem, "attribute_name").text = attribute_value.attribute_id.name
                             ET.SubElement(attr_elem, "attribute_value").text = attribute_value.name
                             ET.SubElement(attr_elem, "attribute_sequence").text = str(attribute_value.sequence)
+                            if attribute_value.attribute_id.category == 'prodcolor':
+                                pms_color = attribute_value.pms_color and attribute_value.pms_color.name
+                                ET.SubElement(attr_elem, "pms_color").text = pms_color if pms_color else ''
+                                ET.SubElement(attr_elem, "html_color").text = (attribute_value.html_color or '')
                     # Upload the variant's images to public storage
                     pv_images_elem = ET.SubElement(pv_elem, "images")
                     if variant.image_variant:
@@ -1423,16 +1438,16 @@ class ProductTemplate(models.Model):
             raise(e)
 
         elements_to_rename = {}
-        if price_type == PriceType.Net:
+        if price_type == "Net":
             elements_to_rename["//net_price"] = "price"
             elements_to_rename["//repeat_net_price"] = "repeat_price"
-        elif price_type == PriceType.List:
+        elif price_type == "List":
             elements_to_rename["//catalog_price"] = "price"
             elements_to_rename["//repeat_catalog_price"] = "repeat_price"
 
         # If the price type is customer then we will remove the decoration locations element and rewrite it
         # getting customer based pricing and specific decoration types
-        if price_type == PriceType.Customer:
+        if price_type == "Customer":
             deco_locations = xml_doc.findall("//decoration_locations")
             if deco_locations:
                 for loc in deco_locations:
@@ -1451,13 +1466,17 @@ class ProductTemplate(models.Model):
         # If the config type is not all and the pricing type is not customer then we need to remove the
         # deco methods that do not apply to the request. Note that the _build_deco_areas routine handles
         # including/excluding decoration methods so we don't need to do this again for customer pricing
-        if config_type != ConfigurationType.All and price_type != PriceType.Customer:
+        if config_type != "All" and price_type != "Customer":
             deco_methods = xml_doc.findall("//decoration_method")
             for method in deco_methods:
                 method_name = method.find("name").text
-                if config_type == ConfigurationType.Blank and method_name != "Blank" \
-                        or config_type == ConfigurationType.Decorated and method_name == "Blank":
+                if config_type == "Blank" and method_name != "Blank" \
+                        or config_type == "Decorated" and method_name == "Blank":
                     method.getparent().remove(method)
+
+        # Add the passed price type
+        ET.SubElement(xml_doc.getroot(), "priceType").text = price_type
+        ET.SubElement(xml_doc.getroot(), "configurationType").text = config_type
 
         # Decode the XSLT file
         xslt = base64.b64decode(xslt_attach.xslt_file.datas)
@@ -1472,9 +1491,9 @@ class ProductTemplate(models.Model):
         return [xslt_result, xml_doc_string]
 
     def _test_pricing_and_config(self, price_type, config_type, partner):
-        price_type_enum = PriceType(price_type)
-        config_type_enum = ConfigurationType(config_type)
-        result = self._build_ppc_response(price_type_enum, config_type_enum, partner)
+        # price_type_enum = PriceType(price_type)
+        # config_type_enum = ConfigurationType(config_type)
+        result = self._build_ppc_response(price_type, config_type, partner)
         # Base 64 encode the translated data
         store_xslt_result = base64.b64encode(result[0])
 
