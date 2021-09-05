@@ -3,7 +3,7 @@ import os
 import hashlib
 import logging
 import re
-from odoo import api, models,fields, _
+from odoo import api, models,fields
 from odoo.tools.safe_eval import safe_eval
 from odoo.exceptions import UserError, ValidationError
 _logger = logging.getLogger(__name__)
@@ -40,7 +40,28 @@ class Document(models.Model):
             if(record.is_in_s3==True):
                 self.delete_s3_attachment()
             return super(Document,record).unlink()
-    
+
+    @api.multi
+    def get_public_url(self):
+        connection = False
+        s3_bucket = False
+        s3_service = False
+        for attach in self:
+            if (attach.is_in_s3 == False):
+                continue
+            if (attach.s3_connection_id.id == False):
+                connection = self.env['pr1_s3.s3_connection'].get_s3_connection(attach.res_model, attach.mimetype)
+            elif (connection == False or attach.s3_connection_id.id != connection.id):
+                connection = attach.s3_connection_id
+                s3_bucket, s3_service = connection.get_bucket_client()
+            if (connection == False):
+                raise UserError("The connection associated with this attachment is not accessible")
+
+            obj = s3_service.generate_presigned_url('get_object', Params = {'Bucket': s3_bucket, 'Key': attach.store_fname}, ExpiresIn = 100)
+
+
+            return obj
+
     @api.multi
     def delete_s3_attachment(self):
         connection=False
@@ -115,7 +136,8 @@ class Document(models.Model):
             try:
                 s3_obj = s3_bucket.put_object(Key=fname,Body=bin_data,ACL='public-read',ContentType=attach.mimetype,Metadata=Metadata)
             except Exception as e:
-                raise exceptions.UserError(e.message)
+                r = 3
+                # raise exceptions.UserError(e.message)
 
             vals = {
                 'checksum': self._compute_checksum(bin_data),

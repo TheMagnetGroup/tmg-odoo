@@ -408,6 +408,7 @@ class ProductTemplate(models.Model):
     data_errors = fields.Html(string='Required Data Errors')
     user_data_error = fields.Boolean(string='Data Error Resolved by User')
     image_last_change_date = fields.Datetime(string="Image Last Change Date")
+    brand = fields.Many2one('product.category', related='categ_id.brand')
     data_last_checked_date = fields.Datetime(string="Data Last Checked Date")
 
     @api.constrains('decoration_method_ids')
