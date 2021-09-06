@@ -122,6 +122,7 @@ class S3Connection(models.Model):
                     'type': 'url',
                 }
                 attach.write(vals)
+
     
     @api.multi
     def get_bucket(self):
@@ -139,6 +140,31 @@ class S3Connection(models.Model):
                 s3_bucket.create_bucket(Bucket=record.s3_bucket_name)
                 
             return bucket,s3_bucket
+
+    @api.multi
+    def get_bucket_client(self):
+        for record in self:
+            s3_bucket = False
+            if (record.s3_api_url != "" and record.s3_api_url != False):
+                s3_bucket = boto3.client('s3', aws_access_key_id=record.s3_access_key,
+                                           aws_secret_access_key=record.s3_secret_key, endpoint_url=record.s3_api_url)
+            else:
+                s3_bucket = boto3.client('s3', aws_access_key_id=record.s3_access_key,
+                                           aws_secret_access_key=record.s3_secret_key)
+            bucket = record.s3_bucket_name
+
+            if not bucket:
+                s3_bucket.create_bucket(Bucket=record.s3_bucket_name)
+
+            return bucket, s3_bucket
+
+    def get_public_url(self):
+        att = self.env['ir.attachment'].browse(577245)
+        t = att.get_public_url()
+        if t:
+            f = "5"
+
+
     @api.multi
     def get_s3_url(self,file_name,s3_resource):
         object_url=False

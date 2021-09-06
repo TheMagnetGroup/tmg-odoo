@@ -10,8 +10,24 @@
             <field name="arch" type="xml">
                 <form>
                     <group>
-		                <field name="product_id" readonly="1"/>
-		            </group>
+                        <group>
+                            <field name="product_id" readonly="1"/>
+                        </group>
+                    </group>
+                    <label for="attribute_ids" invisible="1"/>
+                    <div>
+                        <field name="attribute_ids" nolabel="1">
+                        <tree editable="bottom">
+                            <field name="attribute_id" widget="selection"/>
+                            <field name="value_id" domain="[('attribute_id','=',attribute_id)]" widget="selection"/>
+                        </tree>
+                        <form>
+                            <field name="attribute_id"/>
+                            <field name="value_id"/>
+                        </form>
+                    </field>
+
+                    </div>
                     <field name="pricelist_grid_ids" mode="tree" nolabel="1" readonly="1">
                         <tree string="Price Grid Inqiury">
                             <field name="product_id" invisible="1"/>
@@ -20,6 +36,7 @@
                             <field name="quantity"/>
                             <field name="catalog_price"/>
                             <field name="net_price"/>
+                            <field name="extra_price"/>
                             <field name="discount_code"/>
                             <field name="start_date"/>
                             <field name="end_date"/>
