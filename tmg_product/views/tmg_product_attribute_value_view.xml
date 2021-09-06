@@ -2,6 +2,17 @@
 <odoo>
     <data>
 
+        <record id="product_template_attribute_value_view_tree_tmg_inherit" model="ir.ui.view">
+            <field name="name">tmg.product.template.attribute.value.tree</field>
+            <field name="model">product.template.attribute.value</field>
+            <field name="inherit_id" ref="product.product_template_attribute_value_view_tree"/>
+            <field name="arch" type="xml">
+                <field name="price_extra" position="before">
+                    <field name="pms_color" options="{'no_create': True, 'no_edit': True}"/>
+                </field>
+            </field>
+        </record>
+
         <record id="tmg_product_attribute_value_tree_view" model="ir.ui.view">
             <field name="name">tmg.product.attribute.value.tree</field>
             <field name="model">product.attribute.value</field>
