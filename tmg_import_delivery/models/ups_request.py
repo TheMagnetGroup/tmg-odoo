@@ -325,19 +325,23 @@ class UPS_Request(UPSRequest):
 
         ship_from = """<ShipFrom>
         <Address>
+        <Town>%s</Town>
+        <City>%s</City>
         <StateProvinceCode>%s</StateProvinceCode>
         <CountryCode>%s</CountryCode>
         <PostalCode>%s</PostalCode>
         </Address>
-        </ShipFrom>""" % (ship_from.state_id.code, ship_from.country_id.code, ship_from.zip)
+        </ShipFrom>""" % (ship_from.street, ship_from.city, ship_from.state_id.code, ship_from.country_id.code, ship_from.zip)
 
         ship_to = """<ShipTo>
         <Address>
+        <Town>%s</Town>
+        <City>%s</City>
         <StateProvinceCode>%s</StateProvinceCode>
         <CountryCode>%s</CountryCode>
         <PostalCode>%s</PostalCode>
         </Address>
-        </ShipTo>""" % (ship_to.state_id.code, ship_to.country_id.code, ship_to.zip)
+        </ShipTo>""" % (ship_to.street, ship_to.city, ship_to.state_id.code, ship_to.country_id.code, ship_to.zip)
 
         pick_up = """<Pickup>
                     <Date>%s</Date>

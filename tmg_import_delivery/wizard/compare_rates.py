@@ -30,6 +30,10 @@ class CompareAllRates(models.TransientModel):
         order_id = self.env['sale.order'].browse(self._context.get('active_id'))
         order_id.carrier_id = self.carrier_id.id
         order_id.delivery_price = self.price
+        if self.carrier_id.delivery_type == 'ups':
+            order_id.ups_service_type = self.carrier_id.ups_default_service_type
+        elif self.carrier_id.delivery_type == 'fedex':
+            order_id.fedex_service_type = self.carrier_id.fedex_service_type
         order_id.set_delivery_line()
 
 
