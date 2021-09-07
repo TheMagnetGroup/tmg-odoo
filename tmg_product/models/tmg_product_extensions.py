@@ -784,6 +784,8 @@ class ProductTemplate(models.Model):
                 messages.append("<li>Product Market Introduction Date missing</li>")
             if not self.website_meta_keywords:
                 messages.append("<li>Product Keywords missing</li>")
+            if not self.brand and not self.categ_id:
+                messages.append("<li>Product Brand missing</li>")
             if not self.public_categ_ids:
                 messages.append("<li>Product Website Categories missing</li>")
             else:
@@ -1167,8 +1169,8 @@ class ProductTemplate(models.Model):
             ET.SubElement(product, "product_id").text = str(self.id)
             ET.SubElement(product, "product_name").text = self.name
             # The name of the product's category is the product category. The name of the top category in the path
-            # is the brand
-            ET.SubElement(product, "brand_name").text = self.categ_id.get_parent_name()
+            # is the brand, related field added in product to directly fetch the brand name.
+            ET.SubElement(product, "brand_name").text = self.get_brand_name()
             ET.SubElement(product, "category_name").text = self.categ_id.name
             ET.SubElement(product, "website_description").text = re.sub('<[^<]+?>', '', self.website_description)
             ET.SubElement(product, "website_description_html").text = self.website_description
@@ -1654,6 +1656,16 @@ class ProductTemplate(models.Model):
                         export_account.write({
                             'export_product_data': True
                         })
+
+    def get_brand_name(self):
+        for product in self:
+            if product.brand:
+                return product.brand.name
+            elif product.categ_id:
+                return product.categ_id.get_parent_name()
+            else:
+                return 'No Data Available'
+
 
 class ProductCategory(models.Model):
     _inherit = 'product.category'
