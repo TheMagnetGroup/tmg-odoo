@@ -19,6 +19,7 @@
                                         <field name="without_margin_price" readonly="1"/>
                                         <field name="price" readonly="1"/>
                                         <field name="billing_weight" readonly="1"/>
+                                        <field name="remark" readonly="1"/>
                                         <button name="set_delivery_price" string="Add" icon="fa-plus" type="object"/>
                                     </tree>
                                     <form>
@@ -30,6 +31,7 @@
                                                 <field name="without_margin_price" readonly="1"/>
                                                 <field name="price" readonly="1"/>
                                                 <field name="billing_weight" readonly="1"/>
+                                                <field name="remark" readonly="1"/>
                                             </group>
                                         </sheet>
                                     </form>

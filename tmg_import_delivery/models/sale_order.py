@@ -34,6 +34,7 @@ class SaleOrder(models.Model):
             for carrier in carrier_ids:
                 res = carrier.with_context(compare_rate=True).rate_shipment(order)
                 transit_ups_dict = res.get('transit_days_dict', {})
+                transit_ups = '0 DAYS'
                 if res['success']:
                     price = res['price']
                     if transit_ups_dict:
@@ -56,7 +57,14 @@ class SaleOrder(models.Model):
                                 'pieces_per_box': package.get('number_of_pieces', 0)}))
                         product_list.append(res.get('package_list')[0].get('product_id', False))
                 else:
-                    continue
+                    rates.append((0, 0, {'carrier_id': carrier.id,
+                                         'transit': '0 DAYS',
+                                         'price': 0,
+                                         'without_margin_price': 0,
+                                         'billing_weight': 0,
+                                         'list_price': 0,
+                                         'remark': res['error_message'] if res['error_message'] else res['warning_message'],
+                                         }))
             if not rates:
                 raise UserError("Currently this service not available")
             rate_id = self.env['compare.rates'].create({

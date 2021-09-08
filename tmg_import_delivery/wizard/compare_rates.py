@@ -22,9 +22,10 @@ class CompareAllRates(models.TransientModel):
     price = fields.Float(string="Marked Up Price")
     without_margin_price = fields.Float(string="Negotiated Price")
     transit = fields.Char(string="Transit Time")
-    list_price = fields.Char(string="List Price")
+    list_price = fields.Float(string="List Price")
     package_details = fields.Text(string="Package Details")
     billing_weight = fields.Float(string="Billing Weight")
+    remark = fields.Char(string='Remarks')
 
     def set_delivery_price(self):
         order_id = self.env['sale.order'].browse(self._context.get('active_id'))
