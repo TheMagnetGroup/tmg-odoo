@@ -130,23 +130,24 @@ class ProviderUPS(models.Model):
         if self.ups_bill_my_account and order.ups_carrier_account:
             # Don't show delivery amount, if ups bill my account option is true
             price = 0.0
-        transit_req = srm._add_transit(order.warehouse_id.partner_id, order.partner_shipping_id, total_weight)
-        transit_response = transit_req.content.decode()
-        transit_xml = ET.fromstring(transit_response)
         transit_dict = {}
-        desc = ''
-        days = ''
-        for moc in transit_xml:
-            flag = False
-            for node in moc.iter():
-                if node.tag.partition('}')[2] == 'ServiceSummary':
-                    flag = True
-                if flag:
-                    if node.tag.partition('}')[2] == 'Description':
-                        desc = node.text
-                    if node.tag.partition('}')[2] == 'BusinessDaysInTransit':
-                        days = node.text
-                transit_dict[desc] = days
+        if self.env.context.get('compare_rate', False):
+            transit_req = srm._add_transit(order.warehouse_id.partner_id, order.partner_shipping_id, total_weight)
+            transit_response = transit_req.content.decode()
+            transit_xml = ET.fromstring(transit_response)
+            desc = ''
+            days = ''
+            for moc in transit_xml:
+                flag = False
+                for node in moc.iter():
+                    if node.tag.partition('}')[2] == 'ServiceSummary':
+                        flag = True
+                    if flag:
+                        if node.tag.partition('}')[2] == 'Description':
+                            desc = node.text
+                        if node.tag.partition('}')[2] == 'BusinessDaysInTransit':
+                            days = node.text
+                    transit_dict[desc] = days
         return {'success': True,
                 'price': price,
                 'list_price': list_price,

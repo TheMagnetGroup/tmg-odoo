@@ -35,7 +35,7 @@ class CompareAllRates(models.TransientModel):
             order_id.ups_service_type = self.carrier_id.ups_default_service_type
         elif self.carrier_id.delivery_type == 'fedex':
             order_id.fedex_service_type = self.carrier_id.fedex_service_type
-        order_id.set_delivery_line()
+        # order_id.set_delivery_line()      # Add to order is not require when selecting new carrier
 
 
 class ComparePackageData(models.TransientModel):
