@@ -439,6 +439,14 @@ class ProductTemplate(models.Model):
             res = self.search([('active', '=', True), ('sale_ok', '=', True), ('website_published', '=', True),
                                ('type', '=', 'product'), '|', ('data_last_checked_date', '<=', date_limit),
                                ('data_last_checked_date', '=', False)], limit=25)
+        elif self.env.context.get('sage_product_check', False):
+            if self.env.context.get('company_id', False):
+                domain = [('active', '=', True), ('sale_ok', '=', True), ('website_published', '=', True),
+                          ('type', '=', 'product'), ('company_id', '=', self.env.context.get('company_id').id)]
+            else:
+                domain = [('active', '=', True), ('sale_ok', '=', True), ('website_published', '=', True),
+                          ('type', '=', 'product')]
+            res = self.search(domain)
         else:
             res = self.search([('active', '=', True), ('sale_ok', '=', True), ('website_published', '=', True),
                                ('type', '=', 'product')])

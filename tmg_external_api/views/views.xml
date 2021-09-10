@@ -82,6 +82,7 @@
                     <field name="file_extension"/>
                     <field name="folder"/>
                     <field name="image_folder"/>
+                    <field name="company_id" options="{'no_create_edit':True}"/>
 				</tree>
 	   		</field>
 	    </record>
