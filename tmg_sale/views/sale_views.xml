@@ -42,5 +42,43 @@
                 </xpath>
       </field>
    </record>
+
+   <record id="tmg_mrp_bom_form_view" model="ir.ui.view">
+        <field name="name">tmg.mrp.bom.form.view</field>
+        <field name="model">mrp.bom</field>
+        <field name="inherit_id" ref="mrp.mrp_bom_form_view" />
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='has_attachments']" position="after">
+                <field name="cost" attrs="{'invisible': [('calc_percent','!=',0)]}"/>
+                <field name="calc_percent" attrs="{'invisible': [('calc_percent','=',0)]}"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="tmg_product_category_form" model="ir.ui.view">
+        <field name="name">tmg.product.category.form</field>
+        <field name="model">product.category</field>
+        <field name="inherit_id" ref="product.product_category_form_view" />
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='parent_id']" position="after">
+                <field name="overhead_percent"/>
+                <field name="scrap_percent"/>
+            </xpath>
+        </field>
+    </record>
+
+     <record id="tmg_product_cost_calc_form" model="ir.ui.view">
+        <field name="name">tmg.product.cost.calc.form</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_form_view" />
+        <field name="arch" type="xml">
+            <xpath expr="//group[@name='accounting']" position="inside">
+                <group name="product_cost_calc" string="Cost Calculation" attrs="{'invisible': [('type','!=','service')]}" groups="account.group_account_user">
+                    <field name="cost_calc_type"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
   </data>
 </odoo>
