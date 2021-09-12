@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="pellet_base_weight" model="ir.config_parameter">
+            <field name="key">pallet_base_weight</field>
+            <field name="value">0</field>
+        </record>
+    </data>
+</odoo>
