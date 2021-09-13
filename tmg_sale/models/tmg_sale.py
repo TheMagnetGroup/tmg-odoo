@@ -210,8 +210,12 @@ class ProductTemplate(models.Model):
 class BOMLine(models.Model):
     _inherit = 'mrp.bom.line'
 
-    cost = fields.Float(related="product_id.standard_price", store=False, name='Cost')
+    cost = fields.Float(compute="_get_line_cost", store=False, name='Cost')
     calc_percent = fields.Float(compute="_get_calc_percent", store=False, name='Cost Calc %')
+
+    def _get_line_cost(self):
+        for line in self:
+            line.cost = line.product_id.standard_price
 
     def _get_calc_percent(self):
         for line in self:
