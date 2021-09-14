@@ -71,13 +71,25 @@ class SaleOrderLine(models.Model):
                 if attribute.attribute_id.name.strip() == "Decoration Method":
                     line.decoration_method = attribute.name
 
-    def _compute_bom_cost(self, product_id):
+    # This function returns a list of lists that has the lines on the BOM that apply to the
+    # product passed, based on both variants that create attributes and variants that do not create
+    # attributes.  Each list contains:
+    #   product id from the bom line
+    #   quantity from the bom line
+    #   cost of the product id from the bom line
+    #   extended cost based on the quantity * cost
+    #   cost type which can be material, labor, overhead or scrap
+    def _get_bom_cost_detail(self, product_id):
         mtl = 0.0
         lab = 0.0
+        scrap = 0.0
         ovh_pct = 0
         scrap_pct = 0.0
-        ovh = 0.0
         include_line = False
+        cost_detail = []
+        cost = 0.0
+        cost_type = None
+
         # Get the non-variant creating attribute IDs
         ptav = []
         for av in self.product_no_variant_attribute_value_ids:
@@ -96,10 +108,16 @@ class SaleOrderLine(models.Model):
             if include_line:
                 # Products of type 'product' (Storeable Product) or 'consu' (Consumable) will be added to the material bucket
                 if line.product_id.product_tmpl_id.type == 'product' or line.product_id.product_tmpl_id.type == 'consu':
-                    mtl += (line.product_id.standard_price * line.product_qty)
+                    cost_type = 'material'
+                    cost = (line.product_id.standard_price * line.product_qty)
+                    mtl += cost
+                    cost_detail.append([line.product_id, line.product_qty, line.product_id.standard_price, cost, cost_type])
                 # Products marked with 'labor' cost calc type will be added to the labor bucket
                 elif line.product_id.product_tmpl_id.cost_calc_type == 'labor':
-                    lab += (line.product_id.standard_price * line.product_qty)
+                    cost_type = 'labor'
+                    cost = (line.product_id.standard_price * line.product_qty)
+                    lab += cost
+                    cost_detail.append([line.product_id, line.product_qty, line.product_id.standard_price, cost, cost_type])
                 # Take the first product marked as using overhead cost calc
                 # with an overhead percent as the overhead percentage amount to be applied.
                 elif (line.product_id.product_tmpl_id.cost_calc_type == 'overhead' and
@@ -113,10 +131,32 @@ class SaleOrderLine(models.Model):
                         scrap_pct == 0):
                     scrap_pct = line.product_id.product_tmpl_id.scrap_percent
 
-        # Before returning multiple the labor by the overhead percentage to get overhead
-        # and material by the scrap percentage
+        # Now add the overhead and scrap lines
         ovh = lab * (ovh_pct/100)
-        mtl += mtl * (scrap_pct/100)
+        cost_detail.append([None, None, None, ovh, 'overhead'])
+        scrap = mtl * (scrap_pct/100)
+        cost_detail.append([None, None, None, scrap, 'scrap'])
+
+        return cost_detail
+
+    def _compute_bom_cost(self, product_id):
+        mtl = 0.0
+        lab = 0.0
+        ovh = 0.0
+
+        # Get the bom cost detail
+        cost_detail = self._get_bom_cost_detail(product_id)
+
+        # Accumulate material, labor and overhead
+        for cost_line in cost_detail:
+            if cost_line[4] == 'material':
+                mtl += cost_line[3]
+            elif cost_line[4] == 'labor':
+                lab += cost_line[3]
+            elif cost_line[4] == 'overhead':
+                ovh += cost_line[3]
+            elif cost_line[4] == 'scrap':
+                mtl += cost_line[3]
 
         return [mtl, lab, ovh]
 
