@@ -22,6 +22,7 @@ class ExportAccount(models.Model):
                                           inverse_name='export_account_id')
     folder = fields.Char(string="Folder")
     image_folder = fields.Char(string="Image Folder")
+    company_id = fields.Many2one(comodel_name="res.company", string="Company")
 
     _sql_constraints = [
         ('name_uniq', 'unique (name)', "Export account name already exists!"),
@@ -75,22 +76,16 @@ class ExportAccount(models.Model):
 
         return request
 
-    @api.model
-    def check_sage_products(self, export_account):
-
-        # We'll create a list of items discontinued via this routine
-        discontinued_items = {}
-        any_failure = False
-
+    @api.multi
+    def _sage_product_deactivation(self, export_account=''):
         # Get the record for the passed account
-        sage = self.search([('name', '=', export_account)])
-        if sage:
+        export_account_ids = self.search([('name', '=', export_account)])
+        for export_account_id in export_account_ids:
             # Build the SAGE credentials structure
-            sage_cred = sage.get_sage_credentials("ProductDataDownload")
+            sage_cred = export_account_id.get_sage_credentials("ProductDataDownload")
             # Now cal the api to get the list of products from SAGE
-            sagerequest = urllib.request.Request(sage.url,
-                                             data=json.dumps(sage_cred).encode('utf-8'),
-                                             method='POST')
+            sagerequest = urllib.request.Request(export_account_id.url, data=json.dumps(sage_cred).encode('utf-8'),
+                                                 method='POST')
 
             with urllib.request.urlopen(sagerequest) as sageresponse:
                 # Read the entire response
@@ -100,69 +95,70 @@ class ExportAccount(models.Model):
                     sageresponsedict = json.loads(sageresponsestr)
                 except:
                     return
-
                 # Now get the list of saleable products
-                products = self.env['product.template'].get_product_saleable()
+                products = self.env['product.template'].with_context(
+                    sage_product_check=True, company=export_account_id.company_id).get_product_saleable()
                 products_style = products.mapped('product_style_number')
 
                 # Go through each product in the SAGE response.  If not found in the current list of saleable
                 # products then we need to discontinue the product in SAGE
                 for product in sageresponsedict['Products']:
                     if product['ItemNum'] not in products_style:
+                        product_id = self.env['product.template'].search(
+                            [('product_style_number', '=', product['ItemNum'])], limit=1)
                         sage_json_data = {}
                         # Create the basic request
-                        sage_auth = sage.get_sage_credentials("ProductDataUpdate")
+                        sage_auth = export_account_id.get_sage_credentials("ProductDataUpdate")
                         # Build the complete request, adding in the Json to discontinue the product
                         sage_json_data.update(sage_auth)
                         sage_json_data.update(self.SAGEDiscontinueRequest)
-                        sage_json_data['Products'][0]['SuppID'] = sage.account_number
+                        sage_json_data['Products'][0]['SuppID'] = export_account_id.account_number
                         sage_json_data['Products'][0]['ItemNum'] = product['ItemNum']
+                        sage_json_data['Products'][0]['RefNum'] = product['ItemNum']
                         # Send the product update to SAGE. NOTE: you must be VERY careful with the discontinue
                         # code. SAGE does not have a test environment so any discontinue requests will hit their LIVE
                         # database.
-                        sage_disc_request = urllib.request.Request(sage.url,
-                                                             data=json.dumps(sage_json_data).encode('utf-8'),
-                                                             method='POST')
+                        sage_disc_request = urllib.request.Request(export_account_id.url,
+                                                                   data=json.dumps(sage_json_data).encode('utf-8'),
+                                                                   method='POST')
+
+                        error_message = 'Sage discontinue request was failed'
+                        success_message = ''
+
                         # General catch all
                         try:
                             with urllib.request.urlopen(sage_disc_request) as sage_disc_response:
                                 # Read the entire response
                                 sage_disc_responsestr = sage_disc_response.read().decode('utf-8')
-                                # Serialize the response into python. If unable to serialize then break out of the function
+                                # Serialize the response into python.
+                                # If unable to serialize then break out of the function
                                 try:
                                     sage_disc_responsedict = json.loads(sage_disc_responsestr)
                                 except:
-                                    any_failure = True
-                                    discontinued_items[product['ItemNum']] = "Error serializing SAGE response: " + sage_disc_responsestr
+                                    error_message += "\nError serializing SAGE response: " + sage_disc_responsestr
                         except Exception as e:
-                            any_failure = True
-                            discontinued_items[product['ItemNum']] = "An exception occurred discontinuing the SAGE product: {0}".format(traceback.format_exc())
+                            error_message += "\nAn exception occurred discontinuing the SAGE product: {0}".format(traceback.format_exc())
 
                         # If the response was NOT ok then set an error
                         if sage_disc_responsedict['Responses'][0]['OK'] == "0":
-                            any_failure = True
-                            discontinued_items[product['ItemNum']] = sage_disc_responsedict['Responses'][0]['Errors']
+                            error_message += "\nsage_disc_responsedict['Responses'][0]['Errors']"
                         else:
-                            discontinued_items[product['ItemNum']] = "OK"
-
-                # If there was any failure send a helpdesk email with the attached dictionary
-                if any_failure:
-
-                    mail_body = ""
-                    for item, message in discontinued_items.items():
-                        mail_body += item + ": " + message + "\r\n"
-                    mail = self.env['mail.mail']
-
-                    values = {
-                        'model': None,
-                        'res_id': None,
-                        'subject': 'SAGE Cross Check Failure for ' + export_account,
-                        'body': mail_body,
-                        'body_html': mail_body,
-                        'email_from': 'noreply@themagnetgroup.com',
-                        'email_to': 'ithelp@magnetllc.com'
-                    }
-                    mail.create(values).send()
+                            success_message += "Sage discontinue request was successful"
+                        if product_id:
+                            message = success_message if success_message else error_message
+                            if success_message:
+                                product_id.message_post(body=message, message_type='comment', subtype='mail.mt_comment')
+                            else:
+                                self.env['mail.message'].create({
+                                    'email_from': self.env.user.partner_id.email,
+                                    'author_id': self.env.user.partner_id.id,
+                                    'model': 'product.template',
+                                    'type': 'comment',
+                                    'subtype_id': self.env.ref('mail.mt_comment').id,
+                                    'body': message,
+                                    'channel_ids': [(4, self.env.ref('__export__.mail_channel_31_25a840a1').id)],
+                                    'res_id': product_id.id,
+                                })
 
 
 class ProductExportAccount(models.Model):

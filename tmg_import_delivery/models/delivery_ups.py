@@ -5,8 +5,7 @@ from .ups_request import UPS_Request
 from odoo.addons.delivery_ups.models.ups_request import Package
 from odoo.exceptions import UserError
 from odoo.tools import pdf
-
-
+import xml.etree.ElementTree as ET
 
 
 class ProviderUPS(models.Model):
@@ -28,6 +27,135 @@ class ProviderUPS(models.Model):
             ('54', 'UPS Worldwide Express Plus'),
             ('96', 'UPS Worldwide Express Freight')
         ]
+
+    def ups_rate_shipment(self, order):
+        superself = self.sudo()
+        srm = UPS_Request(self.log_xml, superself.ups_username, superself.ups_passwd, superself.ups_shipper_number, superself.ups_access_number, self.prod_environment)
+        ResCurrency = self.env['res.currency']
+        max_weight = self.ups_default_packaging_id.max_weight
+        packages = []
+        total_qty = 0
+        total_weight = 0
+        package_id = False
+        package_list = []
+        for line in order.order_line.filtered(lambda line: line.product_id.type == 'product'):
+            product_package_ids = line.product_id.packaging_ids
+            total_qty += line.product_uom_qty
+            total_weight += line.product_id.weight * line.product_qty
+
+            if product_package_ids:
+                container_qty = product_package_ids[0].qty or 1
+                package_id = product_package_ids[0]
+            elif max_weight and total_weight > max_weight:
+                total_package = int(total_weight / max_weight)
+                last_package_weight = total_weight % max_weight
+
+                for seq in range(total_package):
+                    packages.append(Package(self, max_weight))
+                if last_package_weight:
+                    packages.append(Package(self, last_package_weight))
+                continue
+            else:
+                packages.append(Package(self, total_weight))
+                continue
+            if line.product_uom_qty % container_qty == 0:
+                number_of_pack = line.product_uom_qty/container_qty
+                partial_qty = 0
+            else:
+                partial_qty = line.product_uom_qty % container_qty
+                number_of_pack = ((line.product_uom_qty - partial_qty)/container_qty)
+            weight = line.product_id.weight * container_qty
+            partial_weight = line.product_id.weight * partial_qty
+            for sequence in range(1, int(number_of_pack) + 1):
+                packages.append(Package(self, weight,quant_pack=product_package_ids[0]))
+                package_list.append({'product_id': line.product_id.id,
+                                     'package_dimension': '%sx%sx%s' %
+                                                          (package_id.length, package_id.width, package_id.height),
+                                     'weight': weight,
+                                     'number_of_pieces': container_qty})
+            if partial_weight:
+                number_of_pack += 1
+                packages.append(Package(self, partial_weight, quant_pack= product_package_ids[0]))
+                package_list.append({'product_id': line.product_id.id,
+                                     'package_dimension': '%sx%sx%s' %
+                                                          (package_id.length, package_id.width, package_id.height),
+                                     'weight': partial_weight,
+                                     'number_of_pieces': partial_qty})
+
+        shipment_info = {
+            'total_qty': total_qty  # required when service type = 'UPS Worldwide Express Freight'
+        }
+
+        if self.ups_cod:
+            cod_info = {
+                'currency': order.partner_id.country_id.currency_id.name,
+                'monetary_value': order.amount_total,
+                'funds_code': self.ups_cod_funds_code,
+            }
+        else:
+            cod_info = None
+
+        check_value = srm.check_required_value(order.company_id.partner_id, order.warehouse_id.partner_id, order.partner_shipping_id, order=order)
+        if check_value:
+            return {'success': False,
+                    'price': 0.0,
+                    'error_message': check_value,
+                    'warning_message': False}
+        ups_service_type = order.ups_service_type or self.ups_default_service_type
+        if self.env.context.get('compare_rate', False):
+            ups_service_type = self.ups_default_service_type
+        result = srm.get_shipping_price(
+            shipment_info=shipment_info, packages=packages, shipper=order.company_id.partner_id, ship_from=order.warehouse_id.partner_id,
+            ship_to=order.partner_shipping_id, packaging_type=self.ups_default_packaging_id.shipper_package_code, service_type=ups_service_type,
+            saturday_delivery=self.ups_saturday_delivery, cod_info=cod_info)
+        if result.get('error_message'):
+            return {'success': False,
+                    'price': 0.0,
+                    'error_message': _('Error:\n%s') % result['error_message'],
+                    'warning_message': False}
+
+        if order.currency_id.name == result['currency_code']:
+            price = float(result['price'])
+            list_price = float(result['list_price']) if result.get('list_price') else 0.0
+        else:
+            quote_currency = ResCurrency.search([('name', '=', result['currency_code'])], limit=1)
+            price = quote_currency._convert(
+                float(result['price']), order.currency_id, order.company_id, order.date_order or fields.Date.today())
+            if result.get('list_price'):
+                list_price = quote_currency._convert(float(result['list_price']), order.currency_id, order.company_id,
+                                                     order.date_order or fields.Date.today())
+            else:
+                list_price = 0.0
+
+        if self.ups_bill_my_account and order.ups_carrier_account:
+            # Don't show delivery amount, if ups bill my account option is true
+            price = 0.0
+        transit_dict = {}
+        if self.env.context.get('compare_rate', False):
+            transit_req = srm._add_transit(order.warehouse_id.partner_id, order.partner_shipping_id, total_weight)
+            transit_response = transit_req.content.decode()
+            transit_xml = ET.fromstring(transit_response)
+            desc = ''
+            days = ''
+            for moc in transit_xml:
+                flag = False
+                for node in moc.iter():
+                    if node.tag.partition('}')[2] == 'ServiceSummary':
+                        flag = True
+                    if flag:
+                        if node.tag.partition('}')[2] == 'Description':
+                            desc = node.text
+                        if node.tag.partition('}')[2] == 'BusinessDaysInTransit':
+                            days = node.text
+                    transit_dict[desc] = days
+        return {'success': True,
+                'price': price,
+                'list_price': list_price,
+                'transit_days_dict': transit_dict,
+                'error_message': False,
+                'warning_message': False,
+                'billing_weight': float(result.get('billing_weight', 0)),
+                'package_list': package_list}
 
     def ups_send_shipping(self, pickings):
         res = []
@@ -58,15 +186,10 @@ class ProviderUPS(models.Model):
                 'phone': picking.partner_id.mobile or picking.partner_id.phone or picking.sale_id.partner_id.mobile or picking.sale_id.partner_id.phone,
 
             }
-            if picking.ups_bill_my_account:
-                ups_service_type = picking.ups_service_type
+            if picking.sale_id and picking.sale_id.carrier_id != picking.carrier_id:
+                ups_service_type = picking.ups_service_type or picking.carrier_id.ups_default_service_type or self.ups_default_service_type
             else:
-                ups_service_type = picking.carrier_id.ups_default_service_type
-
-            # if picking.sale_id and picking.sale_id.carrier_id != picking.carrier_id:
-            #     ups_service_type = picking.ups_service_type
-            # else:
-            #     ups_service_type = picking.ups_service_type
+                ups_service_type = picking.ups_service_type or self.ups_default_service_type
             ups_carrier_account = picking.ups_carrier_account
 
             if picking.carrier_id.ups_cod:

@@ -353,9 +353,22 @@ class ProductDecorationArea(models.Model):
 
     @api.constrains('default_decoration')
     def _check_def_decoration(self):
-        if self.env['product.template.decorationarea'].search_count([('product_tmpl_id', '=', self.product_tmpl_id.id), ('default_decoration', '=', True)]) > 1:
-            raise ValidationError('Only one decoration method/area can be marked as the default!')
+        for area in self:
+            if self.env['product.template.decorationarea'].search_count([
+                ('product_tmpl_id', '=', area.product_tmpl_id.id), ('default_decoration', '=', True)]) > 1:
+                raise ValidationError('Only one decoration method/area can be marked as the default!')
         return True
+
+    @api.constrains('decoration_area_id', 'decoration_method_id', 'height', 'width', 'shape', 'diameter')
+    def _check_area_duplicates(self):
+        for area in self:
+            if self.env['product.template.decorationarea'].search_count([
+                ('product_tmpl_id', '=', area.product_tmpl_id.id), ('decoration_area_id', '=', area.decoration_area_id.id),
+                ('decoration_method_id', '=', area.decoration_method_id.id), ('height', '=', area.height),
+                ('width', '=', area.width), ('shape', '=', area.shape), ('diameter', '=', area.diameter)]) > 1:
+                raise ValidationError('Duplicates are not allowed in Decoration Area\'s!')
+        return True
+
 
 class ProductAdditonalCharges(models.Model):
     _name = 'product.addl.charges'
@@ -408,6 +421,7 @@ class ProductTemplate(models.Model):
     data_errors = fields.Html(string='Required Data Errors')
     user_data_error = fields.Boolean(string='Data Error Resolved by User')
     image_last_change_date = fields.Datetime(string="Image Last Change Date")
+    brand = fields.Many2one('product.category', related='categ_id.brand')
     data_last_checked_date = fields.Datetime(string="Data Last Checked Date")
 
     @api.constrains('decoration_method_ids')
@@ -425,6 +439,14 @@ class ProductTemplate(models.Model):
             res = self.search([('active', '=', True), ('sale_ok', '=', True), ('website_published', '=', True),
                                ('type', '=', 'product'), '|', ('data_last_checked_date', '<=', date_limit),
                                ('data_last_checked_date', '=', False)], limit=25)
+        elif self.env.context.get('sage_product_check', False):
+            if self.env.context.get('company_id', False):
+                domain = [('active', '=', True), ('sale_ok', '=', True), ('website_published', '=', True),
+                          ('type', '=', 'product'), ('company_id', '=', self.env.context.get('company_id').id)]
+            else:
+                domain = [('active', '=', True), ('sale_ok', '=', True), ('website_published', '=', True),
+                          ('type', '=', 'product')]
+            res = self.search(domain)
         else:
             res = self.search([('active', '=', True), ('sale_ok', '=', True), ('website_published', '=', True),
                                ('type', '=', 'product')])
@@ -770,6 +792,8 @@ class ProductTemplate(models.Model):
                 messages.append("<li>Product Market Introduction Date missing</li>")
             if not self.website_meta_keywords:
                 messages.append("<li>Product Keywords missing</li>")
+            if not self.brand and not self.categ_id:
+                messages.append("<li>Product Brand missing</li>")
             if not self.public_categ_ids:
                 messages.append("<li>Product Website Categories missing</li>")
             else:
@@ -1153,8 +1177,8 @@ class ProductTemplate(models.Model):
             ET.SubElement(product, "product_id").text = str(self.id)
             ET.SubElement(product, "product_name").text = self.name
             # The name of the product's category is the product category. The name of the top category in the path
-            # is the brand
-            ET.SubElement(product, "brand_name").text = self.categ_id.get_parent_name()
+            # is the brand, related field added in product to directly fetch the brand name.
+            ET.SubElement(product, "brand_name").text = self.get_brand_name()
             ET.SubElement(product, "category_name").text = self.categ_id.name
             ET.SubElement(product, "website_description").text = re.sub('<[^<]+?>', '', self.website_description)
             ET.SubElement(product, "website_description_html").text = self.website_description
@@ -1640,6 +1664,16 @@ class ProductTemplate(models.Model):
                         export_account.write({
                             'export_product_data': True
                         })
+
+    def get_brand_name(self):
+        for product in self:
+            if product.brand:
+                return product.brand.name
+            elif product.categ_id:
+                return product.categ_id.get_parent_name()
+            else:
+                return 'No Data Available'
+
 
 class ProductCategory(models.Model):
     _inherit = 'product.category'

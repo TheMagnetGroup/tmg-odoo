@@ -66,5 +66,17 @@
         </field>
     </record>
 
+
+    <record id="tmg_customer_mass_update_sales_team_action_server" model="ir.actions.server">
+        <field name="name">Change Sales Team</field>
+        <field name="type">ir.actions.server</field>
+        <field name="model_id" ref="base.model_res_partner" />
+        <field name="binding_model_id" ref="base.model_res_partner" />
+        <field name="state">code</field>
+        <field name="code">
+            action = records.action_update_sales_team()
+        </field>
+    </record>
+
   </data>
 </odoo>

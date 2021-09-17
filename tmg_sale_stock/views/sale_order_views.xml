@@ -58,7 +58,9 @@
 	      </xpath>
 
                 <xpath expr="//form[1]/sheet[1]/notebook[1]/page[@name='order_lines']/field[@name='order_line']/form[1]" position="inside">
-                    <div attrs="{'invisible':['|', ('display_type', '=', 'line_section'), ('display_type', '=', 'line_note')]}">
+                    <notebook>
+                        <page name="delivery_ids" string="Shipping">
+                            <div attrs="{'invisible':['|', ('display_type', '=', 'line_section'), ('display_type', '=', 'line_note')]}">
                         <div class="mt8">
                             <!-- <label for="delivery_ids"/>  this label is redundant because it repeats text already existing in the column label for shipping_partner_id -->
                             <button name="%(action_open_sale_line_delivery_wizard)d" type="action" string="Upload File" class="btn-sm btn-primary" style="float:right;"/>
@@ -71,6 +73,10 @@
                             </tree>
                         </field>
                     </div>
+
+                        </page>
+                    </notebook>
+
                 </xpath>
                 <!--<xpath expr="//form[1]/sheet[1]/notebook[1]/page[@name='order_lines']/field[@name='order_line']/tree[1]" position="inside">-->
                     <!--<field name="delivery_ids" readonly="0"/>-->
