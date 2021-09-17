@@ -28,5 +28,6 @@ Manufacturing JOB: Muliple MO processing
         'report/castelli_mrp_report.xml'
     ],
     'license': 'OEEL-1',
-    'application': True
+    'application': True,
+    'cloc_exclude': ['**/*'],
 }

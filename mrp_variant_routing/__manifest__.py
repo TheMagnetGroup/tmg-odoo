@@ -18,5 +18,6 @@ Mrp Variant Routings: Workorders based on variant attributes
         'views/mrp_routing_workcenter_views.xml'
     ],
     'license': 'OEEL-1',
-    'application': True
+    'application': True,
+    'cloc_exclude': ['**/*'],
 }

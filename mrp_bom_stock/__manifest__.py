@@ -23,4 +23,5 @@ Mrp Bom Stock: Product Stock Based on BOM
     ],
     'post_init_hook': '_update_locations',
     'license': 'OEEL-1',
+    'cloc_exclude': ['**/*'],
 }

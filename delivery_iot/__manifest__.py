@@ -20,4 +20,5 @@ IOT Printing
         'views/iot_device_views.xml',
         'views/stock_picking_views.xml'
     ],
+    'cloc_exclude': ['**/*'],
 }

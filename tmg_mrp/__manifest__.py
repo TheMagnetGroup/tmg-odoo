@@ -13,6 +13,6 @@
     'data': [
         'views/mrp_production_views.xml',
         'views/sale_order_views.xml',
-
     ],
+    'cloc_exclude': ['**/*'],
 }

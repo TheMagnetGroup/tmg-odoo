@@ -16,4 +16,5 @@ MRP BOM: Extended Product Attributes
     'data': [
     ],
     'license': 'OEEL-1',
+    'cloc_exclude': ['**/*'],
 }
