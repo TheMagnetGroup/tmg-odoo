@@ -172,5 +172,5 @@ class SaleOrder(models.Model):
                     line.move_ids.filtered(lambda mv: mv.picking_code == 'outgoing').write({'move_orig_ids': [(6, 0, old_move_orig_ids)]})
             if errors:
                 raise UserError('\n'.join(errors))
-            order.CheckHolds()
+
         return True

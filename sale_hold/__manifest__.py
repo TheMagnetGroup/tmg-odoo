@@ -10,6 +10,7 @@ Add sales holds to orders that can block production or delivery. Also implements
     * Christian Dunn – 4/02/2020 – Added picking logic to manufacturing order's picking. 
     * Christian Dunn - 9/29/2020 - Changed to only check holds on line items <> service.
     * Christian Dunn - 2/22/2021 - Added confirmation hold and logic.
+    * Christian Dunn - 9/23/2021 - Fixed bug when update deliveries was executed.
     
 """,
     "author": "The Magnet Group",
