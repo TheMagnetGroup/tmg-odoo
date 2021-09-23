@@ -12,3 +12,8 @@ class hold_stock_move(models.Model):
 
         ret = super(hold_stock_move, self)._action_confirm()
         return ret
+
+    def _assign_picking(self):
+        if self._context.get('update_deliveries'):
+            self = self.with_context(tracking_disable=True)
+        return super(hold_stock_move, self)._assign_picking()

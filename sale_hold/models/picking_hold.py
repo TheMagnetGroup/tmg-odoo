@@ -9,6 +9,8 @@ class picking_sales_hold(models.Model):
     on_hold = fields.Boolean(string="On Hold")
     on_hold_text = fields.Char(string="Hold Text")
 
+
+
     @api.multi
     @api.onchange('on_hold')
     def update_on_change_text(self):
