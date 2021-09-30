@@ -38,15 +38,18 @@ class SaleOrderLine(models.Model):
 
     @api.multi
     def write(self, vals):
+
+        res = super(SaleOrderLine, self).write(vals)
         for record in self:
-            res = super(SaleOrderLine, self).write(vals)
             if vals.get('quick_ship') is not None:
-                data = vals.get('quick_ship')
+                # data = vals.get('quick_ship')
 
                 if any(l.quick_ship and l.product_uom_qty > l.qty_invoiced for l in record.order_id.order_line):
                     record.order_id.quick_ship = True
                 else:
                     record.order_id.quick_ship = False
+        return res
+
 
 
     # @api.multi
@@ -164,7 +167,12 @@ class SaleOrderLine(models.Model):
         frm_cur = self.env.user.company_id.currency_id
         to_cur = order_id.pricelist_id.currency_id
         if product_id.product_tmpl_id.bom_id:
-            purchase_price = sum(self._compute_bom_cost(product_id))
+            # Get the bom cost
+            cost = self._compute_bom_cost(self.product_id)
+            self.material_cost = cost[0]
+            self.labor_cost = cost[1]
+            self.overhead_cost = cost[2]
+            purchase_price = sum(cost)
         else:
             purchase_price = product_id.standard_price
         if product_uom_id != product_id.uom_id:
@@ -190,16 +198,6 @@ class SaleOrderLine(models.Model):
             date or fields.Date.today(), round=False)
         return {'purchase_price': price}
 
-    @api.multi
-    def write(self, values):
-        # Get the bom cost
-        cost = self._compute_bom_cost(self.product_id)
-        values['material_cost'] = cost[0]
-        values['labor_cost'] = cost[1]
-        values['overhead_cost'] = cost[2]
-
-        result = super(SaleOrderLine, self).write(values)
-        return result
 
 class ProductCategory(models.Model):
     _inherit = 'product.category'
