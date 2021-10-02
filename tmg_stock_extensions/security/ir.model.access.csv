@@ -1,2 +1,0 @@
-id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_tmg_stock_extensions_tmg_stock_extensions,tmg_stock_extensions.tmg_stock_extensions,model_tmg_stock_extensions_tmg_stock_extensions,,1,0,0,0

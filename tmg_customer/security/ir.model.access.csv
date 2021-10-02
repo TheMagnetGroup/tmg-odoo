@@ -1,3 +1,0 @@
-id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_buying_group_user,partner.buying.group.user,model_partner_buying_group,base.group_user,1,0,0,0
-access_buying_group_accounting,partner.buying.group.accounting,model_partner_buying_group,account.group_account_invoice,1,1,1,1
