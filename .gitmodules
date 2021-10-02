@@ -32,3 +32,8 @@
 	path = tmg_tiny_apps
 	url = git@github.com:odoo-sh/tmg_tiny_apps.git
 	branch = 12.0
+
+[submodule "tmg_modules"]
+	path = tmg_modules
+	url = git@github.com:TheMagnetGroup/tmg_modules.git
+	branch = 12.0
