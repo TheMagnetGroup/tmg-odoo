@@ -1,5 +1,6 @@
 boto3==1.9.124
 xmltodict==0.12.0
+word2number
 
 # Sodexis
 mkdir_p
