@@ -37,3 +37,7 @@
 	path = tmg_modules
 	url = git@github.com:TheMagnetGroup/tmg_modules.git
 	branch = v14_dev_test
+[submodule "web"]
+	path = web
+	url = https://github.com/OCA/web.git
+	branch = 14.0
