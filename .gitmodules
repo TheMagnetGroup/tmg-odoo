@@ -1,39 +1,39 @@
 [submodule "edi/edi"]
 	path = edi/edi
 	url = git@github.com:odoo-sh/edi.git
-	branch = 12.0
+	branch = 14.0
 
 [submodule "ftp/ftp"]
 	path = ftp/ftp
 	url = git@github.com:odoo-sh/ftp.git
-	branch = 12.0
+	branch = 14.0
 
 [submodule "themagnetgroup"]
 	path = themagnetgroup
 	url = git@github.com:odoo-sh/themagnetgroup.git
-	branch = 12.0
+	branch = 14.0
 
 [submodule "sale-workflow"]
 	path = sale-workflow
 	url = git@github.com:odoo-sh/sale-workflow.git
-	branch = 12.0
+	branch = 14.0
 
 [submodule "authorize-backend"]
 	path = authorize-backend
 	url = git@github.com:odoo-sh/authorize-backend.git
-	branch = 12.0
+	branch = 14.0
 
 [submodule "purchase_vendorbill_advance"]
 	path = purchase_vendorbill_advance
 	url = git@github.com:odoo-sh/purchase_vendorbill_advance.git
-	branch = 12.0
+	branch = 14.0
 
 [submodule "tmg_tiny_apps"]
 	path = tmg_tiny_apps
 	url = git@github.com:odoo-sh/tmg_tiny_apps.git
-	branch = 12.0
+	branch = 14.0
 
 [submodule "tmg_modules"]
 	path = tmg_modules
 	url = git@github.com:TheMagnetGroup/tmg_modules.git
-	branch = 12.0
+	branch = v14_dev_test
