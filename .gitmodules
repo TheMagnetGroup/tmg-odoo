@@ -36,19 +36,23 @@
 [submodule "tmg_modules"]
 	path = tmg_modules
 	url = git@github.com:TheMagnetGroup/tmg_modules.git
-	branch = v14_dev_test
+	branch = 14.0
+
 [submodule "web"]
 	path = web
 	url = https://github.com/OCA/web.git
 	branch = 14.0
+
 [submodule "server-tools"]
 	path = server-tools
 	url = https://github.com/OCA/server-tools.git
 	branch = 14.0
+
 [submodule "reporting-engine"]
 	path = reporting-engine
 	url = https://github.com/OCA/reporting-engine.git
 	branch = 14.0
+
 [submodule "server-auth"]
 	path = server-auth
 	url = https://github.com/OCA/server-auth.git
