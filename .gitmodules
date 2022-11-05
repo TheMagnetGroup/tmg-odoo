@@ -57,3 +57,7 @@
 	path = server-auth
 	url = https://github.com/OCA/server-auth.git
 	branch = 14.0
+[submodule "edit_stock_valuation_layer"]
+	path = edit_stock_valuation_layer
+	url = git@github.com:odoo-sh/edit_stock_valuation_layer.git
+	branch = 14.0
