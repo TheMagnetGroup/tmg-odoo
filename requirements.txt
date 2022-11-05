@@ -5,3 +5,5 @@ xmltodict==0.12.0
 mkdir_p
 word2number==1.1
 pyperclip==1.8.2
+openupgradelib==3.3.2
+suds==1.0.0
