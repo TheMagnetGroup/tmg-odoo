@@ -7,3 +7,4 @@ word2number==1.1
 pyperclip==1.8.2
 openupgradelib==3.3.2
 suds==1.0.0
+boto3==1.17.1
