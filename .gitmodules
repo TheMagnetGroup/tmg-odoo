@@ -69,3 +69,7 @@
 	path = bank-payment
 	url = git@github.com:odoo-sh/bank-payment.git
 	branch = 14.0
+[submodule "maintenance"]
+	path = maintenance
+	url = git@github.com:odoo-sh/maintenance.git
+	branch = 14.0
