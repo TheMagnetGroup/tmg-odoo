@@ -61,3 +61,7 @@
 	path = edit_stock_valuation_layer
 	url = git@github.com:odoo-sh/edit_stock_valuation_layer.git
 	branch = 14.0
+[submodule "L10n-Usa"]
+	path = L10n-Usa
+	url = git@github.com:odoo-sh/L10n-Usa.git
+	branch = 14.0
