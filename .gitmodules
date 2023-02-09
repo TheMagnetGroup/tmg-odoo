@@ -73,3 +73,6 @@
 	path = maintenance
 	url = git@github.com:odoo-sh/maintenance.git
 	branch = 14.0
+[submodule "mail_restrict_auto_follower"]
+	path = mail_restrict_auto_follower
+	url = https://github.com/odoo-sh/mail_restrict_auto_follower.git
