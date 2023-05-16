@@ -61,6 +61,14 @@
 	path = edit_stock_valuation_layer
 	url = git@github.com:odoo-sh/edit_stock_valuation_layer.git
 	branch = 14.0
+[submodule "mail_restrict_auto_follower"]
+	path = mail_restrict_auto_follower
+	url = git@github.com:odoo-sh/mail_restrict_auto_follower.git
+	branch = 14.0
+[submodule "maintenance"]
+	path = maintenance
+	url = git@github.com:odoo-sh/maintenance.git
+	branch = 14.0
 [submodule "L10n-Usa"]
 	path = L10n-Usa
 	url = git@github.com:odoo-sh/L10n-Usa.git
@@ -68,12 +76,4 @@
 [submodule "bank-payment"]
 	path = bank-payment
 	url = git@github.com:odoo-sh/bank-payment.git
-	branch = 14.0
-[submodule "maintenance"]
-	path = maintenance
-	url = git@github.com:odoo-sh/maintenance.git
-	branch = 14.0
-[submodule "mail_restrict_auto_follower"]
-	path = mail_restrict_auto_follower
-	url = git@github.com:odoo-sh/mail_restrict_auto_follower.git
 	branch = 14.0
