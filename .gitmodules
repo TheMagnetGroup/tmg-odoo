@@ -77,3 +77,7 @@
 	path = bank-payment
 	url = git@github.com:odoo-sh/bank-payment.git
 	branch = 14.0
+[submodule "queue"]
+	path = queue
+	url = https://github.com/OCA/queue.git
+	branch = 14.0
