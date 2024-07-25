@@ -1,0 +1,38 @@
+<?xml version ="1.0" encoding="utf-8"?>
+<!-- Copyright 2021 Sodexis License OPL-1 (See LICENSE file for full copyright and licensing details). -->
+<odoo>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.ship.term
+        </field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="sale.res_config_settings_view_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//div[@id='delivery']" position="before">
+                <div class="col-xs-12 col-md-6 o_setting_box" id="ship_term">
+                    <div class="o_setting_left_pane" />
+                    <div class="o_setting_right_pane">
+                        <div class="row mt16">
+                            <label string='Shipping Terms' class="col-md-4" for="prepaid_add"/>
+                        </div>
+                        <div class="row mt8">
+                            <label for="prepaid_add" class="col-md-4 o_light_label" />
+                            <field name="prepaid_add" />
+                            <label for="collect" class="col-md-4 o_light_label" />
+                            <field name="collect" />
+                            <label for="free" class="col-md-4 o_light_label" />
+                            <field name="free" />
+                            <label for="thirdparty" class="col-md-4 o_light_label" />
+                            <field name="thirdparty" />
+                            <label for="cod" class="col-md-4 o_light_label" />
+                            <field name="cod" />
+                        </div>
+                        <div class="row mt16">
+                            <label for="product_id" class="col-md-4" />
+                            <field name="product_id" />
+                        </div>
+                    </div>
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>

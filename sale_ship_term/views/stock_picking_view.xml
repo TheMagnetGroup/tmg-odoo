@@ -1,0 +1,19 @@
+<?xml version ="1.0" encoding="utf-8"?>
+<!-- Copyright 2021 Sodexis
+     License OPL-1 (See LICENSE file for full copyright and licensing details). -->
+
+<odoo>
+    <record id="view_picking_form" model="ir.ui.view">
+        <field name="name">stock.picking.form</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form" />
+        <field name="arch" type="xml">
+            <field name="origin" position="after">
+                <field name="shipping_term" attrs="{'readonly':[('state','in',('done', 'cancel'))],'invisible':[('picking_type_code','!=','outgoing')]}" />
+                <field name="cod_amount" attrs="{'readonly': [('state','in', ('done', 'cancel'))], 'invisible':[('shipping_term','!=','cod')]}" />
+                <field name="third_party_billing_id" attrs="{'readonly':[('state','in',('cancel','done'))], 'invisible':['|',('shipping_term','!=','thirdparty'),('picking_type_code','!=','outgoing')]}" />
+                <field name="carrier_account" attrs="{'readonly':[('state','in',('cancel','done'))], 'invisible':['|',('shipping_term','not in',('thirdparty','collect')),('picking_type_code','!=','outgoing')]}" />
+            </field>
+        </field>
+    </record>
+</odoo>

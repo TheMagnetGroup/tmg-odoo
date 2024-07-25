@@ -1,0 +1,15 @@
+<?xml version ="1.0" encoding="utf-8"?>
+<!-- Copyright 2021 Sodexis
+	 License OPL-1 (See LICENSE file for full copyright and licensing details). -->
+
+<odoo noupdate="1">
+	<record id="default_prepaid_add" model="ir.config_parameter">
+		<field name="key">prepaid_add</field>
+		<field name="value">True</field>
+	</record>
+
+	<record id="default_free" model="ir.config_parameter">
+		<field name="key">free</field>
+		<field name="value">True</field>
+	</record>
+</odoo>
